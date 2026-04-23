@@ -11,6 +11,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY agent ./agent
 COPY api ./api
-COPY dashboard ./dashboard
-COPY tests ./tests
-COPY pytest.ini .
+
+CMD ["python", "-m", "agent.main"]

@@ -7,8 +7,8 @@ from typing import Any, Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from agent.llm.bedrock import invoke_claude, parse_verdict_json
-from agent.llm.prompts import build_messages
+from agent.llm.prompts import assemble_prompt_from_collected
+from agent.llm.vertex import get_verdict
 from agent.tools.docker_events import get_docker_events
 from agent.tools.http_probe import probe_endpoints
 from agent.tools.loki import fetch_loki_logs
@@ -41,35 +41,34 @@ def _fallback_verdict(message: str) -> dict[str, Any]:
         "severity": "warning",
         "summary": "Analysis pipeline degraded; operator review required.",
         "root_cause": message,
-        "recommended_action": "Verify Bedrock credentials, quotas, and network egress.",
+        "recommended_action": "Verify Vertex AI / GCP credentials, quotas, and network egress.",
     }
 
 
 def _analyze(state: GraphState) -> dict[str, Any]:
     collected = state.get("collected") or {}
-    system, user = build_messages(collected)
-    llm = invoke_claude(system, user)
+    prompt = assemble_prompt_from_collected(collected)
+    llm = get_verdict(prompt)
     if not llm.get("ok"):
-        verdict = _fallback_verdict(str(llm.get("message", "unknown_error")))
+        verdict = _fallback_verdict(str(llm.get("message", llm.get("error", "unknown_error"))))
         return {
             "raw_llm": "",
-            "llm_error": str(llm.get("message")),
+            "llm_error": str(llm.get("message", llm.get("error"))),
             "verdict": verdict,
         }
 
-    parsed = parse_verdict_json(str(llm.get("text", "")))
-    if not parsed.get("ok"):
-        verdict = _fallback_verdict(str(parsed.get("message", "parse_error")))
-        return {
-            "raw_llm": str(llm.get("text", "")),
-            "llm_error": str(parsed.get("message")),
-            "verdict": verdict,
-        }
+    raw_llm = str(llm.get("_raw_text", ""))
+    verdict = {
+        "severity": str(llm.get("severity", "warning")),
+        "summary": str(llm.get("summary", "")),
+        "root_cause": str(llm.get("root_cause", "")),
+        "recommended_action": str(llm.get("recommended_action", "")),
+    }
 
     return {
-        "raw_llm": str(llm.get("text", "")),
+        "raw_llm": raw_llm,
         "llm_error": None,
-        "verdict": parsed["verdict"],
+        "verdict": verdict,
     }
 
 

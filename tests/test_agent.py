@@ -37,8 +37,11 @@ def test_critical_severity_triggers_ssh_and_notify(monkeypatch: pytest.MonkeyPat
         "recommended_action": "Rollback and scale up",
     }
 
-    def fake_invoke(_system: str, _user: str) -> dict[str, Any]:
-        return {"ok": True, "text": json.dumps(verdict)}
+    def fake_get_verdict(_context: str) -> dict[str, Any]:
+        out = dict(verdict)
+        out["ok"] = True
+        out["_raw_text"] = json.dumps(verdict)
+        return out
 
     ssh_calls = {"n": 0}
     notify_calls = {"n": 0}
@@ -51,7 +54,7 @@ def test_critical_severity_triggers_ssh_and_notify(monkeypatch: pytest.MonkeyPat
         notify_calls["n"] += 1
         return {"ok": True, "status_code": 200}
 
-    monkeypatch.setattr("agent.orchestrator.invoke_claude", fake_invoke)
+    monkeypatch.setattr("agent.orchestrator.get_verdict", fake_get_verdict)
     monkeypatch.setattr("agent.orchestrator.execute_remote_command", fake_ssh)
     monkeypatch.setattr("agent.orchestrator.send_push_notification", fake_notify)
 
@@ -81,10 +84,13 @@ def test_ok_severity_skips_notify(monkeypatch: pytest.MonkeyPatch) -> None:
         "recommended_action": "None",
     }
 
-    monkeypatch.setattr(
-        "agent.orchestrator.invoke_claude",
-        lambda _s, _u: {"ok": True, "text": json.dumps(verdict)},
-    )
+    def fake_get_verdict_ok(_context: str) -> dict[str, Any]:
+        out = dict(verdict)
+        out["ok"] = True
+        out["_raw_text"] = json.dumps(verdict)
+        return out
+
+    monkeypatch.setattr("agent.orchestrator.get_verdict", fake_get_verdict_ok)
 
     notify_calls = {"n": 0}
 
