@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InfraGuard AI</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        line-height: 1.4;
+      }
+      body {
+        margin: 0 auto;
+        max-width: 960px;
+        padding: 24px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin: 0;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .ok {
+        background: #e6f4ea;
+        color: #137333;
+      }
+      .warning {
+        background: #fff8e1;
+        color: #b06000;
+      }
+      .high {
+        background: #ffe8d9;
+        color: #c2410c;
+      }
+      .critical {
+        background: #fde8e8;
+        color: #b42318;
+      }
+      .unknown {
+        background: #eef1f4;
+        color: #3a3f45;
+      }
+      .card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 6px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #5f6368;
+      }
+      .muted {
+        color: #5f6368;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>InfraGuard — DevPlanner observability</h1>
+      <span id="badge" class="badge unknown">Loading…</span>
+    </header>
+
+    <section class="card">
+      <div class="muted" id="timestamp"></div>
+      <h2 style="margin: 8px 0 0; font-size: 1.05rem">Latest summary</h2>
+      <p id="summary" class="muted">Fetching…</p>
+    </section>
+
+    <section class="card">
+      <h2 style="margin: 0 0 12px; font-size: 1.05rem">Recent alerts</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Severity</th>
+            <th>Summary</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+
+    <p class="muted">Dashboard refreshes every 30 seconds.</p>
+
+    <script>
+      const badge = document.getElementById("badge");
+      const summary = document.getElementById("summary");
+      const rows = document.getElementById("rows");
+      const timestamp = document.getElementById("timestamp");
+
+      function severityClass(sev) {
+        if (sev === "ok") return "ok";
+        if (sev === "warning") return "warning";
+        if (sev === "high") return "high";
+        if (sev === "critical") return "critical";
+        return "unknown";
+      }
+
+      async function refresh() {
+        try {
+          const [statusRes, alertsRes] = await Promise.all([
+            fetch("/status"),
+            fetch("/alerts"),
+          ]);
+          const status = await statusRes.json();
+          const alertsPayload = await alertsRes.json();
+
+          const sev = (status.verdict && status.verdict.severity) || status.severity || "unknown";
+          badge.textContent = sev.toUpperCase();
+          badge.className = "badge " + severityClass(String(sev).toLowerCase());
+
+          const ts = status.created_at || "";
+          timestamp.textContent = ts ? "Last verdict: " + ts : "No verdicts yet.";
+          summary.textContent =
+            (status.verdict && status.verdict.summary) || status.summary || "No summary available.";
+
+          const list = (alertsPayload.alerts || []).slice(0, 10);
+          rows.innerHTML = "";
+          for (const a of list) {
+            const tr = document.createElement("tr");
+            const tdT = document.createElement("td");
+            const tdS = document.createElement("td");
+            const tdM = document.createElement("td");
+            tdT.textContent = a.created_at || "";
+            tdS.textContent = (a.severity || "").toUpperCase();
+            tdM.textContent = a.summary || "";
+            tr.appendChild(tdT);
+            tr.appendChild(tdS);
+            tr.appendChild(tdM);
+            rows.appendChild(tr);
+          }
+        } catch (e) {
+          badge.textContent = "ERROR";
+          badge.className = "badge unknown";
+          summary.textContent = "Failed to load data.";
+        }
+      }
+
+      refresh();
+      setInterval(refresh, 30000);
+    </script>
+  </body>
+</html>
