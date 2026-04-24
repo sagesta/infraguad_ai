@@ -78,7 +78,7 @@ test_files = ["tests/test_tools.py", "tests/test_agent.py"]
 
 - **PYTHONPATH**: run commands from the `infraguard-ai/` directory (see `pytest.ini` and Docker `ENV PYTHONPATH=/app`).
 - **SQLite path**: set `DB_PATH` to a shared path in Docker (compose uses `/data/verdicts.db`).
-- **GCP credentials in Docker**: place your service account JSON at `secrets/infraguard-key.json` (gitignored). Compose mounts it to `/run/secrets/gcp-key.json`; set `GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json` in `.env`.
+- **GCP credentials in Docker**: place your service account JSON **file** at `secrets/gcp-key.json` (gitignored). Compose mounts it to `/run/secrets/gcp-key.json`; set `GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json` in `.env`. If the host path is a directory by mistake, the container sees a directory at the mount target and ADC fails in non-obvious ways—remove the wrong path and use a single JSON file only.
 - **Docker socket**: the agent mounts `/var/run/docker.sock` read-only for `docker_events`, `collect_container_diagnostics`, and `fetch_container_errors` (DevPlanner log tail from `main` heartbeat). Restrict the client to read-only API calls in code; `:ro` on the socket is not a full security boundary.
 - **Docker builds**: `docker-compose.yml` uses `context: .` with `agent/Dockerfile` and `api/Dockerfile` (not separate image contexts, so `requirements.txt` stays at repo root).
 - **Docker events**: uses `DOCKER_HOST` if set, otherwise the default unix socket when available inside the container.

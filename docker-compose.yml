@@ -10,7 +10,7 @@ services:
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp-key.json
       DEVPLANNER_CONTAINER_NAME: ${DEVPLANNER_CONTAINER_NAME:-devplanner-api}
     volumes:
-      - ./secrets/infraguard-key.json:/run/secrets/gcp-key.json:ro
+      - ./secrets/gcp-key.json:/run/secrets/gcp-key.json:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - sqlite_data:/data
     networks:
