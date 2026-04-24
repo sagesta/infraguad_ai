@@ -12,6 +12,12 @@ from google.genai.types import GenerateContentConfig, HttpOptions
 
 MODEL_NAME = "gemini-2.5-flash"
 
+VERDICT_SYSTEM_INSTRUCTION = (
+    "Only assess components that are present in the context. Do not flag missing or "
+    "unconfigured optional tools like Loki or Prometheus as critical issues. If a "
+    "component is absent from the context, ignore it entirely."
+)
+
 _client: genai.Client | None = None
 
 
@@ -104,6 +110,7 @@ def get_verdict(context: str) -> dict[str, Any]:
             model=MODEL_NAME,
             contents=context,
             config=GenerateContentConfig(
+                system_instruction=VERDICT_SYSTEM_INSTRUCTION,
                 response_mime_type="application/json",
                 temperature=0.2,
             ),
