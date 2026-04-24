@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 from typing import Any, Literal, TypedDict
 
@@ -15,11 +14,13 @@ from agent.tools.http_probe import probe_endpoints
 from agent.tools.loki import fetch_loki_logs
 from agent.tools.notify import send_push_notification
 from agent.tools.prometheus import query_prometheus
-from agent.tools.app_errors import fetch_app_errors
 from agent.tools.docker_api import collect_container_diagnostics
 
 
 class GraphState(TypedDict, total=False):
+    """``docker_log_errors`` is optional seed data from ``main`` heartbeat (Docker log scan)."""
+
+    docker_log_errors: list[dict[str, str]]
     collected: dict[str, Any]
     verdict: dict[str, Any]
     raw_llm: str
@@ -28,18 +29,17 @@ class GraphState(TypedDict, total=False):
     notify_result: dict[str, Any] | None
 
 
-def _collect_data(_: GraphState) -> dict[str, Any]:
-    try:
-        app_errors = asyncio.run(fetch_app_errors())
-    except Exception as exc:  # noqa: BLE001
-        app_errors = {"ok": False, "error": "fetch_failed", "message": str(exc), "errors": []}
+def _collect_data(state: GraphState) -> dict[str, Any]:
+    docker_logs = state.get("docker_log_errors")
+    if docker_logs is None:
+        docker_logs = []
 
     collected: dict[str, Any] = {
         "loki": fetch_loki_logs(),
         "prometheus": query_prometheus(),
         "docker": get_docker_events(),
         "http_probe": probe_endpoints(),
-        "app_errors": app_errors,
+        "docker_logs": docker_logs,
     }
     return {"collected": collected}
 
@@ -141,8 +141,12 @@ def build_graph() -> Any:
     return graph.compile()
 
 
-def run_cycle() -> GraphState:
-    """Execute one full orchestration cycle synchronously."""
+def run_cycle(initial: GraphState | None = None) -> GraphState:
+    """Execute one full orchestration cycle synchronously.
+
+    Pass ``initial`` with ``docker_log_errors`` (from ``main`` heartbeat) so Gemini sees
+    DevPlanner container error lines without calling Docker from the LangGraph thread.
+    """
     app = build_graph()
-    result: GraphState = app.invoke({})
+    result: GraphState = app.invoke(dict(initial) if initial else {})
     return result

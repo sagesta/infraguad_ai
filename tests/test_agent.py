@@ -32,11 +32,6 @@ def test_critical_severity_triggers_docker_diagnostics_and_notify(
         lambda: {"ok": True, "probes": []},
     )
 
-    async def fake_app_errors() -> dict[str, Any]:
-        return {"ok": True, "errors": [], "count": 0}
-
-    monkeypatch.setattr("agent.orchestrator.fetch_app_errors", fake_app_errors)
-
     verdict: dict[str, Any] = {
         "severity": "critical",
         "summary": "Simulated outage",
@@ -65,7 +60,7 @@ def test_critical_severity_triggers_docker_diagnostics_and_notify(
     monkeypatch.setattr("agent.orchestrator.collect_container_diagnostics", fake_docker_diag)
     monkeypatch.setattr("agent.orchestrator.send_push_notification", fake_notify)
 
-    final = run_cycle()
+    final = run_cycle({"docker_log_errors": []})
 
     assert final["verdict"]["severity"] == "critical"
     assert docker_calls["n"] == 1
@@ -83,11 +78,6 @@ def test_ok_severity_skips_notify(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda: {"ok": True, "events": [], "flags": {"restarts": [], "unhealthy": [], "other": []}, "count": 0},
     )
     monkeypatch.setattr("agent.orchestrator.probe_endpoints", lambda: {"ok": True, "probes": []})
-
-    async def fake_app_errors_ok() -> dict[str, Any]:
-        return {"ok": True, "errors": [], "count": 0}
-
-    monkeypatch.setattr("agent.orchestrator.fetch_app_errors", fake_app_errors_ok)
 
     verdict = {
         "severity": "ok",
@@ -112,7 +102,7 @@ def test_ok_severity_skips_notify(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("agent.orchestrator.send_push_notification", fake_notify)
 
-    final = run_cycle()
+    final = run_cycle({"docker_log_errors": []})
     assert final["verdict"]["severity"] == "ok"
     assert notify_calls["n"] == 0
     assert final.get("notify_result") is None

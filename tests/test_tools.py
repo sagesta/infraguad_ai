@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+from unittest.mock import MagicMock, patch
 
 import httpx
 import respx
 
-from agent.tools.app_errors import fetch_app_errors
+from agent.tools.docker_logs import fetch_container_errors
 from agent.tools.http_probe import probe_endpoints
 from agent.tools.loki import fetch_loki_logs
 from agent.tools.prometheus import query_prometheus
@@ -82,32 +83,44 @@ def test_loki_missing_env_returns_error_dict() -> None:
     assert out["error"] == "missing_env"
 
 
-@respx.mock
-def test_fetch_app_errors_parses_json_list() -> None:
-    os.environ["DEVPLANNER_API_URL"] = "http://devplanner-api:3000"
-    respx.get(re.compile(r"http://devplanner-api:3000/errors/recent\?limit=50")).mock(
-        return_value=httpx.Response(200, json=[{"message": "boom"}])
+@patch("agent.tools.docker_logs.docker.from_env")
+def test_fetch_container_errors_filters_keywords(mock_from_env: MagicMock) -> None:
+    client = MagicMock()
+    mock_from_env.return_value = client
+    container = MagicMock()
+    container.logs.return_value = (
+        b"2020-01-01T00:00:00.000000000Z info: ok\n"
+        b"2020-01-01T00:00:01.000000000Z Error: database failed\n"
+        b"2020-01-01T00:00:02.000000000Z another line\n"
     )
-    out = asyncio.run(fetch_app_errors())
-    assert out["ok"] is True
-    assert out["count"] == 1
-    assert out["errors"][0]["message"] == "boom"
+    client.containers.get.return_value = container
+
+    out = asyncio.run(fetch_container_errors("svc", tail=100))
+    assert len(out) == 1
+    assert out[0]["timestamp"] == "2020-01-01T00:00:01.000000000Z"
+    assert "Error: database failed" in out[0]["line"]
+    client.close.assert_called_once()
 
 
-@respx.mock
-def test_fetch_app_errors_parses_errors_key() -> None:
-    os.environ["DEVPLANNER_API_URL"] = "http://api.test"
-    respx.get(re.compile(r"http://api\.test/errors/recent\?limit=50")).mock(
-        return_value=httpx.Response(200, json={"errors": [{"code": "E1"}]})
-    )
-    out = asyncio.run(fetch_app_errors())
-    assert out["ok"] is True
-    assert len(out["errors"]) == 1
-    assert out["errors"][0]["code"] == "E1"
+@patch("agent.tools.docker_logs.docker.from_env", side_effect=Exception("no socket"))
+def test_fetch_container_errors_swallows_docker_init(mock_from_env: MagicMock) -> None:
+    out = asyncio.run(fetch_container_errors("any"))
+    assert out == []
 
 
-def test_fetch_app_errors_missing_env() -> None:
-    os.environ.pop("DEVPLANNER_API_URL", None)
-    out = asyncio.run(fetch_app_errors())
-    assert out["ok"] is False
-    assert out["error"] == "missing_env"
+@patch("agent.tools.docker_logs.docker.from_env")
+def test_fetch_container_errors_not_found(mock_from_env: MagicMock) -> None:
+    from docker.errors import NotFound
+
+    client = MagicMock()
+    mock_from_env.return_value = client
+    client.containers.get.side_effect = NotFound("nope")
+
+    out = asyncio.run(fetch_container_errors("missing"))
+    assert out == []
+    client.close.assert_called_once()
+
+
+def test_fetch_container_errors_empty_name() -> None:
+    out = asyncio.run(fetch_container_errors("  \t  "))
+    assert out == []

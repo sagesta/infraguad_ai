@@ -11,6 +11,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from agent.orchestrator import run_cycle
+from agent.tools.docker_logs import fetch_container_errors
 from api.store import init_db, insert_verdict
 
 
@@ -49,7 +50,12 @@ async def heartbeat_loop(interval_seconds: int = 60) -> None:
 
     while True:
         try:
-            final = await asyncio.to_thread(run_cycle)
+            container_name = os.getenv("DEVPLANNER_CONTAINER_NAME", "devplanner-api")
+            docker_log_errors = await fetch_container_errors(container_name)
+            final = await asyncio.to_thread(
+                run_cycle,
+                {"docker_log_errors": docker_log_errors},
+            )
             await _persist_cycle_result(final)
             verdict = final.get("verdict") if isinstance(final.get("verdict"), dict) else {}
             logger.info("Heartbeat cycle completed (severity=%s)", verdict.get("severity"))

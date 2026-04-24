@@ -11,7 +11,7 @@ def assemble_prompt(
     prometheus_metrics: str,
     docker_events: str,
     probe_results: str,
-    app_errors: str,
+    docker_logs: str,
 ) -> str:
     """Build the full user prompt with embedded telemetry sections."""
     return f"""
@@ -35,8 +35,8 @@ TELEMETRY DATA:
 === HTTP PROBE RESULTS ===
 {probe_results}
 
-=== APP ERRORS (recent, limit 50) ===
-{app_errors}
+=== DEVPLANNER DOCKER LOG ERRORS (keyword-filtered tail) ===
+{docker_logs}
 """
 
 
@@ -46,5 +46,5 @@ def assemble_prompt_from_collected(collected: dict[str, Any]) -> str:
     prometheus_metrics = json.dumps(collected.get("prometheus"), indent=2, default=str)
     docker_events = json.dumps(collected.get("docker"), indent=2, default=str)
     probe_results = json.dumps(collected.get("http_probe"), indent=2, default=str)
-    app_errors = json.dumps(collected.get("app_errors"), indent=2, default=str)
-    return assemble_prompt(loki_logs, prometheus_metrics, docker_events, probe_results, app_errors)
+    docker_logs = json.dumps(collected.get("docker_logs"), indent=2, default=str)
+    return assemble_prompt(loki_logs, prometheus_metrics, docker_events, probe_results, docker_logs)
