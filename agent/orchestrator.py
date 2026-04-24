@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Any, Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -15,6 +16,10 @@ from agent.tools.loki import fetch_loki_logs
 from agent.tools.notify import send_push_notification
 from agent.tools.prometheus import query_prometheus
 from agent.tools.docker_api import collect_container_diagnostics
+
+
+def _env_url_set(name: str) -> bool:
+    return bool(os.environ.get(name, "").strip())
 
 
 class GraphState(TypedDict, total=False):
@@ -35,12 +40,14 @@ def _collect_data(state: GraphState) -> dict[str, Any]:
         docker_logs = []
 
     collected: dict[str, Any] = {
-        "loki": fetch_loki_logs(),
-        "prometheus": query_prometheus(),
         "docker": get_docker_events(),
         "http_probe": probe_endpoints(),
         "docker_logs": docker_logs,
     }
+    if _env_url_set("LOKI_URL"):
+        collected["loki"] = fetch_loki_logs()
+    if _env_url_set("PROMETHEUS_URL"):
+        collected["prometheus"] = query_prometheus()
     return {"collected": collected}
 
 

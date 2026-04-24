@@ -6,14 +6,37 @@ import json
 from typing import Any
 
 
-def assemble_prompt(
-    loki_logs: str,
-    prometheus_metrics: str,
-    docker_events: str,
-    probe_results: str,
-    docker_logs: str,
-) -> str:
-    """Build the full user prompt with embedded telemetry sections."""
+def assemble_prompt_from_collected(collected: dict[str, Any]) -> str:
+    """Serialize tool outputs into telemetry blocks for Gemini.
+
+    Loki and Prometheus sections are omitted entirely when those tools were not
+    collected (unconfigured URLs), so the model is not steered by missing-env payloads.
+    """
+    blocks: list[str] = []
+
+    if "loki" in collected:
+        blocks.append(
+            "=== LOGS (last 50 lines) ===\n" + json.dumps(collected["loki"], indent=2, default=str)
+        )
+    if "prometheus" in collected:
+        blocks.append(
+            "=== METRICS (CPU/RAM/Disk) ===\n"
+            + json.dumps(collected["prometheus"], indent=2, default=str)
+        )
+
+    blocks.append(
+        "=== DOCKER EVENTS (last 60s) ===\n" + json.dumps(collected.get("docker"), indent=2, default=str)
+    )
+    blocks.append(
+        "=== HTTP PROBE RESULTS ===\n" + json.dumps(collected.get("http_probe"), indent=2, default=str)
+    )
+    blocks.append(
+        "=== DEVPLANNER DOCKER LOG ERRORS (keyword-filtered tail) ===\n"
+        + json.dumps(collected.get("docker_logs"), indent=2, default=str)
+    )
+
+    telemetry = "\n\n".join(blocks)
+
     return f"""
 You are a senior SRE analyzing infrastructure telemetry.
 Return ONLY valid JSON with these fields:
@@ -23,28 +46,6 @@ Return ONLY valid JSON with these fields:
 - recommended_action: specific steps to resolve
 
 TELEMETRY DATA:
-=== LOGS (last 50 lines) ===
-{loki_logs}
 
-=== METRICS (CPU/RAM/Disk) ===
-{prometheus_metrics}
-
-=== DOCKER EVENTS (last 60s) ===
-{docker_events}
-
-=== HTTP PROBE RESULTS ===
-{probe_results}
-
-=== DEVPLANNER DOCKER LOG ERRORS (keyword-filtered tail) ===
-{docker_logs}
+{telemetry}
 """
-
-
-def assemble_prompt_from_collected(collected: dict[str, Any]) -> str:
-    """Serialize tool outputs into telemetry blocks for ``assemble_prompt``."""
-    loki_logs = json.dumps(collected.get("loki"), indent=2, default=str)
-    prometheus_metrics = json.dumps(collected.get("prometheus"), indent=2, default=str)
-    docker_events = json.dumps(collected.get("docker"), indent=2, default=str)
-    probe_results = json.dumps(collected.get("http_probe"), indent=2, default=str)
-    docker_logs = json.dumps(collected.get("docker_logs"), indent=2, default=str)
-    return assemble_prompt(loki_logs, prometheus_metrics, docker_events, probe_results, docker_logs)
