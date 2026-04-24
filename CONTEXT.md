@@ -13,10 +13,10 @@ compose_file = "docker-compose.yml"
 
 [target]
 app = "DevPlanner (Hono + PostgreSQL + Redis)"
-connectivity = "Tailscale VPN mesh"
+connectivity = "Same host as InfraGuard; Docker Compose internal DNS (service names)"
 metrics_url = "PROMETHEUS_URL env var"
 logs_url = "LOKI_URL env var"
-ssh_host = "TAILSCALE_HOST env var"
+docker_monitored = "MONITORED_CONTAINERS env var (comma-separated container names)"
 
 [llm]
 provider = "Google Vertex AI"
@@ -30,14 +30,14 @@ framework = "LangGraph"
 schedule = "60 second asyncio heartbeat loop"
 severity_levels = ["ok", "warning", "high", "critical"]
 notify_on = ["high", "critical"]
-ssh_exec_on = ["critical"]
+docker_diagnostics_on = ["critical"]
 
 [mcp_tools]
 loki = "fetch_loki_logs() — last 50 lines"
 prometheus = "query_prometheus() — CPU, RAM, disk, error rate"
 docker_events = "get_docker_events() — restarts, unhealthy containers"
+docker_api = "collect_container_diagnostics() — stats, logs, health via Docker socket"
 http_probe = "probe_endpoints() — status + latency"
-ssh_exec = "execute_remote_command() — Paramiko over Tailscale"
 notify = "send_push_notification() — ntfy.sh"
 
 [api]
@@ -57,7 +57,7 @@ topic = "NTFY_TOPIC env var"
 priority_map = { ok = "min", warning = "default", high = "high", critical = "urgent" }
 
 [env_vars]
-required = ["LOKI_URL", "PROMETHEUS_URL", "TAILSCALE_HOST", "SSH_USER", "SSH_KEY_PATH", "GCP_PROJECT_ID", "GCP_REGION", "GOOGLE_APPLICATION_CREDENTIALS", "NTFY_TOPIC", "PROBE_URLS"]
+required = ["LOKI_URL", "PROMETHEUS_URL", "MONITORED_CONTAINERS", "GCP_PROJECT_ID", "GCP_REGION", "GOOGLE_APPLICATION_CREDENTIALS", "NTFY_TOPIC", "PROBE_URLS"]
 
 [testing]
 framework = "pytest + respx"
@@ -69,9 +69,9 @@ test_files = ["tests/test_tools.py", "tests/test_agent.py"]
 - **PYTHONPATH**: run commands from the `infraguard-ai/` directory (see `pytest.ini` and Docker `ENV PYTHONPATH=/app`).
 - **SQLite path**: set `DB_PATH` to a shared path in Docker (compose uses `/data/verdicts.db`).
 - **GCP credentials in Docker**: place your service account JSON at `secrets/infraguard-key.json` (gitignored). Compose mounts it to `/run/secrets/gcp-key.json`; set `GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json` in `.env`.
-- **SSH key in Docker**: place the private key file at `secrets/ssh-key` and set `SSH_KEY_PATH=/run/secrets/ssh-key` (see compose volume mounts).
+- **Docker socket**: the agent mounts `/var/run/docker.sock` read-only for `docker_events` and `collect_container_diagnostics`. Restrict the client to read-only API calls in code; `:ro` on the socket is not a full security boundary.
 - **Docker builds**: `docker-compose.yml` uses `context: .` with `agent/Dockerfile` and `api/Dockerfile` (not separate image contexts, so `requirements.txt` stays at repo root).
-- **Docker events**: optional; set `DOCKER_HOST` (for example `unix:///var/run/docker.sock`) and mount the socket if you want live Docker events inside the agent container.
+- **Docker events**: uses `DOCKER_HOST` if set, otherwise the default unix socket when available inside the container.
 
 ## Cursor / assistant prompt (LLM section)
 

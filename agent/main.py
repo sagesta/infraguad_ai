@@ -34,7 +34,7 @@ async def _persist_cycle_result(final_state: dict[str, object]) -> None:
         }
     extras: dict[str, object] = {
         "notify_result": final_state.get("notify_result"),
-        "ssh_context": final_state.get("ssh_context"),
+        "docker_context": final_state.get("docker_context"),
         "llm_error": final_state.get("llm_error"),
         "raw_llm": final_state.get("raw_llm"),
     }

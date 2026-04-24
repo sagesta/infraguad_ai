@@ -8,10 +8,9 @@ services:
     environment:
       DB_PATH: /data/verdicts.db
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp-key.json
-      SSH_KEY_PATH: /run/secrets/ssh-key
     volumes:
       - ./secrets/infraguard-key.json:/run/secrets/gcp-key.json:ro
-      - ./secrets/ssh-key:/run/secrets/ssh-key:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - sqlite_data:/data
 
   api:

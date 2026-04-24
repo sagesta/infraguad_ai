@@ -14,7 +14,7 @@ from agent.tools.http_probe import probe_endpoints
 from agent.tools.loki import fetch_loki_logs
 from agent.tools.notify import send_push_notification
 from agent.tools.prometheus import query_prometheus
-from agent.tools.ssh_exec import execute_remote_command
+from agent.tools.docker_api import collect_container_diagnostics
 
 
 class GraphState(TypedDict, total=False):
@@ -22,7 +22,7 @@ class GraphState(TypedDict, total=False):
     verdict: dict[str, Any]
     raw_llm: str
     llm_error: str | None
-    ssh_context: dict[str, Any] | None
+    docker_context: dict[str, Any] | None
     notify_result: dict[str, Any] | None
 
 
@@ -75,18 +75,18 @@ def _analyze(state: GraphState) -> dict[str, Any]:
 def _decide_action(state: GraphState) -> dict[str, Any]:
     verdict = state.get("verdict") or {}
     if verdict.get("severity") == "critical":
-        ssh = execute_remote_command()
+        diag = collect_container_diagnostics()
         merged = dict(verdict)
-        if ssh.get("ok"):
-            merged["root_cause"] = merged.get("root_cause", "") + "\n\nSSH context:\n" + json.dumps(
-                ssh, indent=2, default=str
+        if diag.get("ok"):
+            merged["root_cause"] = merged.get("root_cause", "") + "\n\nDocker context:\n" + json.dumps(
+                diag, indent=2, default=str
             )
         else:
-            merged["root_cause"] = merged.get("root_cause", "") + "\n\nSSH collection failed:\n" + json.dumps(
-                ssh, indent=2, default=str
+            merged["root_cause"] = merged.get("root_cause", "") + "\n\nDocker diagnostics failed:\n" + json.dumps(
+                diag, indent=2, default=str
             )
-        return {"ssh_context": ssh, "verdict": merged}
-    return {"ssh_context": None}
+        return {"docker_context": diag, "verdict": merged}
+    return {"docker_context": None}
 
 
 def _route_notify(state: GraphState) -> Literal["notify", "skip"]:
