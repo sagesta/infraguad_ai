@@ -20,10 +20,10 @@ docker_monitored = "MONITORED_CONTAINERS env var (comma-separated container name
 devplanner_logs_container = "DEVPLANNER_CONTAINER_NAME — Docker container name for log error tail (main heartbeat)"
 
 [llm]
-provider = "Google Vertex AI"
-model = "gemini-2.0-flash"
-client = "google-cloud-aiplatform (vertexai)"
-auth = "GOOGLE_APPLICATION_CREDENTIALS — service account JSON key path"
+provider = "Google Vertex AI (Agent Platform)"
+model = "gemini-2.5-flash"
+client = "google-genai (genai.Client, vertexai=True, API v1)"
+auth = "GOOGLE_APPLICATION_CREDENTIALS — service account JSON key path (ADC)"
 output_format = "JSON — severity, summary, root_cause, recommended_action"
 
 [agent]
@@ -66,6 +66,14 @@ framework = "pytest + respx"
 test_files = ["tests/test_tools.py", "tests/test_agent.py"]
 ```
 
+## LLM Client
+
+- **SDK**: `google-genai>=1.0.0` (replaces deprecated `google-cloud-aiplatform` / `vertexai` generative helpers for this app).
+- **Model**: `gemini-2.5-flash` via Vertex AI Agent Platform (`agent/llm/vertex.py` uses `HttpOptions(api_version='v1')` and `vertexai=True`).
+- **Auth**: GCP service account via `GOOGLE_APPLICATION_CREDENTIALS` (Application Default Credentials).
+- **Config**: `GCP_PROJECT_ID`, `GCP_REGION` (default when unset: `us-central1`).
+- **Note**: **Agent Platform APIs must be enabled on the GCP project.** If they are not, inference can fail with **404** responses that look like generic routing errors and are easy to misdiagnose. Enable and manage access in the [Google Cloud Agent Platform console](https://console.cloud.google.com/agent-platform).
+
 ## Runtime notes
 
 - **PYTHONPATH**: run commands from the `infraguard-ai/` directory (see `pytest.ini` and Docker `ENV PYTHONPATH=/app`).
@@ -77,4 +85,4 @@ test_files = ["tests/test_tools.py", "tests/test_agent.py"]
 
 ## Cursor / assistant prompt (LLM section)
 
-Use Google Vertex AI instead of AWS Bedrock. Install the `google-cloud-aiplatform` package. Use model `gemini-2.0-flash` (Vertex model ID; avoid legacy `-001` suffix unless your region publishes it). Authenticate with `GOOGLE_APPLICATION_CREDENTIALS` pointing to a service account JSON key. The `get_verdict()` function in `agent/llm/vertex.py` calls Vertex AI with `response_mime_type="application/json"` and returns a parsed dict with fields: `severity`, `summary`, `root_cause`, `recommended_action` (or `ok: False` plus error fields on failure).
+Use **Google Vertex AI** via the **`google-genai`** SDK (not AWS Bedrock). Install `google-genai>=1.0.0`. Use model **`gemini-2.5-flash`** with `genai.Client(..., vertexai=True, http_options=HttpOptions(api_version='v1'))`. Authenticate with **`GOOGLE_APPLICATION_CREDENTIALS`** pointing to a service account JSON key. The `get_verdict()` function in `agent/llm/vertex.py` calls `client.models.generate_content` with `response_mime_type="application/json"` and returns a parsed dict with fields: `severity`, `summary`, `root_cause`, `recommended_action` (or `ok: False` plus error fields on failure). Ensure **Agent Platform APIs are enabled** on the project (see **LLM Client** above) or expect misleading **404s**.

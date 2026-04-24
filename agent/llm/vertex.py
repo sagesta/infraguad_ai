@@ -7,12 +7,12 @@ import os
 import re
 from typing import Any
 
-import vertexai
-from vertexai.generative_models import GenerationConfig, GenerativeModel
+from google import genai
+from google.genai.types import GenerateContentConfig, HttpOptions
 
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = "gemini-2.5-flash"
 
-_model: GenerativeModel | None = None
+_client: genai.Client | None = None
 
 
 def _extract_json_text(text: str) -> str:
@@ -44,11 +44,11 @@ def _validate_verdict(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _ensure_model() -> dict[str, Any] | GenerativeModel:
-    """Initialize Vertex once and return the model, or an error dict."""
-    global _model
-    if _model is not None:
-        return _model
+def _ensure_client() -> dict[str, Any] | genai.Client:
+    """Build the GenAI client once, or return an error dict."""
+    global _client
+    if _client is not None:
+        return _client
 
     project = os.environ.get("GCP_PROJECT_ID", "").strip()
     if not project:
@@ -69,9 +69,13 @@ def _ensure_model() -> dict[str, Any] | GenerativeModel:
     region = os.environ.get("GCP_REGION", "us-central1").strip() or "us-central1"
 
     try:
-        vertexai.init(project=project, location=region)
-        _model = GenerativeModel(MODEL_NAME)
-        return _model
+        _client = genai.Client(
+            http_options=HttpOptions(api_version="v1"),
+            vertexai=True,
+            project=project,
+            location=region,
+        )
+        return _client
     except Exception as exc:  # noqa: BLE001
         return {
             "ok": False,
@@ -89,16 +93,17 @@ def get_verdict(context: str) -> dict[str, Any]:
     On failure, returns a structured error dict with ``ok: False`` and a ``message`` field
     (does not raise).
     """
-    model_or_err = _ensure_model()
-    if isinstance(model_or_err, dict):
-        return model_or_err
+    client_or_err = _ensure_client()
+    if isinstance(client_or_err, dict):
+        return client_or_err
 
-    model = model_or_err
+    client = client_or_err
 
     try:
-        response = model.generate_content(
-            context,
-            generation_config=GenerationConfig(
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=context,
+            config=GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.2,
             ),
