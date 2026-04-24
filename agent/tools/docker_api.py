@@ -54,7 +54,12 @@ def collect_container_diagnostics() -> dict[str, Any]:
                 out["monitored"].append(entry)
                 continue
 
-            attrs = container.attrs
+            # Shallow copy so we can drop Config.Env (variable names leak into LLM context).
+            attrs = dict(container.attrs)
+            cfg = attrs.get("Config")
+            if isinstance(cfg, dict) and "Env" in cfg:
+                attrs["Config"] = {k: v for k, v in cfg.items() if k != "Env"}
+
             state = attrs.get("State") or {}
             health = state.get("Health")
             entry["status"] = state.get("Status")
