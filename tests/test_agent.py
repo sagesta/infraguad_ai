@@ -32,6 +32,11 @@ def test_critical_severity_triggers_docker_diagnostics_and_notify(
         lambda: {"ok": True, "probes": []},
     )
 
+    async def fake_app_errors() -> dict[str, Any]:
+        return {"ok": True, "errors": [], "count": 0}
+
+    monkeypatch.setattr("agent.orchestrator.fetch_app_errors", fake_app_errors)
+
     verdict: dict[str, Any] = {
         "severity": "critical",
         "summary": "Simulated outage",
@@ -78,6 +83,11 @@ def test_ok_severity_skips_notify(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda: {"ok": True, "events": [], "flags": {"restarts": [], "unhealthy": [], "other": []}, "count": 0},
     )
     monkeypatch.setattr("agent.orchestrator.probe_endpoints", lambda: {"ok": True, "probes": []})
+
+    async def fake_app_errors_ok() -> dict[str, Any]:
+        return {"ok": True, "errors": [], "count": 0}
+
+    monkeypatch.setattr("agent.orchestrator.fetch_app_errors", fake_app_errors_ok)
 
     verdict = {
         "severity": "ok",

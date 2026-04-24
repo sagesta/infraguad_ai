@@ -8,6 +8,7 @@ services:
     environment:
       DB_PATH: /data/verdicts.db
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp-key.json
+      DEVPLANNER_API_URL: ${DEVPLANNER_API_URL:-http://devplanner-api:3000}
     volumes:
       - ./secrets/infraguard-key.json:/run/secrets/gcp-key.json:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro

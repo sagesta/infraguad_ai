@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 
 import httpx
 import respx
 
+from agent.tools.app_errors import fetch_app_errors
 from agent.tools.http_probe import probe_endpoints
 from agent.tools.loki import fetch_loki_logs
 from agent.tools.prometheus import query_prometheus
@@ -76,5 +78,36 @@ def test_probe_endpoints_records_latency() -> None:
 def test_loki_missing_env_returns_error_dict() -> None:
     os.environ.pop("LOKI_URL", None)
     out = fetch_loki_logs()
+    assert out["ok"] is False
+    assert out["error"] == "missing_env"
+
+
+@respx.mock
+def test_fetch_app_errors_parses_json_list() -> None:
+    os.environ["DEVPLANNER_API_URL"] = "http://devplanner-api:3000"
+    respx.get(re.compile(r"http://devplanner-api:3000/errors/recent\?limit=50")).mock(
+        return_value=httpx.Response(200, json=[{"message": "boom"}])
+    )
+    out = asyncio.run(fetch_app_errors())
+    assert out["ok"] is True
+    assert out["count"] == 1
+    assert out["errors"][0]["message"] == "boom"
+
+
+@respx.mock
+def test_fetch_app_errors_parses_errors_key() -> None:
+    os.environ["DEVPLANNER_API_URL"] = "http://api.test"
+    respx.get(re.compile(r"http://api\.test/errors/recent\?limit=50")).mock(
+        return_value=httpx.Response(200, json={"errors": [{"code": "E1"}]})
+    )
+    out = asyncio.run(fetch_app_errors())
+    assert out["ok"] is True
+    assert len(out["errors"]) == 1
+    assert out["errors"][0]["code"] == "E1"
+
+
+def test_fetch_app_errors_missing_env() -> None:
+    os.environ.pop("DEVPLANNER_API_URL", None)
+    out = asyncio.run(fetch_app_errors())
     assert out["ok"] is False
     assert out["error"] == "missing_env"

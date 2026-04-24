@@ -10,7 +10,7 @@ from typing import Any
 import vertexai
 from vertexai.generative_models import GenerationConfig, GenerativeModel
 
-MODEL_NAME = "gemini-2.0-flash-001"
+MODEL_NAME = "gemini-2.0-flash"
 
 _model: GenerativeModel | None = None
 
