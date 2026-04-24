@@ -55,12 +55,11 @@ def collect_container_diagnostics() -> dict[str, Any]:
                 continue
 
             # Shallow copy so we can drop Config.Env (variable names leak into LLM context).
-            attrs = dict(container.attrs)
-            cfg = attrs.get("Config")
-            if isinstance(cfg, dict) and "Env" in cfg:
-                attrs["Config"] = {k: v for k, v in cfg.items() if k != "Env"}
+            inspect_data = dict(container.attrs)
+            if "Config" in inspect_data and "Env" in inspect_data["Config"]:
+                inspect_data["Config"]["Env"] = []
 
-            state = attrs.get("State") or {}
+            state = inspect_data.get("State") or {}
             health = state.get("Health")
             entry["status"] = state.get("Status")
             if health is not None:
@@ -86,7 +85,8 @@ def collect_container_diagnostics() -> dict[str, Any]:
             except (APIError, DockerException) as exc:
                 entry["logs_error"] = str(exc)
 
-            entry["image"] = attrs.get("Config", {}).get("Image") or attrs.get("Image", "")
+            entry["image"] = inspect_data.get("Config", {}).get("Image") or inspect_data.get("Image", "")
+            entry["inspect_data"] = inspect_data
             out["monitored"].append(entry)
 
         try:

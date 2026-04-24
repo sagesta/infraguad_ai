@@ -38,6 +38,8 @@ def _name_matches_monitored(name: str, monitored: list[str]) -> bool:
 
 def _should_omit_event(etype: str, action: str, name: str, monitored: list[str]) -> bool:
     """Drop self-referential deploy noise and off-target die/kill/destroy when MONITORED_* is set."""
+    if "infraguad" in name.lower():
+        return True
     if etype != "container":
         return False
     if action in ("die", "kill", "destroy"):
@@ -82,7 +84,7 @@ def get_docker_events() -> dict[str, Any]:
             }
 
     now = int(time.time())
-    since = now - _EVENTS_WINDOW_SEC
+    since = int(time.time()) - 300
     url = f"{base_url}/v1.45/events"
     params = {"since": str(since), "until": str(now)}
 

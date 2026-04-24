@@ -17,7 +17,7 @@ def probe_endpoints() -> dict[str, Any]:
     """
     raw = os.environ.get("PROBE_URLS", "").strip()
     if not raw:
-        return {"ok": False, "error": "missing_env", "message": "PROBE_URLS is not set"}
+        return {}
 
     urls = [u.strip() for u in raw.split(",") if u.strip()]
     results: list[dict[str, Any]] = []
