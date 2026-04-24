@@ -1,5 +1,7 @@
 services:
   agent:
+    mem_limit: 512m
+    memswap_limit: 512m
     build:
       context: .
       dockerfile: agent/Dockerfile
