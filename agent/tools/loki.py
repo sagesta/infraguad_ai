@@ -9,15 +9,16 @@ from urllib.parse import urljoin
 import httpx
 
 
-def fetch_loki_logs() -> dict[str, Any]:
+def fetch_loki_logs() -> dict[str, Any] | None:
     """
     HTTP GET to Loki API; fetch up to last 50 log lines across streams.
 
     Returns a structured list under ``lines`` or an error dict.
     """
+    if not os.environ.get("LOKI_URL", "").strip():
+        return None
+
     base = os.environ.get("LOKI_URL", "").rstrip("/")
-    if not base:
-        return {"ok": False, "error": "missing_env", "message": "LOKI_URL is not set"}
 
     query = '{job=~".+"}'
     params = {"query": query, "limit": "50"}

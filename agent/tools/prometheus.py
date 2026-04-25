@@ -23,15 +23,16 @@ def _instant_query(client: httpx.Client, base: str, promql: str) -> dict[str, An
         return {"ok": False, "error": str(exc)}
 
 
-def query_prometheus() -> dict[str, Any]:
+def query_prometheus() -> dict[str, Any] | None:
     """
     Query Prometheus for CPU, RAM, disk, and HTTP 5xx rate style signals.
 
     Returns a dict of metric keys to query results (or error sub-dicts).
     """
+    if not os.environ.get("PROMETHEUS_URL", "").strip():
+        return None
+
     base = os.environ.get("PROMETHEUS_URL", "").rstrip("/")
-    if not base:
-        return {"ok": False, "error": "missing_env", "message": "PROMETHEUS_URL is not set"}
 
     queries: dict[str, str] = {
         "cpu_busy_ratio": (

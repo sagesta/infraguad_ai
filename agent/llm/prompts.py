@@ -12,6 +12,9 @@ def _include_http_probe_block(collected: dict[str, Any]) -> bool:
     probe = collected["http_probe"]
     if not isinstance(probe, dict):
         return True
+    # Skip empty dicts (unconfigured) and missing_env sentinels
+    if not probe:
+        return False
     return not (probe.get("ok") is False and probe.get("error") == "missing_env")
 
 
@@ -55,8 +58,13 @@ def assemble_prompt_from_collected(collected: dict[str, Any]) -> str:
     telemetry = "\n\n".join(blocks)
 
     return f"""
-You are a senior SRE analyzing infrastructure telemetry.
-Only the telemetry sections below are in scope. Any standard integration (logs, metrics, HTTP probes) not shown was intentionally omitted because it is not configured for this deployment — treat that as normal, not as missing infrastructure or an incident. Judge severity only from the JSON blocks present.
+You are a senior SRE analyzing infrastructure telemetry for a self-hosted application.
+
+CRITICAL RULES:
+1. Only the telemetry sections below are in scope. If LOGS, METRICS, or HTTP PROBE sections are absent, that means those integrations are NOT deployed — this is normal and expected, NOT an incident. Do NOT mention absent sections.
+2. Do NOT escalate severity because an optional observability component (Loki, Prometheus, log aggregation, metrics collection) is missing. Their absence is a deliberate configuration choice.
+3. DNS resolution errors in HTTP probes to internal Docker hostnames (e.g. "devplanner-api") indicate a Docker networking issue between containers, not a widespread DNS failure.
+4. Focus ONLY on the health of the monitored application itself based on the data present.
 
 Return ONLY valid JSON with these fields:
 - severity: one of "ok", "warning", "high", "critical"

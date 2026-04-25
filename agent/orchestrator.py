@@ -45,15 +45,12 @@ def _collect_data(state: GraphState) -> dict[str, Any]:
     }
     if _env_url_set("PROBE_URLS"):
         collected["http_probe"] = probe_endpoints()
-    if _env_url_set("LOKI_URL"):
-        collected["loki"] = fetch_loki_logs()
-    if _env_url_set("PROMETHEUS_URL"):
-        collected["prometheus"] = query_prometheus()
-    # Never pass loki/prometheus in ``collected`` when URLs are unset (no key, not None).
-    if not _env_url_set("LOKI_URL"):
-        collected.pop("loki", None)
-    if not _env_url_set("PROMETHEUS_URL"):
-        collected.pop("prometheus", None)
+    loki_result = fetch_loki_logs()
+    if loki_result is not None:
+        collected["loki"] = loki_result
+    prometheus_result = query_prometheus()
+    if prometheus_result is not None:
+        collected["prometheus"] = prometheus_result
     return {"collected": collected}
 
 
