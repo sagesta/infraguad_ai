@@ -12,13 +12,13 @@ services:
       - .env
     environment:
       DB_PATH: /data/verdicts.db
-      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp-key.json
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/gcp-key.json
       DEVPLANNER_CONTAINER_NAME: ${DEVPLANNER_CONTAINER_NAME:-devplanner-api}
       LOKI_URL: ${LOKI_URL:-}
       PROMETHEUS_URL: ${PROMETHEUS_URL:-}
       USE_LANGCHAIN_AGENT: ${USE_LANGCHAIN_AGENT:-0}
     volumes:
-      - ./secrets/gcp-key.json:/run/secrets/gcp-key.json:ro
+      - ./credentials:/app/credentials:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - sqlite_data:/data
 

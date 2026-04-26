@@ -96,7 +96,7 @@ jobs:
             echo "CROWDSEC_API_KEY=${{ secrets.CROWDSEC_API_KEY }}" >> "$E"
             echo "NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}" >> "$E"
             echo "NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}" >> "$E"
-            echo "GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json" >> "$E"
+            echo "GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json" >> "$E"
             echo "DEVPLANNER_CONTAINER_NAME=devplanner-api-1" >> "$E"
             echo "MONITORED_CONTAINERS=devplanner-api-1" >> "$E"
             echo "USE_LANGCHAIN_AGENT=1" >> "$E"
