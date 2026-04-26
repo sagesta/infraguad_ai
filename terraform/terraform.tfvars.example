@@ -1,0 +1,14 @@
+# GCP project ID where the resources will be created
+project_id = "your-gcp-project-id"
+
+# GCP region (default is "us-central1")
+region = "us-central1"
+
+# GCP zone (default is "us-central1-a")
+zone = "us-central1-a"
+
+# Name of the GCE VM instance (default is "infraguard-vm")
+vm_name = "infraguard-vm"
+
+# Application name used for naming resources like Firewall and Artifact Registry (default is "infraguard-ai")
+app_name = "infraguard-ai"

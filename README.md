@@ -37,6 +37,8 @@ Copy `.env.example` to `.env` and fill in the required values:
 cp .env.example .env
 ```
 
+**Note:** Set `USE_LANGCHAIN_AGENT=1` in your `.env` to enable full LangChain agentic reasoning (recommended for demo).
+
 **Required Secrets:**
 - `INFRAGUARD_USERNAME` / `INFRAGUARD_PASSWORD` — Dashboard login credentials.
 - `SECRET_KEY` — Random string for session cookie signing.
