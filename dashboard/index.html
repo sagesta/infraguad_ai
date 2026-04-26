@@ -3,171 +3,294 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>InfraGuard AI</title>
+    <title>InfraGuard AI — Dashboard</title>
+    <meta name="description" content="InfraGuard AI DevSecOps observability dashboard" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-      :root {
-        color-scheme: light dark;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        line-height: 1.4;
+      *{margin:0;padding:0;box-sizing:border-box}
+      :root{
+        --bg:#0f1117;--surface:#1a1d27;--surface2:#22252f;
+        --border:rgba(255,255,255,0.07);--text:#e4e4e7;--text-muted:#71717a;
+        --ok:#22c55e;--ok-bg:rgba(34,197,94,0.12);
+        --warn:#eab308;--warn-bg:rgba(234,179,8,0.12);
+        --high:#f97316;--high-bg:rgba(249,115,22,0.12);
+        --crit:#ef4444;--crit-bg:rgba(239,68,68,0.12);
+        --accent:#6366f1;--accent-hover:#818cf8;
       }
-      body {
-        margin: 0 auto;
-        max-width: 960px;
-        padding: 24px;
-      }
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 20px;
-      }
-      h1 {
-        font-size: 1.25rem;
-        margin: 0;
-      }
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-      }
-      .ok {
-        background: #e6f4ea;
-        color: #137333;
-      }
-      .warning {
-        background: #fff8e1;
-        color: #b06000;
-      }
-      .high {
-        background: #ffe8d9;
-        color: #c2410c;
-      }
-      .critical {
-        background: #fde8e8;
-        color: #b42318;
-      }
-      .unknown {
-        background: #eef1f4;
-        color: #3a3f45;
-      }
-      .card {
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 10px;
-        padding: 16px;
-        margin-bottom: 16px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.95rem;
-      }
-      th,
-      td {
-        text-align: left;
-        padding: 8px 6px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-      }
-      th {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #5f6368;
-      }
-      .muted {
-        color: #5f6368;
-        font-size: 0.9rem;
-      }
+      body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+      .container{max-width:1080px;margin:0 auto;padding:20px 24px}
+
+      /* Header */
+      header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;margin-bottom:24px;border-bottom:1px solid var(--border)}
+      .logo{font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:10px}
+      .logo span{background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+      .header-actions{display:flex;align-items:center;gap:12px}
+      .btn-logout{padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-muted);font-size:.8rem;font-family:inherit;cursor:pointer;transition:all .2s}
+      .btn-logout:hover{border-color:var(--accent);color:var(--text)}
+
+      /* Severity badge */
+      .badge{display:inline-flex;align-items:center;padding:4px 14px;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+      .badge.ok{background:var(--ok-bg);color:var(--ok)}
+      .badge.warning{background:var(--warn-bg);color:var(--warn)}
+      .badge.high{background:var(--high-bg);color:var(--high)}
+      .badge.critical{background:var(--crit-bg);color:var(--crit)}
+      .badge.unknown{background:rgba(255,255,255,.06);color:var(--text-muted)}
+
+      /* Cards */
+      .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;transition:border-color .2s}
+      .card:hover{border-color:rgba(255,255,255,.12)}
+      .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+      .card-title{font-size:1rem;font-weight:600}
+      .card-muted{color:var(--text-muted);font-size:.85rem}
+
+      /* Verdict card */
+      .verdict-summary{font-size:1.05rem;line-height:1.6;margin-bottom:16px}
+      .ok-state{text-align:center;padding:40px 20px}
+      .ok-state .icon{font-size:3rem;margin-bottom:12px}
+      .ok-state p{color:var(--text-muted);font-size:1rem}
+
+      /* Collapsible */
+      .collapsible{border-top:1px solid var(--border);margin-top:12px}
+      .collapsible-toggle{width:100%;padding:12px 0;background:none;border:none;color:var(--text-muted);font-size:.85rem;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;text-align:left;transition:color .2s}
+      .collapsible-toggle:hover{color:var(--text)}
+      .collapsible-toggle .arrow{transition:transform .2s;font-size:.7rem}
+      .collapsible-toggle.open .arrow{transform:rotate(90deg)}
+      .collapsible-content{display:none;padding:0 0 12px;color:var(--text-muted);font-size:.9rem;line-height:1.7;white-space:pre-wrap}
+      .collapsible-content.show{display:block}
+
+      /* Alerts table */
+      table{width:100%;border-collapse:collapse;font-size:.9rem}
+      th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}
+      th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:500}
+      td{color:var(--text-muted)}
+      tr:hover td{color:var(--text)}
+
+      /* Spinner */
+      .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top:2px solid var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .loading-state{display:flex;align-items:center;justify-content:center;gap:12px;padding:40px;color:var(--text-muted)}
+
+      /* Grid */
+      .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+      @media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+
+      /* Threats card */
+      .threat-item{padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;font-size:.9rem}
+      .threat-type{font-weight:600;margin-bottom:4px;font-size:.85rem}
+      .threat-ip{color:var(--high);font-family:monospace;font-size:.85rem}
+      .no-threats{text-align:center;padding:24px;color:var(--text-muted)}
+
+      /* Chat panel */
+      .chat-panel{display:flex;flex-direction:column;min-height:300px}
+      .chat-messages{flex:1;overflow-y:auto;max-height:300px;margin-bottom:12px;padding:8px;background:var(--bg);border-radius:8px}
+      .chat-msg{padding:8px 12px;margin-bottom:8px;border-radius:8px;font-size:.9rem;line-height:1.5}
+      .chat-msg.user{background:rgba(99,102,241,.15);margin-left:40px;text-align:right}
+      .chat-msg.bot{background:var(--surface2);margin-right:40px}
+      .chat-input-row{display:flex;gap:8px}
+      .chat-input{flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.9rem;font-family:inherit;outline:none}
+      .chat-input:focus{border-color:var(--accent)}
+      .chat-send{padding:10px 20px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:.85rem;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s}
+      .chat-send:hover{background:var(--accent-hover)}
+      .chat-send:disabled{opacity:.5;cursor:not-allowed}
+
+      /* Footer */
+      .footer{text-align:center;padding:24px 0;color:var(--text-muted);font-size:.8rem;border-top:1px solid var(--border);margin-top:20px}
     </style>
   </head>
   <body>
-    <header>
-      <h1>InfraGuard — DevPlanner observability</h1>
-      <span id="badge" class="badge unknown">Loading…</span>
-    </header>
+    <div class="container">
+      <header>
+        <div class="logo">🛡️ <span>InfraGuard AI</span></div>
+        <div class="header-actions">
+          <span id="badge" class="badge unknown"><span class="spinner"></span></span>
+          <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+      </header>
 
-    <section class="card">
-      <div class="muted" id="timestamp"></div>
-      <h2 style="margin: 8px 0 0; font-size: 1.05rem">Latest summary</h2>
-      <p id="summary" class="muted">Fetching…</p>
-    </section>
+      <!-- Verdict Card -->
+      <div class="card" id="verdictCard">
+        <div class="card-header">
+          <span class="card-title">Current Status</span>
+          <span class="card-muted" id="timestamp">Loading…</span>
+        </div>
+        <div id="verdictBody">
+          <div class="loading-state"><div class="spinner"></div> Analyzing infrastructure…</div>
+        </div>
+      </div>
 
-    <section class="card">
-      <h2 style="margin: 0 0 12px; font-size: 1.05rem">Recent alerts</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Severity</th>
-            <th>Summary</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </section>
+      <div class="grid-2">
+        <!-- Threats Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔒 Threat Detection</span>
+            <span class="badge unknown" id="threatBadge" style="font-size:.7rem">—</span>
+          </div>
+          <div id="threatBody">
+            <div class="no-threats">Scanning…</div>
+          </div>
+        </div>
 
-    <p class="muted">Dashboard refreshes every 30 seconds.</p>
+        <!-- Runbook Chat -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📖 Runbook Assistant</span>
+          </div>
+          <div class="chat-panel">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-msg bot">Ask me anything about your runbooks and incident procedures.</div>
+            </div>
+            <div class="chat-input-row">
+              <input class="chat-input" id="chatInput" placeholder="Ask a question…" />
+              <button class="chat-send" id="chatSend" onclick="sendChat()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Alerts -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Alerts</span>
+          <span class="card-muted" id="alertCount">—</span>
+        </div>
+        <table>
+          <thead><tr><th>Time</th><th>Severity</th><th>Summary</th></tr></thead>
+          <tbody id="alertRows"></tbody>
+        </table>
+      </div>
+
+      <div class="footer">Dashboard auto-refreshes every 30s · InfraGuard AI</div>
+    </div>
 
     <script>
       const badge = document.getElementById("badge");
-      const summary = document.getElementById("summary");
-      const rows = document.getElementById("rows");
       const timestamp = document.getElementById("timestamp");
+      const verdictBody = document.getElementById("verdictBody");
+      const alertRows = document.getElementById("alertRows");
+      const alertCount = document.getElementById("alertCount");
+      const threatBody = document.getElementById("threatBody");
+      const threatBadge = document.getElementById("threatBadge");
 
-      function severityClass(sev) {
-        if (sev === "ok") return "ok";
-        if (sev === "warning") return "warning";
-        if (sev === "high") return "high";
-        if (sev === "critical") return "critical";
-        return "unknown";
+      function sevClass(s){return({"ok":"ok","warning":"warning","high":"high","critical":"critical"})[s]||"unknown"}
+      function sevColor(s){return({"ok":"var(--ok)","warning":"var(--warn)","high":"var(--high)","critical":"var(--crit)"})[s]||"var(--text-muted)"}
+
+      function makeCollapsible(title, content){
+        if(!content||content==="None") return "";
+        const id = "c_"+Math.random().toString(36).slice(2,8);
+        return `<div class="collapsible">
+          <button class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('${id}').classList.toggle('show')">
+            ${title}<span class="arrow">▶</span>
+          </button>
+          <div class="collapsible-content" id="${id}">${content}</div>
+        </div>`;
       }
 
-      async function refresh() {
-        try {
-          const [statusRes, alertsRes] = await Promise.all([
-            fetch("/status"),
-            fetch("/alerts"),
-          ]);
+      async function refreshStatus(){
+        try{
+          const [statusRes, alertsRes] = await Promise.all([fetch("/status"),fetch("/alerts")]);
+          if(statusRes.status===401){window.location="/login";return}
           const status = await statusRes.json();
-          const alertsPayload = await alertsRes.json();
+          const alertsData = await alertsRes.json();
 
-          const sev = (status.verdict && status.verdict.severity) || status.severity || "unknown";
+          const v = status.verdict || {};
+          const sev = (v.severity || status.severity || "unknown").toLowerCase();
+
           badge.textContent = sev.toUpperCase();
-          badge.className = "badge " + severityClass(String(sev).toLowerCase());
+          badge.className = "badge " + sevClass(sev);
 
           const ts = status.created_at || "";
-          timestamp.textContent = ts ? "Last verdict: " + ts : "No verdicts yet.";
-          summary.textContent =
-            (status.verdict && status.verdict.summary) || status.summary || "No summary available.";
+          timestamp.textContent = ts ? new Date(ts).toLocaleString() : "No data yet";
 
-          const list = (alertsPayload.alerts || []).slice(0, 10);
-          rows.innerHTML = "";
-          for (const a of list) {
-            const tr = document.createElement("tr");
-            const tdT = document.createElement("td");
-            const tdS = document.createElement("td");
-            const tdM = document.createElement("td");
-            tdT.textContent = a.created_at || "";
-            tdS.textContent = (a.severity || "").toUpperCase();
-            tdM.textContent = a.summary || "";
-            tr.appendChild(tdT);
-            tr.appendChild(tdS);
-            tr.appendChild(tdM);
-            rows.appendChild(tr);
+          if(sev === "ok"){
+            verdictBody.innerHTML = `<div class="ok-state">
+              <div class="icon">✅</div>
+              <p style="font-size:1.1rem;font-weight:600;color:var(--ok)">No issues detected</p>
+              <p style="margin-top:8px">All monitored systems are healthy.</p>
+            </div>`;
+          } else {
+            const summary = v.summary || status.summary || "No summary available";
+            verdictBody.innerHTML = `
+              <div class="verdict-summary" style="border-left:3px solid ${sevColor(sev)};padding-left:16px">${summary}</div>
+              ${makeCollapsible("🔍 Root Cause", v.root_cause)}
+              ${makeCollapsible("🛠️ Recommended Action", v.recommended_action)}
+            `;
           }
-        } catch (e) {
-          badge.textContent = "ERROR";
-          badge.className = "badge unknown";
-          summary.textContent = "Failed to load data.";
+
+          const alerts = (alertsData.alerts || []).slice(0,15);
+          alertCount.textContent = alerts.length + " recent";
+          alertRows.innerHTML = "";
+          for(const a of alerts){
+            const s = (a.severity||"").toLowerCase();
+            alertRows.innerHTML += `<tr>
+              <td style="font-size:.8rem;white-space:nowrap">${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</td>
+              <td><span class="badge ${sevClass(s)}" style="font-size:.7rem">${(a.severity||"").toUpperCase()}</span></td>
+              <td>${a.summary||""}</td>
+            </tr>`;
+          }
+        }catch(e){
+          badge.textContent="ERROR";badge.className="badge unknown";
+          verdictBody.innerHTML=`<div class="loading-state" style="color:var(--crit)">Failed to load data</div>`;
         }
       }
 
-      refresh();
-      setInterval(refresh, 30000);
+      async function refreshThreats(){
+        try{
+          const res = await fetch("/api/threats");
+          if(res.status===401) return;
+          const data = await res.json();
+          if(!data.threats_found){
+            threatBadge.textContent="CLEAR";threatBadge.className="badge ok";
+            threatBody.innerHTML=`<div class="no-threats">✅ No threats detected</div>`;
+            return;
+          }
+          threatBadge.textContent=data.threat_count+" FOUND";threatBadge.className="badge critical";
+          let html="";
+          for(const t of (data.threats||[])){
+            html+=`<div class="threat-item">
+              <div class="threat-type">${t.threat_type.replace(/_/g," ").toUpperCase()}</div>
+              <div>Source: <span class="threat-ip">${t.source_ip}</span> · ${t.count} events</div>
+              <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px">${t.description}</div>
+            </div>`;
+          }
+          threatBody.innerHTML=html;
+        }catch(e){
+          threatBody.innerHTML=`<div class="no-threats" style="color:var(--text-muted)">Threat scan unavailable</div>`;
+        }
+      }
+
+      async function sendChat(){
+        const input = document.getElementById("chatInput");
+        const btn = document.getElementById("chatSend");
+        const msgs = document.getElementById("chatMessages");
+        const q = input.value.trim();
+        if(!q) return;
+        input.value="";btn.disabled=true;
+        msgs.innerHTML+=`<div class="chat-msg user">${q}</div>`;
+        msgs.innerHTML+=`<div class="chat-msg bot" id="pendingMsg"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Thinking…</div>`;
+        msgs.scrollTop=msgs.scrollHeight;
+        try{
+          const res=await fetch("/api/runbooks/query",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});
+          const data=await res.json();
+          document.getElementById("pendingMsg").remove();
+          const answer=data.answer||data.message||"No answer available";
+          let srcHtml="";
+          if(data.sources&&data.sources.length){srcHtml=`<div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Sources: ${data.sources.map(s=>s.title).join(", ")}</div>`}
+          msgs.innerHTML+=`<div class="chat-msg bot">${answer}${srcHtml}</div>`;
+        }catch(e){
+          const p=document.getElementById("pendingMsg");if(p)p.remove();
+          msgs.innerHTML+=`<div class="chat-msg bot" style="color:var(--crit)">Failed to query runbooks.</div>`;
+        }
+        btn.disabled=false;msgs.scrollTop=msgs.scrollHeight;
+      }
+
+      document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});
+
+      refreshStatus();
+      refreshThreats();
+      setInterval(refreshStatus, 30000);
+      setInterval(refreshThreats, 60000);
     </script>
   </body>
 </html>

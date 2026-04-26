@@ -13,3 +13,8 @@ data/
 *.egg-info/
 dist/
 build/
+chroma_db/
+audit.log
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/.terraform.lock.hcl

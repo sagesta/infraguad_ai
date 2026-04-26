@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>InfraGuard AI — Login</title>
+    <meta name="description" content="Sign in to InfraGuard AI observability dashboard" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+        --bg: #0f1117;
+        --surface: #1a1d27;
+        --border: rgba(255,255,255,0.08);
+        --text: #e4e4e7;
+        --text-muted: #71717a;
+        --accent: #6366f1;
+        --accent-hover: #818cf8;
+        --error: #ef4444;
+      }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 24px;
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .logo h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .logo p {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin-top: 8px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px;
+      }
+      .field {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+      input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 0.95rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+      }
+      button:hover {
+        background: var(--accent-hover);
+      }
+      button:active {
+        transform: scale(0.98);
+      }
+      .error-msg {
+        color: var(--error);
+        font-size: 0.85rem;
+        text-align: center;
+        margin-bottom: 16px;
+        min-height: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo">
+        <h1>🛡️ InfraGuard AI</h1>
+        <p>DevSecOps Observability Platform</p>
+      </div>
+      <div class="card">
+        <form id="loginForm" method="POST" action="/login">
+          <div class="error-msg" id="errorMsg"></div>
+          <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" autocomplete="username" required autofocus />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required />
+          </div>
+          <button type="submit">Sign in</button>
+        </form>
+      </div>
+    </div>
+    <script>
+      const form = document.getElementById("loginForm");
+      const errorMsg = document.getElementById("errorMsg");
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("error") === "1") {
+        errorMsg.textContent = "Invalid username or password.";
+      }
+    </script>
+  </body>
+</html>

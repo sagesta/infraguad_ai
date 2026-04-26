@@ -76,11 +76,10 @@ def test_probe_endpoints_records_latency() -> None:
     assert probes[1]["status_code"] == 500
 
 
-def test_loki_missing_env_returns_error_dict() -> None:
+def test_loki_missing_env_returns_none() -> None:
     os.environ.pop("LOKI_URL", None)
     out = fetch_loki_logs()
-    assert out["ok"] is False
-    assert out["error"] == "missing_env"
+    assert out is None
 
 
 @patch("agent.tools.docker_logs.docker.from_env")

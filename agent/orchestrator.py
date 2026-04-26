@@ -22,6 +22,10 @@ def _env_url_set(name: str) -> bool:
     return bool(os.environ.get(name, "").strip())
 
 
+def _use_langchain_agent() -> bool:
+    return os.environ.get("USE_LANGCHAIN_AGENT", "").strip() == "1"
+
+
 class GraphState(TypedDict, total=False):
     """``docker_log_errors`` is optional seed data from ``main`` heartbeat (Docker log scan)."""
 
@@ -65,8 +69,17 @@ def _fallback_verdict(message: str) -> dict[str, Any]:
 
 def _analyze(state: GraphState) -> dict[str, Any]:
     collected = state.get("collected") or {}
-    prompt = assemble_prompt_from_collected(collected)
-    llm = get_verdict(prompt)
+
+    # LangChain agent path — multi-tool reasoning
+    if _use_langchain_agent():
+        from agent.llm.langchain_agent import run_langchain_agent
+        context = assemble_prompt_from_collected(collected)
+        llm = run_langchain_agent(context=context)
+    else:
+        # Classic path — single Gemini call with pre-assembled prompt
+        prompt = assemble_prompt_from_collected(collected)
+        llm = get_verdict(prompt)
+
     if not llm.get("ok"):
         verdict = _fallback_verdict(str(llm.get("message", llm.get("error", "unknown_error"))))
         return {

@@ -13,6 +13,7 @@ services:
       DEVPLANNER_CONTAINER_NAME: ${DEVPLANNER_CONTAINER_NAME:-devplanner-api}
       LOKI_URL: ${LOKI_URL:-}
       PROMETHEUS_URL: ${PROMETHEUS_URL:-}
+      USE_LANGCHAIN_AGENT: ${USE_LANGCHAIN_AGENT:-0}
     volumes:
       - ./secrets/gcp-key.json:/run/secrets/gcp-key.json:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -31,11 +32,16 @@ services:
       - "8080:8080"
     environment:
       DB_PATH: /data/verdicts.db
+      INFRAGUARD_USERNAME: ${INFRAGUARD_USERNAME:-admin}
+      INFRAGUARD_PASSWORD: ${INFRAGUARD_PASSWORD:-changeme}
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key}
     volumes:
       - sqlite_data:/data
+      - chroma_data:/app/chroma_db
 
 volumes:
   sqlite_data: {}
+  chroma_data: {}
 
 networks:
   devplanner_default:
