@@ -1,5 +1,6 @@
 services:
   agent:
+    image: ${REGISTRY:-infraguard}/agent:latest
     mem_limit: 512m
     memswap_limit: 512m
     build:
@@ -23,6 +24,7 @@ services:
       - devplanner_default
 
   api:
+    image: ${REGISTRY:-infraguard}/api:latest
     build:
       context: .
       dockerfile: api/Dockerfile

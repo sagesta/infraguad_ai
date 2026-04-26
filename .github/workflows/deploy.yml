@@ -61,15 +61,20 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            REGISTRY="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
+            # Export the variable so docker compose can inherit it
+            export REGISTRY="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
 
+            # Change to project directory (using the actual git repo name)
             cd ~/infraguad_ai
 
-            # Pull latest images
+            # Authenticate the VM's Docker daemon to the Artifact Registry
+            gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+            # Pull the latest synchronized images
             docker pull ${REGISTRY}/agent:latest
             docker pull ${REGISTRY}/api:latest
 
-            # Restart services
+            # Restart the orchestrated services
             docker compose down
             docker compose up -d
 
