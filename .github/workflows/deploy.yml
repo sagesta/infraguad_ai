@@ -71,6 +71,39 @@ jobs:
           docker push ${REGISTRY}/api:latest
           docker push ${REGISTRY}/api:${{ github.sha }}
 
+      - name: Write .env on VM
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            E="$HOME/infraguad_ai/.env"
+            mkdir -p "$HOME/infraguad_ai"
+            # Secret values are substituted by GitHub Actions on the runner before the script is sent to the VM.
+            : > "$E"
+            echo "INFRAGUARD_USERNAME=${{ secrets.INFRAGUARD_USERNAME }}" >> "$E"
+            echo "INFRAGUARD_PASSWORD=${{ secrets.INFRAGUARD_PASSWORD }}" >> "$E"
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> "$E"
+            echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" >> "$E"
+            echo "GCP_REGION=${{ secrets.GCP_REGION }}" >> "$E"
+            echo "LOKI_URL=${{ secrets.LOKI_URL }}" >> "$E"
+            echo "PROMETHEUS_URL=${{ secrets.PROMETHEUS_URL }}" >> "$E"
+            echo "NTFY_TOPIC=${{ secrets.NTFY_TOPIC }}" >> "$E"
+            echo "PROBE_URLS=${{ secrets.PROBE_URLS }}" >> "$E"
+            echo "CROWDSEC_API_URL=${{ secrets.CROWDSEC_API_URL }}" >> "$E"
+            echo "CROWDSEC_API_KEY=${{ secrets.CROWDSEC_API_KEY }}" >> "$E"
+            echo "NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}" >> "$E"
+            echo "NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}" >> "$E"
+            echo "GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json" >> "$E"
+            echo "DEVPLANNER_CONTAINER_NAME=devplanner-api-1" >> "$E"
+            echo "MONITORED_CONTAINERS=devplanner-api-1" >> "$E"
+            echo "USE_LANGCHAIN_AGENT=1" >> "$E"
+            echo "DB_PATH=/data/verdicts.db" >> "$E"
+            echo "DOCKER_HOST=unix:///var/run/docker.sock" >> "$E"
+            chmod 600 "$E"
+
       - name: Deploy to GCE VM
         uses: appleboy/ssh-action@v1
         with:
@@ -78,12 +111,15 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            # Export the variable so docker compose can inherit it
+            # Compute REGISTRY and write it into .env so docker compose can interpolate image names
             GCP_REGION="${{ secrets.GCP_REGION }}"
             GCP_REGION="${GCP_REGION%-docker.pkg.dev}"
-            export REGISTRY="${GCP_REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
+            REGISTRY="${GCP_REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
 
-            # Change to project directory (using the actual git repo name)
+            # Append REGISTRY to .env for docker-compose image interpolation
+            grep -q '^REGISTRY=' ~/infraguad_ai/.env 2>/dev/null && sed -i "s|^REGISTRY=.*|REGISTRY=${REGISTRY}|" ~/infraguad_ai/.env || echo "REGISTRY=${REGISTRY}" >> ~/infraguad_ai/.env
+
+            # Change to project directory
             cd ~/infraguad_ai
 
             # Authenticate the VM's Docker daemon to the Artifact Registry
