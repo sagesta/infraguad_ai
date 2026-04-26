@@ -42,17 +42,17 @@ jobs:
         run: |
           REGISTRY="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
 
-          docker build -f agent/Dockerfile -t ${REGISTRY}/agent:latest -t ${REGISTRY}/agent:${{ github.sha }} .
-          docker build -f api/Dockerfile -t ${REGISTRY}/api:latest -t ${REGISTRY}/api:${{ github.sha }} .
+          docker build -f agent/Dockerfile -t ${REGISTRY}:agent-latest -t ${REGISTRY}:agent-${{ github.sha }} .
+          docker build -f api/Dockerfile -t ${REGISTRY}:api-latest -t ${REGISTRY}:api-${{ github.sha }} .
 
       - name: Push to Artifact Registry
         run: |
           REGISTRY="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
 
-          docker push ${REGISTRY}/agent:latest
-          docker push ${REGISTRY}/agent:${{ github.sha }}
-          docker push ${REGISTRY}/api:latest
-          docker push ${REGISTRY}/api:${{ github.sha }}
+          docker push ${REGISTRY}:agent-latest
+          docker push ${REGISTRY}:agent-${{ github.sha }}
+          docker push ${REGISTRY}:api-latest
+          docker push ${REGISTRY}:api-${{ github.sha }}
 
       - name: Deploy to GCE VM
         uses: appleboy/ssh-action@v1
@@ -66,8 +66,8 @@ jobs:
             cd ~/infraguad_ai
 
             # Pull latest images
-            docker pull ${REGISTRY}/agent:latest
-            docker pull ${REGISTRY}/api:latest
+            docker pull ${REGISTRY}:agent-latest
+            docker pull ${REGISTRY}:api-latest
 
             # Restart services
             docker compose down
