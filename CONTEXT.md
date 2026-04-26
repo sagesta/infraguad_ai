@@ -70,6 +70,7 @@ priority_map = { ok = "min", warning = "default", high = "high", critical = "urg
 
 [env_vars]
 required = ["LOKI_URL", "PROMETHEUS_URL", "DEVPLANNER_CONTAINER_NAME", "MONITORED_CONTAINERS", "GCP_PROJECT_ID", "GCP_REGION", "GOOGLE_APPLICATION_CREDENTIALS", "NTFY_TOPIC", "PROBE_URLS", "SECRET_KEY", "INFRAGUARD_USERNAME", "INFRAGUARD_PASSWORD"]
+optional = ["NOTION_TOKEN", "NOTION_DATABASE_ID", "CROWDSEC_API_URL", "CROWDSEC_API_KEY", "USE_LANGCHAIN_AGENT", "DOCKER_HOST"]
 
 [testing]
 framework = "pytest + respx"
