@@ -19,9 +19,6 @@ services:
       - ./secrets/gcp-key.json:/run/secrets/gcp-key.json:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - sqlite_data:/data
-    networks:
-      - default
-      - devplanner_default
 
   api:
     image: ${REGISTRY:-infraguard}/api:latest
@@ -44,7 +41,3 @@ services:
 volumes:
   sqlite_data: {}
   chroma_data: {}
-
-networks:
-  devplanner_default:
-    external: true
