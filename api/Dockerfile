@@ -8,9 +8,9 @@ WORKDIR /app
 
 COPY requirements.txt .
 # python-multipart is required for Starlette/FastAPI `request.form()` (e.g. POST /login).
-# Install explicitly so image builds do not pass without it if requirements drift.
-RUN pip install --no-cache-dir -r requirements.txt "python-multipart>=0.0.18" \
-    && python -c "import python_multipart"
+# The validation import below tests the exact path Starlette uses at runtime.
+RUN pip install --no-cache-dir -r requirements.txt \
+    && python -c "from multipart.multipart import parse_options_header; print('multipart OK')"
 
 COPY agent ./agent
 COPY api ./api

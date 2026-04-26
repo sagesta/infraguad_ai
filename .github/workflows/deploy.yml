@@ -61,8 +61,8 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker build -f agent/Dockerfile -t ${REGISTRY}/agent:latest -t ${REGISTRY}/agent:${{ github.sha }} .
-          docker build -f api/Dockerfile -t ${REGISTRY}/api:latest -t ${REGISTRY}/api:${{ github.sha }} .
+          docker build --no-cache -f agent/Dockerfile -t ${REGISTRY}/agent:latest -t ${REGISTRY}/agent:${{ github.sha }} .
+          docker build --no-cache -f api/Dockerfile -t ${REGISTRY}/api:latest -t ${REGISTRY}/api:${{ github.sha }} .
 
       - name: Push to Artifact Registry
         run: |
