@@ -1,3 +1,5 @@
+# No external Docker networks. Services reach Loki/Prometheus (and the rest) via
+# LOKI_URL and PROMETHEUS_URL in the environment, not a shared host network.
 services:
   agent:
     image: ${REGISTRY:-infraguard}/agent:latest

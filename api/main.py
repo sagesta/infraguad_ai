@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -9,6 +10,15 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
+
+
+def _load_env() -> None:
+    root = Path(__file__).resolve().parents[1]
+    load_dotenv(root / ".env")
+
+
+_load_env()
+
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -16,15 +26,10 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from api import store
-from api.auth import PUBLIC_PATHS, create_session_token, validate_session_token, verify_credentials
+from api.auth import PUBLIC_PATHS, create_session_token, validate_session_token
 from api.middleware.audit import AuditMiddleware
 from api.middleware.rate_limit import limiter
 from api.middleware.security import SecurityHeadersMiddleware
-
-
-def _load_env() -> None:
-    root = Path(__file__).resolve().parents[1]
-    load_dotenv(root / ".env")
 
 
 # --- Auth Middleware ---
@@ -60,7 +65,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _load_env()
     await store.init_db()
     yield
 
@@ -79,10 +83,24 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- Auth Routes ---
 
+
+def _login_page_path() -> Path:
+    return Path(__file__).resolve().parents[1] / "dashboard" / "login.html"
+
+
+def _login_error_response() -> HTMLResponse:
+    text = _login_page_path().read_text(encoding="utf-8")
+    text = text.replace(
+        '<div class="error-msg" id="errorMsg"></div>',
+        '<div class="error-msg" id="errorMsg">Invalid credentials</div>',
+        1,
+    )
+    return HTMLResponse(text)
+
+
 @app.get("/login")
 async def login_page() -> FileResponse:
-    root = Path(__file__).resolve().parents[1]
-    return FileResponse(root / "dashboard" / "login.html")
+    return FileResponse(_login_page_path())
 
 
 @app.post("/login")
@@ -90,8 +108,17 @@ async def login_submit(request: Request) -> Response:
     form = await request.form()
     username = str(form.get("username", "")).strip()
     password = str(form.get("password", "")).strip()
+    expected_user = (os.environ.get("INFRAGUARD_USERNAME") or "").strip()
+    expected_pass = (os.environ.get("INFRAGUARD_PASSWORD") or "").strip()
 
-    if verify_credentials(username, password):
+    if (
+        username
+        and password
+        and expected_user
+        and expected_pass
+        and hmac.compare_digest(username, expected_user)
+        and hmac.compare_digest(password, expected_pass)
+    ):
         token = create_session_token(username)
         response = RedirectResponse("/", status_code=302)
         response.set_cookie(
@@ -103,7 +130,7 @@ async def login_submit(request: Request) -> Response:
         )
         return response
 
-    return RedirectResponse("/login?error=1", status_code=302)
+    return _login_error_response()
 
 
 @app.get("/logout")
