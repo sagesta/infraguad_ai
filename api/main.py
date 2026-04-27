@@ -192,6 +192,14 @@ async def health() -> JSONResponse:
     })
 
 
+# --- Agent Mode ---
+
+@app.get("/api/agent/mode")
+async def get_agent_mode() -> JSONResponse:
+    mode = "langchain" if os.environ.get("USE_LANGCHAIN_AGENT", "").strip() == "1" else "gemini_direct"
+    return JSONResponse({"mode": mode, "model": "gemini-2.5-flash"})
+
+
 # --- Threat Routes ---
 
 @app.get("/api/threats")

@@ -113,3 +113,45 @@ def test_ok_severity_skips_notify(monkeypatch: pytest.MonkeyPatch) -> None:
     assert final["verdict"]["severity"] == "ok"
     assert notify_calls["n"] == 0
     assert final.get("notify_result") is None
+
+
+def test_langchain_mode_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("langgraph")
+
+    monkeypatch.setenv("USE_LANGCHAIN_AGENT", "1")
+    monkeypatch.setenv("PROBE_URLS", "")
+
+    monkeypatch.setattr("agent.orchestrator.fetch_loki_logs", lambda: {"ok": True, "lines": [], "count": 0})
+    monkeypatch.setattr("agent.orchestrator.query_prometheus", lambda: {"ok": True, "metrics": {}})
+    monkeypatch.setattr(
+        "agent.orchestrator.get_docker_events",
+        lambda: {"ok": True, "events": [], "flags": {"restarts": [], "unhealthy": [], "other": []}, "count": 0},
+    )
+    monkeypatch.setattr("agent.orchestrator.probe_endpoints", lambda: {"ok": True, "probes": []})
+
+    verdict: dict[str, Any] = {
+        "severity": "ok",
+        "summary": "All systems healthy",
+        "root_cause": "No issues found",
+        "recommended_action": "None",
+    }
+
+    def fake_langchain_agent(context: str) -> dict[str, Any]:
+        out = dict(verdict)
+        out["ok"] = True
+        out["_raw_text"] = json.dumps(verdict)
+        return out
+
+    monkeypatch.setattr("agent.llm.langchain_agent.run_langchain_agent", fake_langchain_agent)
+
+    notify_calls = {"n": 0}
+
+    def fake_notify(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        notify_calls["n"] += 1
+        return {"ok": True, "status_code": 200}
+
+    monkeypatch.setattr("agent.orchestrator.send_push_notification", fake_notify)
+
+    final = run_cycle({"docker_log_errors": []})
+    assert final["llm_mode"] == "langchain"
+    assert final["verdict"]["severity"] == "ok"

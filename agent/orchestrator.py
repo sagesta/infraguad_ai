@@ -36,6 +36,7 @@ class GraphState(TypedDict, total=False):
     llm_error: str | None
     docker_context: dict[str, Any] | None
     notify_result: dict[str, Any] | None
+    llm_mode: str
 
 
 def _collect_data(state: GraphState) -> dict[str, Any]:
@@ -80,12 +81,15 @@ def _analyze(state: GraphState) -> dict[str, Any]:
         prompt = assemble_prompt_from_collected(collected)
         llm = get_verdict(prompt)
 
+    mode = "langchain" if _use_langchain_agent() else "gemini_direct"
+
     if not llm.get("ok"):
         verdict = _fallback_verdict(str(llm.get("message", llm.get("error", "unknown_error"))))
         return {
             "raw_llm": "",
             "llm_error": str(llm.get("message", llm.get("error"))),
             "verdict": verdict,
+            "llm_mode": mode,
         }
 
     raw_llm = str(llm.get("_raw_text", ""))
@@ -100,6 +104,7 @@ def _analyze(state: GraphState) -> dict[str, Any]:
         "raw_llm": raw_llm,
         "llm_error": None,
         "verdict": verdict,
+        "llm_mode": mode,
     }
 
 

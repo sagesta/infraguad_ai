@@ -29,6 +29,7 @@
       .header-actions{display:flex;align-items:center;gap:12px}
       .btn-logout{padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-muted);font-size:.8rem;font-family:inherit;cursor:pointer;transition:all .2s}
       .btn-logout:hover{border-color:var(--accent);color:var(--text)}
+      .mode-badge{padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:500;letter-spacing:.03em;background:rgba(99,102,241,0.12);color:var(--accent);border:1px solid rgba(99,102,241,0.2)}
 
       /* Severity badge */
       .badge{display:inline-flex;align-items:center;padding:4px 14px;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
@@ -104,6 +105,7 @@
       <header>
         <div class="logo">🛡️ <span>InfraGuard AI</span></div>
         <div class="header-actions">
+          <span id="modeBadge" class="mode-badge">…</span>
           <span id="badge" class="badge unknown"><span class="spinner"></span></span>
           <a href="/logout" class="btn-logout">Logout</a>
         </div>
@@ -287,6 +289,19 @@
 
       document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});
 
+      async function fetchMode(){
+        try{
+          const res=await fetch("/api/agent/mode");
+          if(res.ok){
+            const data=await res.json();
+            const el=document.getElementById("modeBadge");
+            el.textContent=data.mode==="langchain"?"🔗 LangChain Agent":"⚡ Direct Gemini";
+            el.title=data.model;
+          }
+        }catch(e){}
+      }
+
+      fetchMode();
       refreshStatus();
       refreshThreats();
       setInterval(refreshStatus, 30000);

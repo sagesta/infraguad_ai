@@ -33,6 +33,7 @@ severity_levels = ["ok", "warning", "high", "critical"]
 notify_on = ["high", "critical"]
 docker_diagnostics_on = ["critical"]
 langchain_mode = "USE_LANGCHAIN_AGENT=1 uses LangChain multi-tool reasoning instead of single-shot Gemini"
+llm_mode_field = "Each verdict includes llm_mode ('langchain' or 'gemini_direct') to track which reasoning path produced it"
 
 [mcp_tools]
 loki = "fetch_loki_logs() — last 50 lines"
@@ -47,7 +48,7 @@ threats = "analyze_threats() / apply_crowdsec_decision() — CrowdSec integratio
 [api]
 framework = "FastAPI"
 storage = "SQLite via aiosqlite"
-endpoints = ["/status", "/alerts", "/health", "/login", "/logout", "/api/threats", "/api/threats/apply", "/api/runbooks/query", "/api/runbooks/index"]
+endpoints = ["/status", "/alerts", "/health", "/login", "/logout", "/api/agent/mode", "/api/threats", "/api/threats/apply", "/api/runbooks/query", "/api/runbooks/index"]
 docker_port = "8080"
 middleware = ["SecurityHeadersMiddleware", "AuditMiddleware", "AuthMiddleware"]
 auth = "Cookie-based session using itsdangerous, INFRAGUARD_USERNAME and INFRAGUARD_PASSWORD env vars"

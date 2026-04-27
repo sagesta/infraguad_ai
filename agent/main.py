@@ -38,6 +38,7 @@ async def _persist_cycle_result(final_state: dict[str, object]) -> None:
         "docker_context": final_state.get("docker_context"),
         "llm_error": final_state.get("llm_error"),
         "raw_llm": final_state.get("raw_llm"),
+        "llm_mode": final_state.get("llm_mode", "unknown"),
     }
     await insert_verdict(verdict, extras)
 
