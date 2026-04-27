@@ -6,6 +6,9 @@
 
 ## Basic Explanation & App Flow
 
+<img width="425" height="306" alt="image" src="https://github.com/user-attachments/assets/354f2357-90d9-472b-b63f-b8decd700ee3" />
+
+
 How does InfraGuard AI work?
 
 1. **Telemetry Collection**: Every 120 seconds, the InfraGuard **Agent** wakes up and gathers data from your infrastructure:
