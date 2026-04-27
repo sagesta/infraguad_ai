@@ -104,6 +104,15 @@ jobs:
             echo "DOCKER_HOST=unix:///var/run/docker.sock" >> "$E"
             chmod 600 "$E"
 
+      - name: Copy docker-compose.yml to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "infraguad_ai/"
+
       - name: Deploy to GCE VM
         uses: appleboy/ssh-action@v1
         with:
