@@ -12,7 +12,7 @@ services:
       - PYTHONPATH=/app
       - DB_PATH=/data/verdicts.db
     volumes:
-      - /app/credentials:/app/credentials:ro
+      - ./credentials:/app/credentials:ro
       - sqlite_data:/data
       - chroma_data:/app/chroma_db
     restart: unless-stopped
@@ -31,7 +31,7 @@ services:
       - PYTHONPATH=/app
       - DB_PATH=/data/verdicts.db
     volumes:
-      - /app/credentials:/app/credentials:ro
+      - ./credentials:/app/credentials:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - sqlite_data:/data
     restart: unless-stopped

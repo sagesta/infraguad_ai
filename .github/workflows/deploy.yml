@@ -60,6 +60,15 @@ jobs:
           docker push ${REGISTRY}/agent:latest
           docker push ${REGISTRY}/api:latest
 
+      - name: Copy docker-compose.yml to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "infraguad_ai/"
+
       - name: Deploy to GCE VM
         uses: appleboy/ssh-action@v1
         with:
@@ -67,9 +76,10 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            cd /app
+            mkdir -p infraguad_ai
+            cd infraguad_ai
             export REGISTRY="${{ env.REGISTRY }}"
-            cat > /app/.env <<EOF
+            cat > .env <<EOF
             INFRAGUARD_USERNAME=${{ secrets.INFRAGUARD_USERNAME }}
             INFRAGUARD_PASSWORD=${{ secrets.INFRAGUARD_PASSWORD }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
