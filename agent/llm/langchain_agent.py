@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from agent.tools.langchain_tools import ALL_TOOLS
 
@@ -37,6 +37,15 @@ After gathering all data, produce your final verdict as a JSON object with exact
 - recommended_action: specific steps to resolve
 
 You must return ONLY raw, valid JSON. Under no circumstances should you utilize markdown code blocks, backticks, or append any conversational dialogue."""
+
+def extract_raw_text(output: Any) -> str:
+    """Extract raw text from a potential list of blocks."""
+    if isinstance(output, list):
+        for block in output:
+            if isinstance(block, dict) and block.get('type') == 'text':
+                return block.get('text', '')
+        return str(output)
+    return str(output)
 
 
 def _extract_json(text: str) -> dict[str, Any] | None:
@@ -97,10 +106,8 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
         return {"ok": False, "error": "missing_env", "message": "GCP_PROJECT_ID is not set"}
 
     try:
-        llm = ChatVertexAI(
-            model_name="gemini-2.5-flash",
-            project=project,
-            location=region,
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
             temperature=0.2,
             max_output_tokens=2048,
         )
@@ -146,9 +153,13 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
                     ))
 
         # Extract verdict from final response
-        final_text = str(response.content) if hasattr(response, "content") else ""
-        if not final_text:
+        raw_output = response.content if hasattr(response, "content") else ""
+        if not raw_output:
             return {"ok": False, "error": "empty_output", "message": "LangChain agent returned no text"}
+
+        final_text = extract_raw_text(raw_output)
+        final_text = re.sub(r'^```json\s*', '', final_text.strip())
+        final_text = re.sub(r'```$', '', final_text.strip())
 
         logger.warning("LangChain agent raw output (first 500 chars): %s", final_text[:500])
         parsed = _extract_json(final_text)
