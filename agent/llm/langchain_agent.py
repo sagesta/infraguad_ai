@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -141,8 +144,13 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
         if not final_text:
             return {"ok": False, "error": "empty_output", "message": "LangChain agent returned no text"}
 
+        logger.debug("LangChain agent raw output: %s", final_text[:500])
         parsed = _extract_json(final_text)
         if not parsed:
+            logger.warning(
+                "Could not parse verdict JSON from agent output. Raw (first 300 chars): %r",
+                final_text[:300],
+            )
             return {
                 "ok": False,
                 "error": "json_decode",
