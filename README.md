@@ -1,84 +1,82 @@
 # InfraGuard AI
 
-**InfraGuard AI** is an agentic DevSecOps observability platform. It monitors your applications (such as DevPlanner), analyzes telemetry (logs, metrics, and HTTP probes) using Google Vertex AI (Gemini 2.5 Flash), and automatically detects threats or infrastructure failures.
+**InfraGuard AI** is an intelligent, self-hosted DevSecOps observability agent. It continuously monitors your infrastructure (like web apps, containers, and VMs) and acts as an automated Site Reliability Engineer (SRE). Instead of just showing you dashboards, InfraGuard uses AI to read logs, analyze metrics, and automatically determine if your system is healthy, under attack, or failing.
 
-## Key Features
+---
 
-1. **Agentic Observability (Gemini 2.5 Flash)**
-   - Integrates with Loki, Prometheus, and Docker events.
-   - Evaluates system health and provides root cause analysis and recommended actions.
-   - Operates in either single-shot mode or using **LangChain** multi-tool reasoning (`USE_LANGCHAIN_AGENT=1`).
+## Basic Explanation & App Flow
 
-2. **Automated Threat Detection**
-   - Scans Loki logs for SSH brute forcing, HTTP brute forcing, and port scans.
-   - Proposes actionable CrowdSec decisions to ban malicious IPs (supports dry-run mode when CrowdSec is not installed).
+How does InfraGuard AI work?
 
-3. **RAG Runbook Assistant**
-   - Connects to Notion to index runbooks into a local ChromaDB vector store.
-   - Provides a conversational AI interface on the dashboard to query runbooks during incidents.
+1. **Telemetry Collection**: Every 120 seconds, the InfraGuard **Agent** wakes up and gathers data from your infrastructure:
+   - **Loki**: Fetches recent application and system error logs.
+   - **Prometheus**: Checks CPU, memory, disk, and HTTP error rate metrics.
+   - **Docker**: Scans for containers that have crashed, restarted, or become unhealthy.
+   - **HTTP Probes**: Pings your endpoints to ensure they are online and responsive.
+2. **AI Reasoning (Vertex AI)**: The agent sends this raw data to **Google Vertex AI** (using the Gemini 2.5 Flash model). The AI acts as an SRE, reasoning through the data using LangChain tools to diagnose root causes and recommend actions.
+3. **Runbook Context**: Before deciding on an action, the agent fetches relevant IT Runbooks directly from a **Notion Database**. This ensures the AI's recommendations match your company's actual procedures.
+4. **Verdict Generation**: The AI generates a final JSON verdict (e.g., `ok`, `warning`, `high`, `critical`) alongside a plain-English summary, root cause analysis, and recommended action.
+5. **Dashboard & Threat Response**: The verdict is saved to a local SQLite database and displayed on the secure **InfraGuard Dashboard** (served by the API). The system also scans for active attacks (like SSH brute forcing) and can auto-generate firewall rules using CrowdSec.
 
-4. **Secure Dashboard & API**
-   - Modern dark-mode UI with severity badges, threat panels, and a runbook chat interface.
-   - **Authentication**: Session-cookie based login system (`INFRAGUARD_USERNAME`, `INFRAGUARD_PASSWORD`).
-   - **Security Hardening**: Strict CSP/security headers, rate limiting (60/min), and audit logging (`audit.log`).
+---
 
-5. **Cloud-Native Infrastructure**
-   - **Terraform** configuration for deploying to Google Cloud Engine (GCE) with Artifact Registry.
-   - **GitHub Actions** CI/CD pipeline for automated testing and deployment.
-   - **Promtail** configuration for pushing local VM logs to a cloud Loki instance.
+## Tools & Technologies Used
 
-## Setup Instructions
+- **Backend Framework**: Python (FastAPI for the dashboard/API, standard Python for the Agent loop).
+- **AI / LLM**: Google Vertex AI (Gemini 2.5 Flash) via LangChain and LangGraph for agentic reasoning.
+- **RAG (Retrieval-Augmented Generation)**: ChromaDB (Vector Store) and Notion API for fetching and querying runbooks.
+- **Observability Stack**: Prometheus (Metrics), Grafana Loki (Logs), Promtail (Log Shipping).
+- **Security**: CrowdSec (IP banning), secure session cookies, strict CORS/CSP policies.
+- **Deployment**: Docker Compose, GitHub Actions (CI/CD), Terraform, Google Compute Engine (GCE).
 
-### 1. Environment Variables
+---
 
-Copy `.env.example` to `.env` and fill in the required values:
+## Environment Variables Needed
 
+To run InfraGuard AI, you must configure the following variables in your `.env` file (see `.env.example`):
+
+### 1. Core Security & Authentication
+- `INFRAGUARD_USERNAME` — Your desired username for the dashboard.
+- `INFRAGUARD_PASSWORD` — Your desired password for the dashboard.
+- `SECRET_KEY` — A random cryptographic string for signing session cookies.
+
+### 2. Google Cloud / AI Authentication
+- `GCP_PROJECT_ID` — Your Google Cloud Project ID.
+- `GCP_REGION` — Your Google Cloud Region (e.g., `us-central1`).
+- `GOOGLE_APPLICATION_CREDENTIALS` — Absolute path to your GCP Service Account JSON key (must have Vertex AI user permissions).
+- `USE_LANGCHAIN_AGENT` — Set to `1` to enable full multi-tool AI reasoning (recommended).
+
+### 3. Observability Endpoints
+- `LOKI_URL` — The URL to your Loki instance (e.g., `http://100.66.123.4:3100`).
+- `PROMETHEUS_URL` — The URL to your Prometheus instance (e.g., `http://100.66.123.4:9090`).
+- `PROBE_URLS` — Comma-separated URLs to ping for uptime checking (e.g., `https://my-app.com/health`).
+
+### 4. Runbooks (Notion RAG)
+- `NOTION_TOKEN` — Your Notion Internal Integration Token.
+- `NOTION_DATABASE_ID` — The ID of the Notion Database containing your runbooks.
+
+### 5. Security (Optional)
+- `CROWDSEC_API_URL` / `CROWDSEC_API_KEY` — (Optional) To push automated IP bans to your CrowdSec Local API.
+
+---
+
+## Setup & Deployment
+
+### Local Development
+1. Copy the example env file: `cp .env.example .env`
+2. Fill out the variables listed above.
+3. Start the stack: `docker compose up -d --build`
+4. Access the dashboard at `http://localhost:8000` (Login required).
+
+### Production Deployment (GitHub Actions to GCE)
+The project includes a `.github/workflows/deploy.yml` pipeline. When you push to `main`:
+1. It builds the Docker images for the `agent` and `api`.
+2. It pushes them to Google Artifact Registry.
+3. It SSHs into your VM, updates the `.env` file using GitHub Secrets, and restarts Docker Compose.
+
+### Indexing Notion Runbooks
+Once the app is running, index your runbooks from Notion into the AI's memory by triggering the endpoint:
 ```bash
-cp .env.example .env
+curl -X GET http://localhost:8000/api/runbooks/index -b "session=<your_session_cookie>"
 ```
-
-**Note:** Set `USE_LANGCHAIN_AGENT=1` in your `.env` to enable full LangChain agentic reasoning (recommended for demo).
-
-**Required Secrets:**
-- `INFRAGUARD_USERNAME` / `INFRAGUARD_PASSWORD` — Dashboard login credentials.
-- `SECRET_KEY` — Random string for session cookie signing.
-- `GCP_PROJECT_ID` — Your Google Cloud project ID.
-- `GOOGLE_APPLICATION_CREDENTIALS` — Path to your GCP Service Account JSON key (must have Vertex AI access).
-- `NOTION_TOKEN` / `NOTION_DATABASE_ID` — Required for the RAG runbook assistant.
-
-### 2. Local Development
-
-Run the entire stack locally using Docker Compose:
-
-```bash
-docker compose up -d --build
-```
-
-The dashboard will be available at `http://localhost:8080`. You will be redirected to `/login`.
-
-### 3. Loading Notion Runbooks
-
-To index your runbooks from Notion into ChromaDB:
-
-```bash
-curl -X GET http://localhost:8080/api/runbooks/index -b "session=<your_session_cookie>"
-```
-*(Or navigate to `/api/runbooks/index` in an authenticated browser window).*
-
-### 4. Promtail Setup (Log Shipping)
-
-To push logs from a standalone VM to your cloud Loki instance:
-
-```bash
-cd promtail
-sudo bash setup.sh <YOUR_LOKI_URL>
-```
-This will download Promtail, configure it to scrape system logs and Docker logs, and start it as a systemd service.
-
-## Architecture
-
-- **Agent Component (`agent/`)**: Runs a 60-second LangGraph loop. Collects Docker events, queries telemetry, and invokes Gemini via Vertex AI to generate verdicts.
-- **API Component (`api/`)**: Serves the dashboard, handles authentication, and exposes endpoints for threats and RAG queries.
-- **Data Stores**: Uses `aiosqlite` for verdict persistence and ChromaDB for vector embeddings.
-
-For deeper technical details, see [CONTEXT.md](./CONTEXT.md).
+*(Or simply navigate to `/api/runbooks/index` in an authenticated browser).*
