@@ -6,6 +6,8 @@ on:
 
 env:
   IMAGE_NAME: infraguard-ai
+  REGISTRY: ""
+  GCP_REGION: ""
 
 jobs:
   test-build-deploy:
@@ -36,111 +38,61 @@ jobs:
 
       - name: Resolve Artifact Registry settings
         env:
-          GCP_REGION_SECRET: ${{ secrets.GCP_REGION }}
+          GCP_REGION: ${{ secrets.GCP_REGION }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           ARTIFACT_REGISTRY_REPO: ${{ secrets.ARTIFACT_REGISTRY_REPO }}
         run: |
-          GCP_REGION_NORMALIZED="${GCP_REGION_SECRET%-docker.pkg.dev}"
-          REGISTRY="${GCP_REGION_NORMALIZED}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPO}"
-
-          echo "GCP_REGION_NORMALIZED=${GCP_REGION_NORMALIZED}" >> "$GITHUB_ENV"
+          GCP_REGION="${GCP_REGION%-docker.pkg.dev}"
+          REGISTRY="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPO}"
           echo "REGISTRY=${REGISTRY}" >> "$GITHUB_ENV"
+          echo "GCP_REGION=${GCP_REGION}" >> "$GITHUB_ENV"
 
       - name: Configure Docker for Artifact Registry
-        run: |
-          gcloud auth configure-docker "${GCP_REGION_NORMALIZED}-docker.pkg.dev" --quiet
-
-      - name: Verify Artifact Registry repository
-        env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          ARTIFACT_REGISTRY_REPO: ${{ secrets.ARTIFACT_REGISTRY_REPO }}
-        run: |
-          gcloud artifacts repositories describe "${ARTIFACT_REGISTRY_REPO}" \
-            --location "${GCP_REGION_NORMALIZED}" \
-            --project "${GCP_PROJECT_ID}" >/dev/null
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
 
       - name: Build Docker images
         run: |
-          docker build --no-cache -f agent/Dockerfile -t ${REGISTRY}/agent:latest -t ${REGISTRY}/agent:${{ github.sha }} .
-          docker build --no-cache -f api/Dockerfile -t ${REGISTRY}/api:latest -t ${REGISTRY}/api:${{ github.sha }} .
+          docker build --no-cache -f agent/Dockerfile -t ${REGISTRY}/agent:latest .
+          docker build --no-cache -f api/Dockerfile -t ${REGISTRY}/api:latest .
 
       - name: Push to Artifact Registry
         run: |
           docker push ${REGISTRY}/agent:latest
-          docker push ${REGISTRY}/agent:${{ github.sha }}
           docker push ${REGISTRY}/api:latest
-          docker push ${REGISTRY}/api:${{ github.sha }}
-
-      - name: Write .env on VM
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -e
-            E="$HOME/infraguad_ai/.env"
-            mkdir -p "$HOME/infraguad_ai"
-            # Secret values are substituted by GitHub Actions on the runner before the script is sent to the VM.
-            : > "$E"
-            echo "INFRAGUARD_USERNAME=${{ secrets.INFRAGUARD_USERNAME }}" >> "$E"
-            echo "INFRAGUARD_PASSWORD=${{ secrets.INFRAGUARD_PASSWORD }}" >> "$E"
-            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> "$E"
-            echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" >> "$E"
-            echo "GCP_REGION=${{ secrets.GCP_REGION }}" >> "$E"
-            echo "LOKI_URL=${{ secrets.LOKI_URL }}" >> "$E"
-            echo "PROMETHEUS_URL=${{ secrets.PROMETHEUS_URL }}" >> "$E"
-            echo "NTFY_TOPIC=${{ secrets.NTFY_TOPIC }}" >> "$E"
-            echo "PROBE_URLS=${{ secrets.PROBE_URLS }}" >> "$E"
-            echo "CROWDSEC_API_URL=${{ secrets.CROWDSEC_API_URL }}" >> "$E"
-            echo "CROWDSEC_API_KEY=${{ secrets.CROWDSEC_API_KEY }}" >> "$E"
-            echo "NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}" >> "$E"
-            echo "NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}" >> "$E"
-            echo "GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json" >> "$E"
-            echo "DEVPLANNER_CONTAINER_NAME=" >> "$E"
-            echo "MONITORED_CONTAINERS=" >> "$E"
-            echo "USE_LANGCHAIN_AGENT=1" >> "$E"
-            echo "DB_PATH=/data/verdicts.db" >> "$E"
-            echo "DOCKER_HOST=unix:///var/run/docker.sock" >> "$E"
-            echo "HEARTBEAT_INTERVAL_SECONDS=120" >> "$E"
-            chmod 600 "$E"
-
-      - name: Copy docker-compose.yml to VM
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.yml"
-          target: "infraguad_ai/"
 
       - name: Deploy to GCE VM
-        uses: appleboy/ssh-action@v1
+        uses: google-github-actions/ssh-compute@v1
         with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            # Compute REGISTRY and write it into .env so docker compose can interpolate image names
-            GCP_REGION="${{ secrets.GCP_REGION }}"
-            GCP_REGION="${GCP_REGION%-docker.pkg.dev}"
-            REGISTRY="${GCP_REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO }}"
-
-            # Append REGISTRY to .env for docker-compose image interpolation
-            grep -q '^REGISTRY=' ~/infraguad_ai/.env 2>/dev/null && sed -i "s|^REGISTRY=.*|REGISTRY=${REGISTRY}|" ~/infraguad_ai/.env || echo "REGISTRY=${REGISTRY}" >> ~/infraguad_ai/.env
-
-            # Change to project directory
-            cd ~/infraguad_ai
-
-            # Authenticate the VM's Docker daemon to the Artifact Registry
-            gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
-
-            # Pull the latest synchronized images
+          instance_name: ${{ secrets.GCE_INSTANCE_NAME }}
+          zone: ${{ secrets.GCE_ZONE }}
+          ssh_private_key: ${{ secrets.GCE_SSH_KEY }}
+          command: |
+            cd /app
+            export REGISTRY="${{ env.REGISTRY }}"
+            cat > /app/.env <<EOF
+            INFRAGUARD_USERNAME=${{ secrets.INFRAGUARD_USERNAME }}
+            INFRAGUARD_PASSWORD=${{ secrets.INFRAGUARD_PASSWORD }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+            GCP_REGION=${{ secrets.GCP_REGION }}
+            LOKI_URL=${{ secrets.LOKI_URL }}
+            PROMETHEUS_URL=${{ secrets.PROMETHEUS_URL }}
+            CROWDSEC_API_URL=${{ secrets.CROWDSEC_API_URL }}
+            CROWDSEC_API_KEY=${{ secrets.CROWDSEC_API_KEY }}
+            NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}
+            NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}
+            MONITORED_CONTAINERS=devplanner-api-1
+            USE_LANGCHAIN_AGENT=1
+            DB_PATH=/data/verdicts.db
+            DOCKER_HOST=unix:///var/run/docker.sock
+            GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
+            HEARTBEAT_INTERVAL_SECONDS=120
+            REGISTRY=${{ env.REGISTRY }}
+            EOF
+            gcloud auth configure-docker "${{ env.GCP_REGION }}-docker.pkg.dev" --quiet
             docker pull ${REGISTRY}/agent:latest
             docker pull ${REGISTRY}/api:latest
-
-            # Restart the orchestrated services
             docker compose down
             docker compose up -d
-
-            echo "Deployment complete at $(date)"
+            sleep 5
+            curl -f http://localhost:8000/health || exit 1

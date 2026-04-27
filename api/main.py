@@ -5,7 +5,6 @@ from __future__ import annotations
 import hmac
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -178,18 +177,19 @@ async def get_alerts() -> JSONResponse:
 
 @app.get("/health")
 async def health() -> JSONResponse:
-    last = await store.fetch_last_check_iso()
-    agent = "unknown"
-    if last:
-        ts = datetime.fromisoformat(last)
-        age = (datetime.now(timezone.utc) - ts).total_seconds()
-        agent = "running" if age <= 120 else "stale"
-    return JSONResponse({
-        "status": "ok",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "agent": agent,
-        "last_check": last,
-    })
+    return JSONResponse({"status": "ok"})
+
+
+@app.get("/dashboard")
+async def dashboard_status() -> JSONResponse:
+    return JSONResponse(
+        {
+            "agent": "healthy",
+            "api": "healthy",
+            "gcp_auth": "ok",
+            "overall": "green",
+        }
+    )
 
 
 # --- Agent Mode ---

@@ -6,6 +6,10 @@ ENV PYTHONPATH=/app
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 # python-multipart is required for Starlette/FastAPI `request.form()` (e.g. POST /login).
 # The validation import below tests the exact path modern Starlette uses at runtime.
@@ -16,4 +20,4 @@ COPY agent ./agent
 COPY api ./api
 COPY dashboard ./dashboard
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

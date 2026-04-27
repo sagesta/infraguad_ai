@@ -1,44 +1,42 @@
-# No external Docker networks. Services reach Loki/Prometheus (and the rest) via
-# LOKI_URL and PROMETHEUS_URL in the environment, not a shared host network.
-services:
-  agent:
-    image: ${REGISTRY:-infraguard}/agent:latest
-    mem_limit: 512m
-    memswap_limit: 512m
-    build:
-      context: .
-      dockerfile: agent/Dockerfile
-    env_file:
-      - .env
-    environment:
-      DB_PATH: /data/verdicts.db
-      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/gcp-key.json
-      DEVPLANNER_CONTAINER_NAME: ${DEVPLANNER_CONTAINER_NAME:-}
-      LOKI_URL: ${LOKI_URL:-}
-      PROMETHEUS_URL: ${PROMETHEUS_URL:-}
-      USE_LANGCHAIN_AGENT: ${USE_LANGCHAIN_AGENT:-0}
-    volumes:
-      - ./credentials:/app/credentials:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - sqlite_data:/data
+version: "3.9"
 
+services:
   api:
-    image: ${REGISTRY:-infraguard}/api:latest
-    build:
-      context: .
-      dockerfile: api/Dockerfile
+    image: ${REGISTRY}/api:latest
     env_file:
       - .env
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
-      DB_PATH: /data/verdicts.db
-      INFRAGUARD_USERNAME: ${INFRAGUARD_USERNAME:-admin}
-      INFRAGUARD_PASSWORD: ${INFRAGUARD_PASSWORD:-changeme}
-      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
+      - PYTHONPATH=/app
+      - DB_PATH=/data/verdicts.db
     volumes:
+      - /app/credentials:/app/credentials:ro
       - sqlite_data:/data
       - chroma_data:/app/chroma_db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  agent:
+    image: ${REGISTRY}/agent:latest
+    env_file:
+      - .env
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
+      - PYTHONPATH=/app
+      - DB_PATH=/data/verdicts.db
+    volumes:
+      - /app/credentials:/app/credentials:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - sqlite_data:/data
+    restart: unless-stopped
+    depends_on:
+      - api
 
 volumes:
   sqlite_data: {}
