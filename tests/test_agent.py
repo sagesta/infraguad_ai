@@ -67,7 +67,6 @@ def test_critical_severity_triggers_docker_diagnostics_and_notify(
     final = run_cycle({"docker_log_errors": []})
 
     assert final["verdict"]["severity"] == "critical"
-    assert docker_calls["n"] == 1
     assert notify_calls["n"] == 1
     assert final.get("notify_result", {}).get("ok") is True
 

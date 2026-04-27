@@ -42,17 +42,9 @@ def assemble_prompt_from_collected(collected: dict[str, Any]) -> str:
             + json.dumps(collected["prometheus"], indent=2, default=str)
         )
 
-    blocks.append(
-        "=== DOCKER EVENTS (last 60s) ===\n" + json.dumps(collected.get("docker"), indent=2, default=str)
-    )
     if _include_http_probe_block(collected):
         blocks.append(
             "=== HTTP PROBE RESULTS ===\n" + json.dumps(collected["http_probe"], indent=2, default=str)
-        )
-    if _include_docker_logs_block(collected):
-        blocks.append(
-            "=== DEVPLANNER DOCKER LOG ERRORS (keyword-filtered tail) ===\n"
-            + json.dumps(collected["docker_logs"], indent=2, default=str)
         )
 
     telemetry = "\n\n".join(blocks)

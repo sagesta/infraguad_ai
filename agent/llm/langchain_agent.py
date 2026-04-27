@@ -27,9 +27,8 @@ You have access to three tools:
 RULES:
 - Call ALL available tools to gather data before making your verdict.
 - If a tool returns "not_configured", that integration is intentionally absent — do NOT flag it.
-- Focus ONLY on the health of the monitored application based on the data you collect.
-- Do NOT escalate severity because optional observability is missing.
-- If a monitored container is absent or not found, treat it as expected in cloud deployments — do NOT flag it.
+- Focus ONLY on the health of the monitored infrastructure based on Loki logs, Prometheus metrics, and HTTP probes.
+- Do NOT attempt to monitor local Docker containers or logs directly; rely on centralized telemetry.
 
 After gathering all data, produce your final verdict as a JSON object with exactly these fields:
 - severity: one of "ok", "warning", "high", "critical"

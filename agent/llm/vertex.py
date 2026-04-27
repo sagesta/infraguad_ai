@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 import os
-import re
+import logging
 from typing import Any
 
 from google import genai
 from google.genai.types import GenerateContentConfig, HttpOptions
+
+logger = logging.getLogger(__name__)
 
 MODEL_NAME = "gemini-2.5-flash"
 
@@ -16,8 +18,8 @@ VERDICT_SYSTEM_INSTRUCTION = (
     "You are an SRE analyzing live infrastructure telemetry. "
     "Only assess components explicitly present in the context data. "
     "Do not flag absent, unconfigured, or optional tools (such as Loki, Prometheus, or any monitoring stack) as issues — if they are not in the context, they do not exist in this deployment. "
-    "Do not flag container restarts caused by routine operator actions (docker compose down/up) as incidents. "
-    "If a monitored container is absent or not found, treat it as expected in cloud deployments — do not flag it. "
+    "- Focus ONLY on the health of the monitored infrastructure based on Loki logs, Prometheus metrics, and HTTP probes. "
+    "- Do NOT attempt to monitor local Docker containers or logs directly; rely on centralized telemetry. "
     "If all present components are healthy, return severity 'ok'. "
     "Base your verdict ONLY on the data provided, nothing else. "
     "You must return ONLY raw, valid JSON. Under no circumstances should you utilize markdown code blocks, backticks, or append any conversational dialogue."

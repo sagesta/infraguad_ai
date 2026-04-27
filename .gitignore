@@ -18,3 +18,5 @@ audit.log
 terraform/.terraform/
 terraform/*.tfstate*
 terraform/.terraform.lock.hcl
+credentials/  
+terraform.tfvars  

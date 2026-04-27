@@ -50,11 +50,8 @@ async def heartbeat_loop(interval_seconds: int = 60) -> None:
 
     while True:
         try:
-            container_name = os.getenv("DEVPLANNER_CONTAINER_NAME", "").strip()
-            if container_name:
-                docker_log_errors = await fetch_container_errors(container_name)
-            else:
-                docker_log_errors = []  # no local container to inspect (cloud deployment)
+            # Disable local Docker log tailing for now; rely on Loki/Prometheus
+            docker_log_errors = []
             final = await asyncio.to_thread(
                 run_cycle,
                 {"docker_log_errors": docker_log_errors},

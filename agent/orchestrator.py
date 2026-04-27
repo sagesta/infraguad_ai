@@ -44,8 +44,8 @@ def _collect_data(state: GraphState) -> dict[str, Any]:
         docker_logs = []
 
     collected: dict[str, Any] = {
-        "docker": get_docker_events(),
-        "docker_logs": docker_logs,
+        "docker": {"ok": True, "events": [], "count": 0, "note": "Local Docker monitoring disabled."},
+        "docker_logs": [],
     }
     if _env_url_set("PROBE_URLS"):
         collected["http_probe"] = probe_endpoints()
@@ -104,19 +104,7 @@ def _analyze(state: GraphState) -> dict[str, Any]:
 
 
 def _decide_action(state: GraphState) -> dict[str, Any]:
-    verdict = state.get("verdict") or {}
-    if verdict.get("severity") == "critical":
-        diag = collect_container_diagnostics()
-        merged = dict(verdict)
-        if diag.get("ok"):
-            merged["root_cause"] = merged.get("root_cause", "") + "\n\nDocker context:\n" + json.dumps(
-                diag, indent=2, default=str
-            )
-        else:
-            merged["root_cause"] = merged.get("root_cause", "") + "\n\nDocker diagnostics failed:\n" + json.dumps(
-                diag, indent=2, default=str
-            )
-        return {"docker_context": diag, "verdict": merged}
+    # Docker container diagnostics disabled; relies solely on Loki/Prometheus
     return {"docker_context": None}
 
 
