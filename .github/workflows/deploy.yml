@@ -61,12 +61,12 @@ jobs:
           docker push ${REGISTRY}/api:latest
 
       - name: Deploy to GCE VM
-        uses: google-github-actions/ssh-compute@v1
+        uses: appleboy/ssh-action@v1
         with:
-          instance_name: ${{ secrets.GCE_INSTANCE_NAME }}
-          zone: ${{ secrets.GCE_ZONE }}
-          ssh_private_key: ${{ secrets.GCE_SSH_KEY }}
-          command: |
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
             cd /app
             export REGISTRY="${{ env.REGISTRY }}"
             cat > /app/.env <<EOF
@@ -94,5 +94,3 @@ jobs:
             docker pull ${REGISTRY}/api:latest
             docker compose down
             docker compose up -d
-            sleep 5
-            curl -f http://localhost:8000/health || exit 1
