@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_vertexai import ChatVertexAI
 
 from agent.tools.langchain_tools import ALL_TOOLS
 
@@ -83,12 +83,26 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
     Returns:
         A dict with ``ok: True`` and verdict fields, or ``ok: False`` with error info.
     """
+    import os
+    creds_path = os.environ.get(
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "/app/credentials/gcp-key.json"
+    )
+    os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", creds_path)
+
+    project = os.environ.get("GCP_PROJECT_ID", "").strip()
+    region = os.environ.get("GCP_REGION", "us-central1").strip() or "us-central1"
+
+    if not project:
+        return {"ok": False, "error": "missing_env", "message": "GCP_PROJECT_ID is not set"}
+
     try:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+        llm = ChatVertexAI(
+            model_name="gemini-2.5-flash",
+            project=project,
+            location=region,
             temperature=0.2,
             max_output_tokens=2048,
-            convert_system_message_to_human=True,
         )
 
         llm_with_tools = llm.bind_tools(ALL_TOOLS)

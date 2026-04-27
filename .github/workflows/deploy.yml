@@ -102,6 +102,7 @@ jobs:
             echo "USE_LANGCHAIN_AGENT=1" >> "$E"
             echo "DB_PATH=/data/verdicts.db" >> "$E"
             echo "DOCKER_HOST=unix:///var/run/docker.sock" >> "$E"
+            echo "HEARTBEAT_INTERVAL_SECONDS=120" >> "$E"
             chmod 600 "$E"
 
       - name: Copy docker-compose.yml to VM
