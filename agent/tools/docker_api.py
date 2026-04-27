@@ -27,9 +27,11 @@ def collect_container_diagnostics() -> dict[str, Any]:
     names = _monitored_names()
     if not names:
         return {
-            "ok": False,
-            "error": "missing_env",
-            "message": "MONITORED_CONTAINERS must be set (comma-separated container names)",
+            "ok": True,
+            "monitored": [],
+            "containers_list": None,
+            "list_error": None,
+            "note": "MONITORED_CONTAINERS not configured; container diagnostics disabled.",
         }
 
     try:

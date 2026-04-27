@@ -17,19 +17,26 @@ VERDICT_SYSTEM_INSTRUCTION = (
     "Only assess components explicitly present in the context data. "
     "Do not flag absent, unconfigured, or optional tools (such as Loki, Prometheus, or any monitoring stack) as issues — if they are not in the context, they do not exist in this deployment. "
     "Do not flag container restarts caused by routine operator actions (docker compose down/up) as incidents. "
+    "If a monitored container is absent or not found, treat it as expected in cloud deployments — do not flag it. "
     "If all present components are healthy, return severity 'ok'. "
-    "Base your verdict ONLY on the data provided, nothing else."
+    "Base your verdict ONLY on the data provided, nothing else. "
+    "You must return ONLY raw, valid JSON. Under no circumstances should you utilize markdown code blocks, backticks, or append any conversational dialogue."
 )
 
 _client: genai.Client | None = None
 
 
 def _extract_json_text(text: str) -> str:
+    """Strip markdown code fences and other wrapping from LLM JSON output."""
     text = text.strip()
+    # Full fence match
     fence = re.match(r"^```(?:json)?\s*([\s\S]*?)\s*```$", text, re.IGNORECASE)
     if fence:
         return fence.group(1).strip()
-    return text
+    # Partial or multiple fences
+    text = re.sub(r"```json\s*", "", text)
+    text = re.sub(r"```\s*", "", text)
+    return text.strip()
 
 
 def _validate_verdict(data: dict[str, Any]) -> dict[str, Any]:

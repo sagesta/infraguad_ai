@@ -59,7 +59,18 @@ def get_docker_events() -> dict[str, Any]:
     Flags container restarts and unhealthy transitions when present in event payloads.
     die/kill/destroy for InfraGuard's own agent/api containers are omitted (deploy noise).
     die/kill/destroy for containers not in MONITORED_CONTAINERS are omitted when that env is set.
+
+    Returns a benign empty result when MONITORED_CONTAINERS is unset (cloud deployment).
     """
+    monitored = _monitored_names()
+    if not monitored:
+        return {
+            "ok": True,
+            "events": [],
+            "flags": {"restarts": [], "unhealthy": [], "other": []},
+            "count": 0,
+            "note": "MONITORED_CONTAINERS not configured; container event monitoring disabled.",
+        }
     docker_host = os.environ.get("DOCKER_HOST", "").strip()
     unix_socket = "/var/run/docker.sock"
 
@@ -90,7 +101,6 @@ def get_docker_events() -> dict[str, Any]:
 
     events: list[dict[str, Any]] = []
     flags: dict[str, list[str]] = {"restarts": [], "unhealthy": [], "other": []}
-    monitored = _monitored_names()
 
     try:
         with httpx.Client(timeout=10.0, transport=transport) as client:

@@ -15,6 +15,10 @@ def test_critical_severity_triggers_docker_diagnostics_and_notify(
 ) -> None:
     pytest.importorskip("langgraph")
 
+    # Force the classic (non-LangChain) path so our mock get_verdict is used
+    monkeypatch.setenv("USE_LANGCHAIN_AGENT", "0")
+    monkeypatch.setenv("PROBE_URLS", "")
+
     monkeypatch.setattr(
         "agent.orchestrator.fetch_loki_logs",
         lambda: {"ok": True, "lines": [], "count": 0},
@@ -70,6 +74,10 @@ def test_critical_severity_triggers_docker_diagnostics_and_notify(
 
 def test_ok_severity_skips_notify(monkeypatch: pytest.MonkeyPatch) -> None:
     pytest.importorskip("langgraph")
+
+    # Force the classic (non-LangChain) path so our mock get_verdict is used
+    monkeypatch.setenv("USE_LANGCHAIN_AGENT", "0")
+    monkeypatch.setenv("PROBE_URLS", "")
 
     monkeypatch.setattr("agent.orchestrator.fetch_loki_logs", lambda: {"ok": True, "lines": [], "count": 0})
     monkeypatch.setattr("agent.orchestrator.query_prometheus", lambda: {"ok": True, "metrics": {}})

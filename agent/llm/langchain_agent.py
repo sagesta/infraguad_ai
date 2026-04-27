@@ -26,6 +26,7 @@ RULES:
 - If a tool returns "not_configured", that integration is intentionally absent — do NOT flag it.
 - Focus ONLY on the health of the monitored application based on the data you collect.
 - Do NOT escalate severity because optional observability is missing.
+- If a monitored container is absent or not found, treat it as expected in cloud deployments — do NOT flag it.
 
 After gathering all data, produce your final verdict as a JSON object with exactly these fields:
 - severity: one of "ok", "warning", "high", "critical"
@@ -33,22 +34,33 @@ After gathering all data, produce your final verdict as a JSON object with exact
 - root_cause: detailed analysis of what is wrong and why
 - recommended_action: specific steps to resolve
 
-Return ONLY the JSON verdict as your final answer, no markdown fences."""
+You must return ONLY raw, valid JSON. Under no circumstances should you utilize markdown code blocks, backticks, or append any conversational dialogue."""
 
 
 def _extract_json(text: str) -> dict[str, Any] | None:
-    """Extract JSON from agent output text."""
+    """Extract JSON from agent output text, aggressively stripping markdown artifacts."""
+    # Step 1: strip outer whitespace
     text = text.strip()
+
+    # Step 2: strip markdown code fences (```json ... ``` or ``` ... ```)
     fence = re.match(r"^```(?:json)?\s*([\s\S]*?)\s*```$", text, re.IGNORECASE)
     if fence:
         text = fence.group(1).strip()
+    else:
+        # Handle partial fences or multiple fences
+        text = re.sub(r"```json\s*", "", text)
+        text = re.sub(r"```\s*", "", text)
+        text = text.strip()
+
+    # Step 3: try direct parse
     try:
         data = json.loads(text)
         if isinstance(data, dict):
             return data
     except json.JSONDecodeError:
         pass
-    # Try to find JSON object in text
+
+    # Step 4: extract the outermost JSON object from surrounding prose
     match = re.search(r"\{[\s\S]*\}", text)
     if match:
         try:
