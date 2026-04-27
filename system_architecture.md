@@ -1,7 +1,6 @@
 # System Architecture: InfraGuard AI
 
 ## 1. High-Level Architecture Diagram
-**(Aligns with Technical Depth: Architecture & design choices - Score 5)**
 
 The architecture is elegant, scalable, and purpose-built. Design decisions reflect deep engineering judgment, cleanly separating the orchestration logic, state persistence, and UI presentation.
 
