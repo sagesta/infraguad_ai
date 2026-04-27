@@ -12,37 +12,55 @@ logger = logging.getLogger(__name__)
 
 
 def _extract_text_from_blocks(blocks: list[dict[str, Any]]) -> str:
-    """Recursively extract plain text from Notion block objects."""
+    """Recursively extract plain text from Notion block objects with basic formatting."""
     lines: list[str] = []
     for block in blocks:
         block_type = block.get("type", "")
         content = block.get(block_type, {})
-
-        # Extract rich_text content
         rich_texts = content.get("rich_text", [])
-        if rich_texts:
-            text = "".join(rt.get("plain_text", "") for rt in rich_texts)
-            if text.strip():
-                lines.append(text.strip())
+        text = "".join(rt.get("plain_text", "") for rt in rich_texts).strip()
 
-        # Handle child blocks if present
-        children = block.get("children", [])
-        if children:
-            child_text = _extract_text_from_blocks(children)
-            if child_text:
-                lines.append(child_text)
+        if not text and block_type != "divider":
+            # Handle child blocks if present (recursive)
+            children = block.get("children", [])
+            if children:
+                child_text = _extract_text_from_blocks(children)
+                if child_text:
+                    lines.append(child_text)
+            continue
+
+        # INFRAGUARD-NOTION: Preserving headings and lists
+        if block_type == "heading_1":
+            lines.append(f"# {text}")
+        elif block_type == "heading_2":
+            lines.append(f"## {text}")
+        elif block_type == "heading_3":
+            lines.append(f"### {text}")
+        elif block_type == "numbered_list_item":
+            lines.append(f"1. {text}")
+        elif block_type == "bulleted_list_item":
+            lines.append(f"- {text}")
+        elif text:
+            lines.append(text)
 
     return "\n".join(lines)
 
 
-def _get_page_title(page: dict[str, Any]) -> str:
-    """Extract title from a Notion page object."""
+def _get_property_value(page: dict[str, Any], prop_name: str) -> str:
+    """Extract string value from various Notion property types."""
     props = page.get("properties", {})
-    for prop in props.values():
-        if prop.get("type") == "title":
-            title_items = prop.get("title", [])
-            return "".join(t.get("plain_text", "") for t in title_items)
-    return "Untitled"
+    prop = props.get(prop_name, {})
+    p_type = prop.get("type")
+
+    if p_type == "select":
+        return prop.get("select", {}).get("name") or ""
+    if p_type == "status":
+        return prop.get("status", {}).get("name") or ""
+    if p_type == "multi_select":
+        return ", ".join(s.get("name", "") for s in prop.get("multi_select", []))
+    if p_type == "title":
+        return "".join(t.get("plain_text", "") for t in prop.get("title", []))
+    return ""
 
 
 def load_notion_runbooks() -> list[Document]:
@@ -84,7 +102,13 @@ def load_notion_runbooks() -> list[Document]:
         documents: list[Document] = []
         for page in results:
             page_id = page["id"]
-            title = _get_page_title(page)
+            
+            # INFRAGUARD-NOTION: Extract requested metadata
+            title = _get_property_value(page, "Name") or "Untitled"
+            severity = _get_property_value(page, "Severity")
+            environment = _get_property_value(page, "Environment")
+            category = _get_property_value(page, "Category")
+            status = _get_property_value(page, "Status")
 
             # Fetch all blocks for this page
             blocks: list[dict[str, Any]] = []
@@ -108,6 +132,10 @@ def load_notion_runbooks() -> list[Document]:
                         "source": f"notion://{page_id}",
                         "title": title,
                         "page_id": page_id,
+                        "severity": severity,
+                        "environment": environment,
+                        "category": category,
+                        "status": status,
                     },
                 ))
 
