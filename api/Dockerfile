@@ -20,4 +20,4 @@ COPY agent ./agent
 COPY api ./api
 COPY dashboard ./dashboard
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]

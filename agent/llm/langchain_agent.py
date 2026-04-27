@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_vertexai import ChatVertexAI
 
 from agent.tools.langchain_tools import ALL_TOOLS
 
@@ -106,8 +106,10 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
         return {"ok": False, "error": "missing_env", "message": "GCP_PROJECT_ID is not set"}
 
     try:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+        llm = ChatVertexAI(
+            model_name="gemini-2.5-flash",
+            project=project,
+            location=region,
             temperature=0.2,
             max_output_tokens=2048,
         )
@@ -153,13 +155,18 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
                     ))
 
         # Extract verdict from final response
-        raw_output = response.content if hasattr(response, "content") else ""
-        if not raw_output:
+        raw = response.content if hasattr(response, "content") else ""
+        if not raw:
             return {"ok": False, "error": "empty_output", "message": "LangChain agent returned no text"}
 
-        final_text = extract_raw_text(raw_output)
+        if isinstance(raw, list):
+            final_text = next((b['text'] for b in raw if isinstance(b, dict) and b.get('type') == 'text'), str(raw))
+        else:
+            final_text = str(raw)
+
+        # Strip markdown code fences
         final_text = re.sub(r'^```json\s*', '', final_text.strip())
-        final_text = re.sub(r'```$', '', final_text.strip())
+        final_text = re.sub(r'```\s*$', '', final_text.strip())
 
         logger.warning("LangChain agent raw output (first 500 chars): %s", final_text[:500])
         parsed = _extract_json(final_text)
