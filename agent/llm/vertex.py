@@ -127,6 +127,7 @@ def get_verdict(context: str) -> dict[str, Any]:
         )
         text = (response.text or "").strip()
     except Exception as exc:  # noqa: BLE001
+        logger.error("LLM Execution or Parsing Failed", exc_info=True)
         return {
             "ok": False,
             "error": "vertex_generate_failed",
@@ -140,6 +141,7 @@ def get_verdict(context: str) -> dict[str, Any]:
         cleaned = _extract_json_text(text)
         data = json.loads(cleaned)
     except json.JSONDecodeError as exc:
+        logger.error("LLM Execution or Parsing Failed", exc_info=True)
         return {
             "ok": False,
             "error": "json_decode",

@@ -178,6 +178,7 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
         }
 
     except Exception as exc:  # noqa: BLE001
+        logger.error("LLM Execution or Parsing Failed", exc_info=True)
         return {
             "ok": False,
             "error": "langchain_agent_failed",

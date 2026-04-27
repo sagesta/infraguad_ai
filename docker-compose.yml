@@ -13,7 +13,7 @@ services:
     environment:
       DB_PATH: /data/verdicts.db
       GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/gcp-key.json
-      DEVPLANNER_CONTAINER_NAME: ${DEVPLANNER_CONTAINER_NAME:-devplanner-api}
+      DEVPLANNER_CONTAINER_NAME: ${DEVPLANNER_CONTAINER_NAME:-}
       LOKI_URL: ${LOKI_URL:-}
       PROMETHEUS_URL: ${PROMETHEUS_URL:-}
       USE_LANGCHAIN_AGENT: ${USE_LANGCHAIN_AGENT:-0}
