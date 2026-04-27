@@ -143,7 +143,7 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
         if not final_text:
             return {"ok": False, "error": "empty_output", "message": "LangChain agent returned no text"}
 
-        logger.debug("LangChain agent raw output: %s", final_text[:500])
+        logger.warning("LangChain agent raw output (first 500 chars): %s", final_text[:500])
         parsed = _extract_json(final_text)
         if not parsed:
             logger.warning(
