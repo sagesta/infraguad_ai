@@ -1,0 +1,35 @@
+%% Thesis figure: Figure 3.5
+%% Stable ID: FIG-3.5
+%% Caption: Sequence Diagram: One Heartbeat Cycle
+%% Output PNG: ../figures/fig_3_5_sequence.png
+sequenceDiagram
+  autonumber
+  participant Scheduler
+  participant Agent
+  participant Store as SQLite store
+  participant Telemetry
+  participant Model as LLM provider
+  participant Ntfy as ntfy.sh
+
+  Scheduler->>Agent: Start heartbeat
+  Agent->>Store: Read active acknowledgements
+  Store-->>Agent: Known conditions
+  par Collect logs
+    Agent->>Telemetry: Query Loki
+    Telemetry-->>Agent: Recent log lines
+  and Collect metrics
+    Agent->>Telemetry: Query Prometheus
+    Telemetry-->>Agent: Metric samples
+  and Check endpoints
+    Agent->>Telemetry: Run HTTP probes
+    Telemetry-->>Agent: Probe results
+  end
+  Agent->>Model: Submit bounded evidence and known conditions
+  Model-->>Agent: Structured verdict and signature
+  Agent->>Agent: Validate response and compute fingerprint
+  Agent->>Store: Persist verdict
+  opt Severity is high or critical
+    Agent->>Ntfy: Send notification
+    Ntfy-->>Agent: Delivery result
+  end
+  Agent-->>Scheduler: Heartbeat complete

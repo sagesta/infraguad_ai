@@ -1,0 +1,13 @@
+%% Figure 4.2 — Verdict-Memory Fingerprint and Acknowledgement Flow
+%% Appears in: Chapter 4, Section 4.2.5 (The Verdict-Memory)
+%% Render to: ../fig_4_2_llm_classes.png
+%% NOTE: a change to the signature, prompt_version, or model yields a new
+%% fingerprint so the prior acknowledgement lapses; high/critical are never suppressed.
+flowchart LR
+  V["Verdict<br/>(severity, signature)"] --> FP["fingerprint =<br/>SHA-256(signature ‖ prompt_version ‖ model)"]
+  FP --> ACK[("acknowledgements<br/>by fingerprint, TTL")]
+  V -.->|operator acks ok/warning| ACK
+  ACK -.->|next heartbeat:<br/>known conditions → prompt| PROMPT["Prompt assembly"]
+  PROMPT --> SUP{"matches active ack<br/>& unchanged?"}
+  SUP -->|yes| HIDE["suppress (return ok)"]
+  SUP -->|no| SHOW["re-evaluate"]

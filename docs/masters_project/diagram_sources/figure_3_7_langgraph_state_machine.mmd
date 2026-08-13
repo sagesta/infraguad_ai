@@ -1,0 +1,16 @@
+%% Thesis figure: Figure 3.7
+%% Stable ID: FIG-3.7
+%% Caption: State Machine of the LangGraph Reasoning Agent
+%% Output PNG: ../figures/fig_3_7_state_machine.png
+stateDiagram-v2
+  [*] --> CollectData
+  CollectData: Collect telemetry and acknowledgements
+  Analyse: Ask the configured model for a verdict
+  DecideAction: Validate severity and select next action
+  Notify: Send high or critical notification
+
+  CollectData --> Analyse: Evidence available
+  Analyse --> DecideAction: Structured verdict
+  DecideAction --> Notify: High or critical
+  DecideAction --> [*]: OK or warning
+  Notify --> [*]: Delivery attempted

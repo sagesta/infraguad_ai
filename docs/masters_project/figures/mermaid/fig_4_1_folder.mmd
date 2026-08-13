@@ -1,0 +1,18 @@
+%% Figure 4.1 — Folder Structure of the Reference Implementation
+%% Appears in: Chapter 4, Section 4.2.1 (Repository Layout)
+%% Render to: ../fig_4_1_folder.png
+flowchart TB
+  ROOT["infraguard_ai/"]
+  ROOT --> AGENT["agent/"]
+  AGENT --> A1["main.py · orchestrator.py · memory.py ★"]
+  AGENT --> A2["llm/ — gemini · anthropic · openai · ollama"]
+  AGENT --> A3["rag/ — local_runbooks_loader · vector_store · runbook_agent"]
+  AGENT --> A4["tools/ — loki · prometheus · http_probe · docker_* · threat_response · notify"]
+  ROOT --> API["api/"]
+  API --> B1["main.py · auth.py · store.py ★"]
+  API --> B2["middleware/ — audit · security · rate_limit"]
+  ROOT --> DASH["dashboard/ — index.html · login.html"]
+  ROOT --> TESTS["tests/ — tools · agent · api · store · memory · rag · threat"]
+  ROOT --> TF["terraform/"]
+  ROOT --> CI[".github/workflows/ — test.yml · deploy.yml"]
+  ROOT --> COMPOSE["docker-compose.yml · Dockerfiles"]

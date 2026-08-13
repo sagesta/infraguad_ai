@@ -2,32 +2,32 @@
 
 ## 1. High-Level Architecture Diagram
 
-The architecture is elegant, scalable, and purpose-built. Design decisions reflect deep engineering judgment, cleanly separating the orchestration logic, state persistence, and UI presentation.
+The design cleanly separates orchestration logic (agent), state persistence (SQLite), and presentation (dashboard served by the API). The agent and API are independent containers sharing a SQLite volume, so the UI stays responsive regardless of AI processing load.
 
 ```mermaid
 graph TD
     subgraph "Infrastructure & Telemetry"
         P[Prometheus]
         L[Loki / Promtail]
-        D[Docker Engine]
+        D[Docker Engine - optional]
         H[HTTP Probes]
     end
 
     subgraph "InfraGuard AI Backend (FastAPI + Python)"
         AL[Agent Loop / Heartbeat]
         API[FastAPI Server]
-        DB[(SQLite - Verdicts & State)]
+        DB[(SQLite - Verdicts)]
         CS[CrowdSec Local API]
     end
 
-    subgraph "Intelligence Hub (Vertex AI & LangGraph)"
+    subgraph "Intelligence Hub (Direct Model APIs & LangGraph)"
         LG[LangGraph Orchestrator]
-        LLM[Vertex AI: Gemini 2.5 Flash]
+        LLM[Gemini / Anthropic / OpenAI / Ollama]
         RAG[(ChromaDB Vector Store)]
     end
 
     subgraph "External Integrations"
-        N[Notion Workspace API]
+        RB[Local Markdown Runbooks]
         NT[ntfy.sh Push Notifications]
     end
 
@@ -38,45 +38,52 @@ graph TD
     %% Telemetry Flow
     P -->|Metrics| AL
     L -->|Logs| AL
-    D -->|Events/Stats| AL
+    D -->|Events/Stats when enabled| AL
     H -->|Uptime| AL
 
     %% Orchestration Flow
     AL <-->|Context & Tools| LG
     LG <-->|Prompts & Structured JSON| LLM
-    LG <-->|Similarity Search| RAG
-    N -->|Ingest Runbooks| RAG
+    RB -->|Index Runbooks| RAG
+    API <-->|Similarity Search + LLM answer| RAG
 
     %% Action & Storage
-    LG -->|Save Verdict| DB
-    LG -->|Trigger Ban| CS
-    LG -->|Alerts| NT
+    AL -->|Save Verdict| DB
+    LG -->|high/critical Alerts| NT
+
+    %% Threat Response (operator-approved)
+    L -->|Recent log lines| API
+    API -->|Ban decision after operator click| CS
 
     %% UI Flow
     UI <-->|REST/JSON| API
-    API <-->|Read Verdicts/Threats| DB
+    API <-->|Read Verdicts| DB
 ```
 
 ## 2. Orchestration, Control Flow, & Model Interaction
 
-### 2.1. Robust Orchestration
-- **Dynamic Multi-Agent Flow**: Uses LangGraph to implement a robust, complex state machine. The system is not a rigid linear script; it dynamically decides which tools to invoke based on intermediate reasoning steps.
-- **Graceful Fallbacks**: Features built-in error handling and retries. If a telemetry endpoint (e.g., Loki) is unreachable, the orchestrator gracefully degrades, reasoning over the remaining available signals (e.g., Prometheus metrics) rather than crashing.
+### 2.1. Orchestration
+- **LangGraph state machine**: each heartbeat runs `collect → analyze → decide → notify`. The notify edge is conditional (only `high`/`critical` verdicts page the operator via ntfy.sh); the decide step gathers Docker container diagnostics on `high`/`critical` when Docker monitoring is enabled.
+- **Two reasoning modes**: `USE_LANGCHAIN_AGENT=1` runs a LangChain tool-calling agent (Gemini decides which of the Loki/Prometheus/HTTP-probe tools to invoke, up to 6 iterations). The default mode makes a single structured Gemini call over pre-assembled telemetry. Every stored verdict records which mode produced it (`llm_mode`).
+- **Graceful degradation**: every tool returns a structured `ok: False` error instead of raising. If a telemetry endpoint (e.g. Loki) is unreachable, the orchestrator reasons over the remaining signals; if the LLM call itself fails, a fallback `warning` verdict is stored so the operator sees the pipeline is degraded rather than silently missing data.
 
-### 2.2. Production-Grade Prompting
-- **Sophisticated Interaction**: Prompts are iterative and heavily optimized. The system utilizes Chain-of-Thought (CoT) prompting to force the AI to articulate its diagnostic reasoning before concluding.
-- **Reliable Structured Output**: Output is strictly enforced into a predetermined JSON schema (`severity`, `summary`, `root_cause`, `recommended_action`), guaranteeing high reliability and seamless integration with downstream programmatic actions.
+### 2.2. Prompting & Structured Output
+- **Scope-bounded prompts**: prompts instruct the model to assess only the telemetry sections present, and never to flag absent/optional integrations as incidents — this is the primary hallucination guard.
+- **Reliable structured output**: responses are enforced into a fixed JSON schema (`severity`, `summary`, `root_cause`, `recommended_action`) with `response_mime_type=application/json`, severity whitelisting, and markdown-fence stripping as a fallback parser.
+
+### 2.3. Threat Response (human-in-the-loop)
+- The API scans up to 500 recent Loki lines for brute-force and port-scan patterns (regex + per-IP thresholds — deterministic, no LLM in the detection path).
+- Detected threats render in the dashboard with a **Block IP** button. The CrowdSec ban decision is generated **server-side** from the threat fields and applied via the CrowdSec Local API only after the operator clicks — and runs in dry-run mode when CrowdSec is not configured. Auto-banning without human approval is deliberately not enabled.
 
 ## 3. Engineering Practices
 
 ### 3.1. Code Quality & Modularity
-- Code is production-grade Python 3.11+: highly modular, well-documented, type-hinted, and easy to extend. Handlers, RAG loaders, and agent tools are cleanly separated into dedicated modules (`agent/`, `api/`, `rag/`).
+- Python 3.11+, type-hinted, modular: collection tools (`agent/tools/`), LLM clients (`agent/llm/`), RAG (`agent/rag/`), and the API (`api/`) are cleanly separated. Tools are thin, individually testable functions with structured error returns.
 
-### 3.2. Extensive Testing Framework
-- Features an extensive, reliable test suite utilizing `pytest` and `respx` (e.g., `test_agent.py`).
-- **Coverage**: Includes automated tests for edge cases, API failure modes, and simulated LLM interactions. The test suite is fully integrated into the CI pipeline.
+### 3.2. Testing
+- `pytest` + `respx` suite covering tool parsing and failure modes, orchestrator routing (mocked LLM), API auth/staleness/threat endpoints, rate-limit enforcement, and SQLite retention. Tests run on every PR (`test.yml`) and gate deployment (`deploy.yml`).
 
-### 3.3. Comprehensive Observability
-- **Full Stack Visibility**: The application ships with a complete observability stack. It tracks key metrics (latency, success/failure rates) via Prometheus endpoints.
-- **LLM-Specific Monitoring**: Captures trace data and specific AI metrics, including token usage, reasoning latency, and context window utilization.
-- **Structured Logging**: Comprehensive structured JSON logging (`pino`/`promtail`) is implemented throughout. Errors are gracefully handled, surfacing meaningful context and providing full traceability from the UI down to the core agent loop.
+### 3.3. Security & Observability
+- **API hardening**: cookie sessions (itsdangerous-signed), enforced rate limits (60/min per IP, 5/min on login), security headers + CSP, and an audit log capturing every request (including unauthorized and rate-limited ones) with timestamp, IP, route, user, status, and latency.
+- **Output hygiene**: all LLM- and log-derived text is HTML-escaped before rendering in the dashboard, since log content is attacker-influenced.
+- **Operational visibility**: integration status chips (`/api/config`), a stale-agent banner driven by `/status` age tracking, and verdict history with severity filtering. Verdict storage is bounded by automatic retention pruning.

@@ -1,0 +1,40 @@
+%% Figure 3.1 — High-Level System Architecture
+%% Appears in: Chapter 3, Section 3.3.4 (High-Level Architecture)
+%% Render to: ../fig_3_1_architecture.png
+flowchart TB
+  OP(["Operator (browser)"])
+  subgraph HOST["Single Host — Docker Compose"]
+    AGENT["Agent (heartbeat)<br/>LangGraph loop"]
+    API["FastAPI Service<br/>dashboard + REST API"]
+    MEM["Verdict-Memory<br/>fingerprint + acks"]
+    SQLITE[("SQLite<br/>verdicts + acks")]
+    RAG["RAG Service"]
+    CHROMA[("ChromaDB<br/>runbook vectors")]
+    THREAT["Threat detection<br/>+ CrowdSec adapter"]
+  end
+  subgraph TELE["Telemetry sources"]
+    LOKI["Loki (logs)"]
+    PROM["Prometheus (metrics)"]
+    PROBE["HTTP probes"]
+    DOCKER["Docker (optional)"]
+  end
+  subgraph EXT["External services"]
+    MODEL["Direct model API"]
+    NTFY["ntfy.sh"]
+    CROWDSEC["CrowdSec LAPI"]
+  end
+  AGENT -->|writes verdicts| SQLITE
+  API -->|reads verdicts / acks| SQLITE
+  AGENT -.->|reads acks each cycle| SQLITE
+  MEM --- SQLITE
+  API --- RAG
+  RAG --- CHROMA
+  API --- THREAT
+  LOKI --> AGENT
+  PROM --> AGENT
+  PROBE --> AGENT
+  DOCKER -.-> AGENT
+  AGENT -->|reason| MODEL
+  AGENT -->|high/critical| NTFY
+  THREAT -->|operator-approved ban| CROWDSEC
+  OP <-->|HTTPS / JSON| API

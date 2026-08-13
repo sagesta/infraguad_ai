@@ -132,13 +132,7 @@
         </form>
       </div>
     </div>
-    <script>
-      const form = document.getElementById("loginForm");
-      const errorMsg = document.getElementById("errorMsg");
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("error") === "1") {
-        errorMsg.textContent = "Invalid username or password.";
-      }
-    </script>
+    <!-- On failed login the server re-serves this page with the error message
+         injected into #errorMsg — no client-side script needed. -->
   </body>
 </html>

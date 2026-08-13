@@ -1,0 +1,26 @@
+%% Thesis figure: Figure 4.2
+%% Stable ID: FIG-4.2
+%% Caption: Verdict-Memory Fingerprint and Acknowledgement Flow
+%% Output PNG: ../figures/fig_4_2_llm_classes.png
+flowchart LR
+  VERDICT["Validated verdict<br/>Severity and condition signature"]
+  RULESET["Reasoning configuration<br/>Prompt version and model"]
+  HASH["SHA-256 fingerprint<br/>signature + prompt version + model"]
+  STORE[("Acknowledgement store<br/>Fingerprint, note, user, expiry")]
+  OP(["Operator"])
+  NEXT["Next heartbeat prompt<br/>Active known conditions"]
+  MATCH{"Current fingerprint<br/>matches active acknowledgement?"}
+  RISK{"Severity is<br/>high or critical?"}
+  SUPPRESS["Mark OK or warning<br/>as acknowledged"]
+  SURFACE["Surface verdict<br/>for operator review"]
+
+  VERDICT --> HASH
+  RULESET --> HASH
+  HASH --> RISK
+  OP -->|"Acknowledge an OK or warning condition"| STORE
+  STORE --> NEXT --> MATCH
+  HASH --> MATCH
+  RISK -->|"Yes"| SURFACE
+  RISK -->|"No"| MATCH
+  MATCH -->|"Yes"| SUPPRESS
+  MATCH -->|"No"| SURFACE

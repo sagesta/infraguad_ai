@@ -1,18 +1,24 @@
 services:
   api:
-    image: ${REGISTRY}/api:latest
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    image: ${REGISTRY:-infraguard}/api:latest
     env_file:
       - .env
     ports:
       - "8080:8080"
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
       - PYTHONPATH=/app
       - DB_PATH=/data/verdicts.db
+      - RUNBOOKS_DIR=/app/runbooks
     volumes:
-      - ./credentials:/app/credentials:ro
+      - ./runbooks:/app/runbooks:ro
       - sqlite_data:/data
       - chroma_data:/app/chroma_db
+      # Caches the local embedding model (~80MB, fetched once) so redeploys
+      # don't re-download it.
+      - embedding_cache:/root/.cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -21,21 +27,44 @@ services:
       retries: 3
 
   agent:
-    image: ${REGISTRY}/agent:latest
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    image: ${REGISTRY:-infraguard}/agent:latest
     env_file:
       - .env
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
       - PYTHONPATH=/app
       - DB_PATH=/data/verdicts.db
     volumes:
-      - ./credentials:/app/credentials:ro
+      # Docker socket is only needed when ENABLE_DOCKER_MONITORING=1;
+      # remove this mount if you keep Docker monitoring disabled.
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - sqlite_data:/data
     restart: unless-stopped
     depends_on:
       - api
 
+  # Fully self-hosted LLM backend for LLM_PROVIDER=ollama — no cloud account,
+  # no API key. Idle until you pull a model:
+  #   docker compose exec ollama ollama pull llama3.1:8b
+  # Not needed (and safe to remove) if you stay on gemini/anthropic/openai.
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # Uncomment to use an NVIDIA GPU (requires the NVIDIA Container Toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
 volumes:
   sqlite_data: {}
   chroma_data: {}
+  embedding_cache: {}
+  ollama_data: {}

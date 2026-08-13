@@ -1,0 +1,26 @@
+%% Figure 3.6 — Entity-Relationship Diagram (Verdict & Acknowledgement Schema)
+%% Appears in: Chapter 3, Section 3.4.4 (Entity-Relationship Model)
+%% Render to: ../fig_3_6_erd.png
+%% NOTE: ChromaDB (runbook vectors) and audit.log (append-only request audit)
+%% are non-relational stores, described in the text alongside this diagram.
+erDiagram
+  VERDICTS {
+    int id PK
+    text created_at
+    text severity
+    text summary
+    text payload
+    text signature
+    text fingerprint
+  }
+  ACKNOWLEDGEMENTS {
+    text fingerprint PK
+    text signature
+    text severity
+    text summary
+    text note
+    text acked_by
+    text created_at
+    text expires_at
+  }
+  VERDICTS }o--o| ACKNOWLEDGEMENTS : "by fingerprint"

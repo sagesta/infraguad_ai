@@ -23,13 +23,23 @@
       .container{max-width:1080px;margin:0 auto;padding:20px 24px}
 
       /* Header */
-      header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;margin-bottom:24px;border-bottom:1px solid var(--border)}
+      header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;margin-bottom:16px;border-bottom:1px solid var(--border)}
       .logo{font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:10px}
       .logo span{background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
       .header-actions{display:flex;align-items:center;gap:12px}
-      .btn-logout{padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-muted);font-size:.8rem;font-family:inherit;cursor:pointer;transition:all .2s}
+      .btn-logout{padding:6px 16px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-muted);font-size:.8rem;font-family:inherit;cursor:pointer;transition:all .2s;text-decoration:none}
       .btn-logout:hover{border-color:var(--accent);color:var(--text)}
       .mode-badge{padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:500;letter-spacing:.03em;background:rgba(99,102,241,0.12);color:var(--accent);border:1px solid rgba(99,102,241,0.2)}
+
+      /* Integration chips */
+      .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+      .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:500;background:var(--surface);border:1px solid var(--border);color:var(--text-muted)}
+      .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex:none}
+      .chip.on{color:var(--text)}
+      .chip.on .dot{background:var(--ok)}
+
+      /* Stale banner */
+      .stale-banner{display:flex;align-items:center;gap:10px;background:var(--warn-bg);border:1px solid rgba(234,179,8,.35);color:var(--warn);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.9rem}
 
       /* Severity badge */
       .badge{display:inline-flex;align-items:center;padding:4px 14px;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
@@ -42,7 +52,7 @@
       /* Cards */
       .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;transition:border-color .2s}
       .card:hover{border-color:rgba(255,255,255,.12)}
-      .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+      .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
       .card-title{font-size:1rem;font-weight:600}
       .card-muted{color:var(--text-muted);font-size:.85rem}
 
@@ -61,12 +71,16 @@
       .collapsible-content{display:none;padding:0 0 12px;color:var(--text-muted);font-size:.9rem;line-height:1.7;white-space:pre-wrap}
       .collapsible-content.show{display:block}
 
-      /* Alerts table */
+      /* History table */
       table{width:100%;border-collapse:collapse;font-size:.9rem}
       th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}
       th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:500}
       td{color:var(--text-muted)}
       tr:hover td{color:var(--text)}
+      .toggle{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-muted);cursor:pointer;user-select:none;white-space:nowrap}
+      .row-suppressed td{opacity:.45}
+      .tag-known{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:.65rem;background:rgba(255,255,255,.06);color:var(--text-muted);vertical-align:middle}
+      .ack-bar{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
       /* Spinner */
       .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top:2px solid var(--accent);border-radius:50%;animation:spin .8s linear infinite}
@@ -81,14 +95,24 @@
       .threat-item{padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;font-size:.9rem}
       .threat-type{font-weight:600;margin-bottom:4px;font-size:.85rem}
       .threat-ip{color:var(--high);font-family:monospace;font-size:.85rem}
+      .threat-actions{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+      .threat-result{font-size:.78rem;color:var(--text-muted)}
       .no-threats{text-align:center;padding:24px;color:var(--text-muted)}
+
+      /* Small buttons */
+      .btn-small{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:.75rem;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+      .btn-small:hover{border-color:var(--accent)}
+      .btn-small:disabled{opacity:.5;cursor:not-allowed}
+      .btn-danger{background:var(--crit-bg);color:var(--crit);border-color:rgba(239,68,68,.3)}
+      .btn-danger:hover{border-color:var(--crit)}
 
       /* Chat panel */
       .chat-panel{display:flex;flex-direction:column;min-height:300px}
       .chat-messages{flex:1;overflow-y:auto;max-height:300px;margin-bottom:12px;padding:8px;background:var(--bg);border-radius:8px}
-      .chat-msg{padding:8px 12px;margin-bottom:8px;border-radius:8px;font-size:.9rem;line-height:1.5}
+      .chat-msg{padding:8px 12px;margin-bottom:8px;border-radius:8px;font-size:.9rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:break-word}
       .chat-msg.user{background:rgba(99,102,241,.15);margin-left:40px;text-align:right}
       .chat-msg.bot{background:var(--surface2);margin-right:40px}
+      .chat-sources{font-size:.75rem;color:var(--text-muted);margin-top:6px}
       .chat-input-row{display:flex;gap:8px}
       .chat-input{flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.9rem;font-family:inherit;outline:none}
       .chat-input:focus{border-color:var(--accent)}
@@ -110,6 +134,12 @@
           <a href="/logout" class="btn-logout">Logout</a>
         </div>
       </header>
+
+      <!-- Integration status -->
+      <div class="chips" id="integrationChips"></div>
+
+      <!-- Stale agent warning -->
+      <div class="stale-banner" id="staleBanner" hidden>⚠️ <span id="staleText"></span></div>
 
       <!-- Verdict Card -->
       <div class="card" id="verdictCard">
@@ -138,6 +168,7 @@
         <div class="card">
           <div class="card-header">
             <span class="card-title">📖 Runbook Assistant</span>
+            <button class="btn-small" id="reindexBtn" onclick="reindexRunbooks()" title="Reload runbooks from the local runbooks/ folder into the AI's memory">⟳ Re-index</button>
           </div>
           <div class="chat-panel">
             <div class="chat-messages" id="chatMessages">
@@ -151,15 +182,19 @@
         </div>
       </div>
 
-      <!-- Recent Alerts -->
+      <!-- Check History -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Recent Alerts</span>
-          <span class="card-muted" id="alertCount">—</span>
+          <span class="card-title">Check History</span>
+          <span style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <label class="toggle"><input type="checkbox" id="issuesOnly" onchange="renderHistory()" /> Issues only</label>
+            <label class="toggle"><input type="checkbox" id="hideAck" checked onchange="renderHistory()" /> Hide acknowledged</label>
+            <span class="card-muted" id="historyCount">—</span>
+          </span>
         </div>
         <table>
-          <thead><tr><th>Time</th><th>Severity</th><th>Summary</th></tr></thead>
-          <tbody id="alertRows"></tbody>
+          <thead><tr><th>Time</th><th>Severity</th><th>Summary</th><th></th></tr></thead>
+          <tbody id="historyRows"></tbody>
         </table>
       </div>
 
@@ -170,10 +205,17 @@
       const badge = document.getElementById("badge");
       const timestamp = document.getElementById("timestamp");
       const verdictBody = document.getElementById("verdictBody");
-      const alertRows = document.getElementById("alertRows");
-      const alertCount = document.getElementById("alertCount");
+      const historyRows = document.getElementById("historyRows");
+      const historyCount = document.getElementById("historyCount");
       const threatBody = document.getElementById("threatBody");
       const threatBadge = document.getElementById("threatBadge");
+
+      let CFG = null;          // /api/config payload
+      let HISTORY = [];        // all recent checks
+      let THREATS = [];        // current threat list
+
+      // All server- or LLM-provided text goes through esc() before innerHTML.
+      function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
 
       function sevClass(s){return({"ok":"ok","warning":"warning","high":"high","critical":"critical"})[s]||"unknown"}
       function sevColor(s){return({"ok":"var(--ok)","warning":"var(--warn)","high":"var(--high)","critical":"var(--crit)"})[s]||"var(--text-muted)"}
@@ -185,8 +227,90 @@
           <button class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('${id}').classList.toggle('show')">
             ${title}<span class="arrow">▶</span>
           </button>
-          <div class="collapsible-content" id="${id}">${content}</div>
+          <div class="collapsible-content" id="${id}">${esc(content)}</div>
         </div>`;
+      }
+
+      async function loadConfig(){
+        try{
+          const res = await fetch("/api/config");
+          if(!res.ok) return;
+          CFG = await res.json();
+
+          const el = document.getElementById("modeBadge");
+          const modeLabel = CFG.agent_mode==="langchain" ? "🔗 LangChain" : "⚡ Direct";
+          el.textContent = modeLabel + (CFG.model ? " · " + CFG.model : "");
+          el.title = "Provider: " + (CFG.llm_provider || "vertex");
+
+          const labels = {
+            loki:"Loki", prometheus:"Prometheus", http_probes:"HTTP Probes",
+            local_runbooks:"Local Runbooks", crowdsec:"CrowdSec",
+            ntfy_notifications:"ntfy Alerts", docker_monitoring:"Docker Monitor"
+          };
+          const chips = document.getElementById("integrationChips");
+          chips.innerHTML = "";
+          for(const [key,on] of Object.entries(CFG.integrations||{})){
+            chips.innerHTML += `<span class="chip ${on?"on":""}" title="${on?"Configured":"Not configured"}"><span class="dot"></span>${esc(labels[key]||key)}</span>`;
+          }
+        }catch(e){}
+      }
+
+      function renderStale(status){
+        const banner = document.getElementById("staleBanner");
+        if(status && status.stale && status.created_at){
+          document.getElementById("staleText").textContent =
+            `Agent hasn't reported since ${new Date(status.created_at).toLocaleString()} — the data below may be outdated. Check that the agent container is running.`;
+          banner.hidden = false;
+        } else {
+          banner.hidden = true;
+        }
+      }
+
+      function renderHistory(){
+        const issuesOnly = document.getElementById("issuesOnly").checked;
+        const hideAck = document.getElementById("hideAck").checked;
+        let shown = issuesOnly ? HISTORY.filter(a=>(a.severity||"").toLowerCase()!=="ok") : HISTORY.slice();
+        if(hideAck) shown = shown.filter(a=>!a.suppressed);
+        historyCount.textContent = (issuesOnly||hideAck) ? `${shown.length} of ${HISTORY.length}` : `${HISTORY.length} recent`;
+        historyRows.innerHTML = "";
+        if(!shown.length){
+          historyRows.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px">${issuesOnly?"No issues in recent checks 🎉":"No checks recorded yet"}</td></tr>`;
+          return;
+        }
+        for(const a of shown){
+          const s = (a.severity||"").toLowerCase();
+          historyRows.innerHTML += `<tr class="${a.suppressed?"row-suppressed":""}">
+            <td style="font-size:.8rem;white-space:nowrap">${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</td>
+            <td><span class="badge ${sevClass(s)}" style="font-size:.7rem">${esc((a.severity||"").toUpperCase())}</span>${a.acknowledged?'<span class="tag-known">known</span>':''}</td>
+            <td>${esc(a.summary||"")}</td>
+            <td style="text-align:right">${ackControl(a)}</td>
+          </tr>`;
+        }
+      }
+
+      // Memory: a verdict can be marked "known" so the agent stops re-flagging it.
+      // Only ok/warning are eligible; high/critical always surface.
+      function ackControl(a){
+        const sev = (a.severity||"").toLowerCase();
+        if(!a.fingerprint || (sev!=="ok" && sev!=="warning")) return "";
+        if(a.acknowledged) return `<button class="btn-small" onclick="unmarkKnown('${a.fingerprint}')" title="Stop treating as known">Unmark</button>`;
+        return `<button class="btn-small" onclick="markKnown('${a.fingerprint}')" title="Mark as a known non-issue so the agent stops re-flagging it">Mark known</button>`;
+      }
+      function ackBar(status){
+        const sev = (status.severity||"").toLowerCase();
+        if(!status.fingerprint || (sev!=="ok" && sev!=="warning")) return "";
+        if(status.acknowledged){
+          return `<div class="ack-bar">✓ Marked as known — the agent will stop re-flagging this unless it materially changes. <button class="btn-small" onclick="unmarkKnown('${status.fingerprint}')">Unmark</button></div>`;
+        }
+        return `<div class="ack-bar"><button class="btn-small" onclick="markKnown('${status.fingerprint}')">Mark as known</button><span class="card-muted" style="font-size:.78rem">Stop re-flagging this recurring condition.</span></div>`;
+      }
+      async function markKnown(fp){
+        try{ await fetch("/api/verdicts/ack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fingerprint:fp})}); }catch(e){}
+        refreshStatus();
+      }
+      async function unmarkKnown(fp){
+        try{ await fetch("/api/verdicts/unack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fingerprint:fp})}); }catch(e){}
+        refreshStatus();
       }
 
       async function refreshStatus(){
@@ -203,9 +327,16 @@
           badge.className = "badge " + sevClass(sev);
 
           const ts = status.created_at || "";
-          timestamp.textContent = ts ? new Date(ts).toLocaleString() : "No data yet";
+          timestamp.textContent = ts ? "Last check: " + new Date(ts).toLocaleString() : "No data yet";
+          renderStale(status);
 
-          if(sev === "ok"){
+          if(!status.created_at && !status.verdict){
+            verdictBody.innerHTML = `<div class="ok-state">
+              <div class="icon">⏳</div>
+              <p style="font-size:1.05rem;font-weight:600">Waiting for the first check</p>
+              <p style="margin-top:8px">The agent runs every ${esc(String(status.heartbeat_interval_seconds||120))}s. If nothing appears, check the agent container logs.</p>
+            </div>`;
+          } else if(sev === "ok"){
             verdictBody.innerHTML = `<div class="ok-state">
               <div class="icon">✅</div>
               <p style="font-size:1.1rem;font-weight:600;color:var(--ok)">No issues detected</p>
@@ -214,23 +345,15 @@
           } else {
             const summary = v.summary || status.summary || "No summary available";
             verdictBody.innerHTML = `
-              <div class="verdict-summary" style="border-left:3px solid ${sevColor(sev)};padding-left:16px">${summary}</div>
+              <div class="verdict-summary" style="border-left:3px solid ${sevColor(sev)};padding-left:16px">${esc(summary)}</div>
               ${makeCollapsible("🔍 Root Cause", v.root_cause)}
               ${makeCollapsible("🛠️ Recommended Action", v.recommended_action)}
+              ${ackBar(status)}
             `;
           }
 
-          const alerts = (alertsData.alerts || []).slice(0,15);
-          alertCount.textContent = alerts.length + " recent";
-          alertRows.innerHTML = "";
-          for(const a of alerts){
-            const s = (a.severity||"").toLowerCase();
-            alertRows.innerHTML += `<tr>
-              <td style="font-size:.8rem;white-space:nowrap">${a.created_at ? new Date(a.created_at).toLocaleString() : ""}</td>
-              <td><span class="badge ${sevClass(s)}" style="font-size:.7rem">${(a.severity||"").toUpperCase()}</span></td>
-              <td>${a.summary||""}</td>
-            </tr>`;
-          }
+          HISTORY = (alertsData.alerts || []).slice(0,15);
+          renderHistory();
         }catch(e){
           badge.textContent="ERROR";badge.className="badge unknown";
           verdictBody.innerHTML=`<div class="loading-state" style="color:var(--crit)">Failed to load data</div>`;
@@ -242,24 +365,65 @@
           const res = await fetch("/api/threats");
           if(res.status===401) return;
           const data = await res.json();
+          THREATS = data.threats || [];
+
+          if(data.loki_configured === false){
+            threatBadge.textContent="OFF";threatBadge.className="badge unknown";
+            threatBody.innerHTML=`<div class="no-threats">Configure LOKI_URL to enable threat scanning.</div>`;
+            return;
+          }
           if(!data.threats_found){
             threatBadge.textContent="CLEAR";threatBadge.className="badge ok";
-            threatBody.innerHTML=`<div class="no-threats">✅ No threats detected</div>`;
+            threatBody.innerHTML=`<div class="no-threats">✅ No threats detected<br><span style="font-size:.78rem">${esc(String(data.log_lines_scanned??0))} log lines scanned</span></div>`;
             return;
           }
           threatBadge.textContent=data.threat_count+" FOUND";threatBadge.className="badge critical";
+          const dryRun = !(CFG && CFG.integrations && CFG.integrations.crowdsec);
           let html="";
-          for(const t of (data.threats||[])){
+          THREATS.forEach((t,i)=>{
             html+=`<div class="threat-item">
-              <div class="threat-type">${t.threat_type.replace(/_/g," ").toUpperCase()}</div>
-              <div>Source: <span class="threat-ip">${t.source_ip}</span> · ${t.count} events</div>
-              <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px">${t.description}</div>
+              <div class="threat-type">${esc((t.threat_type||"").replace(/_/g," ").toUpperCase())}</div>
+              <div>Source: <span class="threat-ip">${esc(t.source_ip)}</span> · ${esc(String(t.count))} events</div>
+              <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px">${esc(t.description)}</div>
+              <div class="threat-actions">
+                <button class="btn-small btn-danger" id="blockBtn_${i}" onclick="blockThreat(${i})">🚫 Block IP${dryRun?" (dry-run)":""}</button>
+                <span class="threat-result" id="blockRes_${i}"></span>
+              </div>
             </div>`;
-          }
+          });
           threatBody.innerHTML=html;
         }catch(e){
           threatBody.innerHTML=`<div class="no-threats" style="color:var(--text-muted)">Threat scan unavailable</div>`;
         }
+      }
+
+      async function blockThreat(i){
+        const t = THREATS[i];
+        if(!t) return;
+        if(!confirm(`Ban IP ${t.source_ip} via CrowdSec?`)) return;
+        const btn = document.getElementById("blockBtn_"+i);
+        const out = document.getElementById("blockRes_"+i);
+        btn.disabled = true; btn.textContent = "Applying…";
+        try{
+          const res = await fetch("/api/threats/apply",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({threat:t})});
+          const data = await res.json();
+          if(data.ok){
+            btn.textContent = data.mode==="live" ? "✓ Banned" : "✓ Logged (dry-run)";
+            out.textContent = data.mode==="live" ? `Ban pushed to CrowdSec (${(data.decision||{}).duration||""})` : "CrowdSec not configured — decision logged only.";
+          } else {
+            btn.disabled = false; btn.textContent = "🚫 Block IP";
+            out.textContent = "Failed: " + (data.message || data.error || "unknown error");
+          }
+        }catch(e){
+          btn.disabled = false; btn.textContent = "🚫 Block IP";
+          out.textContent = "Request failed.";
+        }
+      }
+
+      function addChat(role, text, sourcesHtml){
+        const msgs = document.getElementById("chatMessages");
+        msgs.innerHTML += `<div class="chat-msg ${role}">${esc(text)}${sourcesHtml||""}</div>`;
+        msgs.scrollTop = msgs.scrollHeight;
       }
 
       async function sendChat(){
@@ -269,7 +433,7 @@
         const q = input.value.trim();
         if(!q) return;
         input.value="";btn.disabled=true;
-        msgs.innerHTML+=`<div class="chat-msg user">${q}</div>`;
+        addChat("user", q);
         msgs.innerHTML+=`<div class="chat-msg bot" id="pendingMsg"><div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Thinking…</div>`;
         msgs.scrollTop=msgs.scrollHeight;
         try{
@@ -278,30 +442,37 @@
           document.getElementById("pendingMsg").remove();
           const answer=data.answer||data.message||"No answer available";
           let srcHtml="";
-          if(data.sources&&data.sources.length){srcHtml=`<div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Sources: ${data.sources.map(s=>s.title).join(", ")}</div>`}
-          msgs.innerHTML+=`<div class="chat-msg bot">${answer}${srcHtml}</div>`;
+          if(data.sources&&data.sources.length){srcHtml=`<div class="chat-sources">Sources: ${data.sources.map(s=>esc(s.title)).join(", ")}</div>`}
+          addChat("bot", answer, srcHtml);
         }catch(e){
           const p=document.getElementById("pendingMsg");if(p)p.remove();
-          msgs.innerHTML+=`<div class="chat-msg bot" style="color:var(--crit)">Failed to query runbooks.</div>`;
+          addChat("bot","Failed to query runbooks.");
         }
         btn.disabled=false;msgs.scrollTop=msgs.scrollHeight;
       }
 
-      document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});
-
-      async function fetchMode(){
+      async function reindexRunbooks(){
+        const btn = document.getElementById("reindexBtn");
+        btn.disabled = true; btn.textContent = "Indexing…";
         try{
-          const res=await fetch("/api/agent/mode");
-          if(res.ok){
-            const data=await res.json();
-            const el=document.getElementById("modeBadge");
-            el.textContent=data.mode==="langchain"?"🔗 LangChain Agent":"⚡ Direct Gemini";
-            el.title=data.model;
+          const res = await fetch("/api/runbooks/index",{method:"POST"});
+          const data = await res.json();
+          if(data.ok && data.documents_indexed > 0){
+            addChat("bot", `Indexed ${data.documents_indexed} runbook(s). Ask away!`);
+          } else if(data.ok){
+            addChat("bot", "No runbooks were indexed. Add .md files under the runbooks/ folder and try again.");
+          } else {
+            addChat("bot", "Indexing failed — see API logs.");
           }
-        }catch(e){}
+        }catch(e){
+          addChat("bot", "Indexing failed — see API logs.");
+        }
+        btn.disabled = false; btn.textContent = "⟳ Re-index";
       }
 
-      fetchMode();
+      document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});
+
+      loadConfig();
       refreshStatus();
       refreshThreats();
       setInterval(refreshStatus, 30000);

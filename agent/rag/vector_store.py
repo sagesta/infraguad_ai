@@ -1,13 +1,19 @@
-"""ChromaDB vector store with VertexAI embeddings for runbook retrieval."""
+"""ChromaDB vector store with a local ONNX embedder for runbook retrieval.
+
+Embeddings run fully on-host — no cloud API, no API key. The model weights
+(~80MB, all-MiniLM-L6-v2 quantized to ONNX) are fetched once on first use and
+cached under the container's home directory; mount that cache dir as a volume
+so redeploys don't re-download it.
+"""
 
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +21,24 @@ _CHROMA_DIR = "./chroma_db"
 _COLLECTION_NAME = "runbooks"
 
 
+class _LocalEmbeddings(Embeddings):
+    """Adapts Chroma's built-in ONNX embedder to the LangChain Embeddings interface."""
+
+    def __init__(self) -> None:
+        from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+
+        self._fn = DefaultEmbeddingFunction()
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [list(vector) for vector in self._fn(texts)]
+
+    def embed_query(self, text: str) -> list[float]:
+        return list(self._fn([text])[0])
+
+
 def _get_embedding_function() -> Any:
-    """Create a VertexAI embedding function."""
-    from langchain_google_vertexai import VertexAIEmbeddings
-
-    project = os.environ.get("GCP_PROJECT_ID", "").strip()
-    region = os.environ.get("GCP_REGION", "us-central1").strip() or "us-central1"
-
-    return VertexAIEmbeddings(
-        model_name="text-embedding-004",
-        project=project,
-        location=region,
-    )
+    """Create the local embedding function (no external API calls)."""
+    return _LocalEmbeddings()
 
 
 def build_index(documents: list[Document]) -> int:

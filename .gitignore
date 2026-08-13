@@ -5,6 +5,9 @@ venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
 .mypy_cache/
 .ruff_cache/
 data/
@@ -20,3 +23,14 @@ terraform/*.tfstate*
 terraform/.terraform.lock.hcl
 credentials/  
 terraform.tfvars  
+docs/masters_project/output/
+docs/masters_project/InfraGuard_AI_Masters_Project*.docx
+docs/masters_project/node_modules/
+docs/masters_project/InfraGuard_Pro_Project_Proposal.docx
+docs/masters_project/InfraGuard_Pro_Project_Proposal.pdf
+docs/masters_project/InfraGuard_Pro_Proposal_Defence.pptx
+MVP infraguard.zip
+skill.md.txt
+submission/create_source_archive.ps1
+submission/source-files.txt
+submission/*.zip

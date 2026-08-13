@@ -1,0 +1,14 @@
+%% Figure 3.3 — Heartbeat Verdict Pipeline (Collect, Analyse, Decide, Notify)
+%% Appears in: Chapter 3, Section 3.3.6 (Heartbeat Verdict Pipeline)
+%% Render to: ../fig_3_3_remediation_flow.png
+flowchart LR
+  A["Fetch active<br/>acknowledgements"] --> B["Collect telemetry<br/>Loki / Prometheus / probes"]
+  B --> C["Assemble prompt<br/>+ known conditions"]
+  C --> D["LLM reason<br/>(Gemini)"]
+  D --> E["Verdict<br/>+ signature"]
+  E --> F["Fingerprint<br/>+ persist"]
+  F --> G{"severity<br/>high / critical?"}
+  G -->|yes| H["Notify (ntfy.sh)"]
+  G -->|no| I["End cycle"]
+  H --> I
+  A -. acknowledged conditions .-> C

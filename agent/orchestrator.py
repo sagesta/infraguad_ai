@@ -9,7 +9,7 @@ from typing import Any, Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from agent.llm.prompts import assemble_prompt_from_collected
-from agent.llm.vertex import get_verdict
+from agent.llm.providers import get_verdict
 from agent.tools.docker_events import get_docker_events
 from agent.tools.http_probe import probe_endpoints
 from agent.tools.loki import fetch_loki_logs
@@ -26,10 +26,20 @@ def _use_langchain_agent() -> bool:
     return os.environ.get("USE_LANGCHAIN_AGENT", "").strip() == "1"
 
 
+def docker_monitoring_enabled() -> bool:
+    """Local Docker monitoring is opt-in: it needs the Docker socket mounted."""
+    return os.environ.get("ENABLE_DOCKER_MONITORING", "").strip() == "1"
+
+
 class GraphState(TypedDict, total=False):
-    """``docker_log_errors`` is optional seed data from ``main`` heartbeat (Docker log scan)."""
+    """``docker_log_errors`` is optional seed data from ``main`` heartbeat (Docker log scan).
+
+    ``known_conditions`` are operator acknowledgements (the agent's memory), passed
+    in from ``main`` so the analyze step can tell the LLM what is already triaged.
+    """
 
     docker_log_errors: list[dict[str, str]]
+    known_conditions: list[dict[str, Any]]
     collected: dict[str, Any]
     verdict: dict[str, Any]
     raw_llm: str
@@ -44,10 +54,16 @@ def _collect_data(state: GraphState) -> dict[str, Any]:
     if docker_logs is None:
         docker_logs = []
 
-    collected: dict[str, Any] = {
-        "docker": {"ok": True, "events": [], "count": 0, "note": "Local Docker monitoring disabled."},
-        "docker_logs": [],
-    }
+    collected: dict[str, Any] = {"docker_logs": docker_logs}
+    if docker_monitoring_enabled():
+        collected["docker"] = get_docker_events()
+    else:
+        collected["docker"] = {
+            "ok": True,
+            "events": [],
+            "count": 0,
+            "note": "Local Docker monitoring disabled (set ENABLE_DOCKER_MONITORING=1 to enable).",
+        }
     if _env_url_set("PROBE_URLS"):
         collected["http_probe"] = probe_endpoints()
     loki_result = fetch_loki_logs()
@@ -64,24 +80,26 @@ def _fallback_verdict(message: str) -> dict[str, Any]:
         "severity": "warning",
         "summary": "Analysis pipeline degraded; operator review required.",
         "root_cause": message,
-        "recommended_action": "Verify Vertex AI / GCP credentials, quotas, and network egress.",
+        "recommended_action": "Verify the configured LLM API key, model access, quotas, and network egress.",
+        "signature": "pipeline:degraded:agent",
     }
 
 
 def _analyze(state: GraphState) -> dict[str, Any]:
     collected = state.get("collected") or {}
+    known = state.get("known_conditions") or []
 
     # LangChain agent path — multi-tool reasoning
     if _use_langchain_agent():
         from agent.llm.langchain_agent import run_langchain_agent
-        context = assemble_prompt_from_collected(collected)
+        context = assemble_prompt_from_collected(collected, known_conditions=known)
         llm = run_langchain_agent(context=context)
     else:
         # Classic path — single Gemini call with pre-assembled prompt
-        prompt = assemble_prompt_from_collected(collected)
+        prompt = assemble_prompt_from_collected(collected, known_conditions=known)
         llm = get_verdict(prompt)
 
-    mode = "langchain" if _use_langchain_agent() else "gemini_direct"
+    mode = "langchain" if _use_langchain_agent() else "direct"
 
     if not llm.get("ok"):
         verdict = _fallback_verdict(str(llm.get("message", llm.get("error", "unknown_error"))))
@@ -98,6 +116,7 @@ def _analyze(state: GraphState) -> dict[str, Any]:
         "summary": str(llm.get("summary", "")),
         "root_cause": str(llm.get("root_cause", "")),
         "recommended_action": str(llm.get("recommended_action", "")),
+        "signature": str(llm.get("signature", "")),
     }
 
     return {
@@ -109,8 +128,14 @@ def _analyze(state: GraphState) -> dict[str, Any]:
 
 
 def _decide_action(state: GraphState) -> dict[str, Any]:
-    # Docker container diagnostics disabled; relies solely on Loki/Prometheus
-    return {"docker_context": None}
+    """On high/critical verdicts, gather container diagnostics for the operator."""
+    if not docker_monitoring_enabled():
+        return {"docker_context": None}
+    verdict = state.get("verdict") or {}
+    sev = str(verdict.get("severity", "ok")).lower()
+    if sev not in {"high", "critical"}:
+        return {"docker_context": None}
+    return {"docker_context": collect_container_diagnostics()}
 
 
 def _route_notify(state: GraphState) -> Literal["notify", "skip"]:
@@ -157,12 +182,28 @@ def build_graph() -> Any:
     return graph.compile()
 
 
+_COMPILED_GRAPH: Any = None
+
+
+def _get_graph() -> Any:
+    """Compile the graph once and reuse it.
+
+    The graph topology is fixed and stateless (all state is passed per-invoke),
+    and node bodies resolve their dependencies as module globals at call time,
+    so a single compiled instance is safe to share across heartbeats.
+    """
+    global _COMPILED_GRAPH
+    if _COMPILED_GRAPH is None:
+        _COMPILED_GRAPH = build_graph()
+    return _COMPILED_GRAPH
+
+
 def run_cycle(initial: GraphState | None = None) -> GraphState:
     """Execute one full orchestration cycle synchronously.
 
     Pass ``initial`` with ``docker_log_errors`` (from ``main`` heartbeat) so Gemini sees
     DevPlanner container error lines without calling Docker from the LangGraph thread.
     """
-    app = build_graph()
+    app = _get_graph()
     result: GraphState = app.invoke(dict(initial) if initial else {})
     return result
