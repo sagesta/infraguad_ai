@@ -34,7 +34,7 @@ def test_fetch_loki_logs_parses_streams() -> None:
             ],
         },
     }
-    respx.get("http://loki.test/loki/api/v1/query").mock(
+    route = respx.get("http://loki.test/loki/api/v1/query_range").mock(
         return_value=httpx.Response(200, json=payload)
     )
 
@@ -43,6 +43,28 @@ def test_fetch_loki_logs_parses_streams() -> None:
     assert out["count"] == 2
     lines = out["lines"]
     assert lines[0]["line"] == "line-one"
+
+    # Explicit recent window, newest-first
+    sent = route.calls.last.request.url.params
+    assert sent["direction"] == "backward"
+    assert int(sent["end"]) > int(sent["start"])
+
+
+@respx.mock
+def test_fetch_loki_logs_respects_limit() -> None:
+    os.environ["LOKI_URL"] = "http://loki.test"
+    values = [[f"170000000000000{i:04d}", f"line-{i}"] for i in range(10)]
+    payload = {
+        "status": "success",
+        "data": {"resultType": "streams", "result": [{"stream": {"job": "api"}, "values": values}]},
+    }
+    respx.get("http://loki.test/loki/api/v1/query_range").mock(
+        return_value=httpx.Response(200, json=payload)
+    )
+
+    out = fetch_loki_logs(limit=3)
+    assert out["ok"] is True
+    assert out["count"] == 3
 
 
 @respx.mock

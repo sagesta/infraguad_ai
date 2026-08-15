@@ -1,0 +1,13 @@
+%% Figure 5.2 — Surfaced Duplicate Verdicts: Stateless vs Memory-Enabled
+%% Appears in: Chapter 5, Section 5.3 (Evaluation of the Verdict-Memory)
+%% Render to: ../fig_5_2_mttr.png
+%% Controlled demonstration over a 30-heartbeat window. First line = stateless
+%% baseline (one duplicate per cycle); second line = memory-enabled, with the
+%% operator acknowledging the condition at cycle 3 (cumulative count then plateaus).
+%% Alternative renderer: ../generate.py
+xychart-beta
+  title "Surfaced Duplicate Verdicts — Stateless vs Memory-Enabled"
+  x-axis [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
+  y-axis "Cumulative surfaced duplicates" 0 --> 30
+  line [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
+  line [0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]

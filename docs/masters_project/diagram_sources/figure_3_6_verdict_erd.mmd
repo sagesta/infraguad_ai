@@ -1,0 +1,31 @@
+%% Thesis figure: Figure 3.6
+%% Stable ID: FIG-3.6
+%% Caption: Entity-Relationship Diagram of the Verdict and Acknowledgement Schema
+%% Output PNG: ../figures/fig_3_6_erd.png
+erDiagram
+  VERDICTS {
+    integer id PK
+    text created_at
+    text severity
+    text summary
+    text root_cause
+    text recommended_action
+    text payload_json
+    text signature
+    text fingerprint FK
+    text model
+    text prompt_version
+  }
+
+  ACKNOWLEDGEMENTS {
+    text fingerprint PK
+    text signature
+    text severity
+    text summary
+    text note
+    text acknowledged_by
+    text created_at
+    text expires_at
+  }
+
+  ACKNOWLEDGEMENTS o|--o{ VERDICTS : "matches by fingerprint"

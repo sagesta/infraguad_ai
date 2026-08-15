@@ -1,0 +1,19 @@
+%% Figure 3.5 — Sequence Diagram (One Heartbeat Cycle)
+%% Appears in: Chapter 3, Section 3.4.3 (Sequence Diagram)
+%% Render to: ../fig_3_5_sequence.png
+sequenceDiagram
+  participant Agent
+  participant Store
+  participant Telemetry
+  participant LLM as LLM Provider
+  participant Ntfy as ntfy.sh
+  Agent->>Store: fetch active acknowledgements
+  Store-->>Agent: known conditions
+  Agent->>Telemetry: collect logs / metrics / probes
+  Telemetry-->>Agent: telemetry snapshot
+  Agent->>LLM: reason(telemetry + known conditions)
+  LLM-->>Agent: structured verdict + signature
+  Agent->>Store: persist verdict (fingerprint)
+  opt severity high or critical
+    Agent->>Ntfy: notify
+  end

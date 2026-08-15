@@ -1,0 +1,37 @@
+%% Thesis figure: Figure 3.4
+%% Stable ID: FIG-3.4
+%% Caption: Use-Case Diagram: Operator and Agent
+%% Output PNG: ../figures/fig_3_4_usecase.png
+%% Mermaid approximates UML actors and use-case ovals with flowchart nodes.
+flowchart LR
+  OP(["Operator"])
+  AGENT(["Scheduled agent"])
+  MODEL(["LLM provider"])
+  NTFY(["Notification service"])
+  CROWDSEC(["CrowdSec"])
+
+  subgraph SYSTEM["InfraGuard AI system boundary"]
+    UC1(["View system status and verdicts"])
+    UC2(["Acknowledge a known condition"])
+    UC3(["Remove an acknowledgement"])
+    UC4(["Query the runbook assistant"])
+    UC5(["Review a detected threat"])
+    UC6(["Approve a block action"])
+    UC7(["Collect telemetry"])
+    UC8(["Generate and store a verdict"])
+    UC9(["Send a severity notification"])
+  end
+
+  OP --- UC1
+  OP --- UC2
+  OP --- UC3
+  OP --- UC4
+  OP --- UC5
+  OP --- UC6
+
+  AGENT --- UC7
+  AGENT --- UC8
+  AGENT --- UC9
+  UC8 --- MODEL
+  UC9 --- NTFY
+  UC6 --- CROWDSEC

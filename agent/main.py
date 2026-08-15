@@ -10,9 +10,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from agent.orchestrator import run_cycle
+from agent.orchestrator import docker_monitoring_enabled, run_cycle
 from agent.tools.docker_logs import fetch_container_errors
-from api.store import init_db, insert_verdict
+from api.store import fetch_active_acks, init_db, insert_verdict
 
 
 logger = logging.getLogger("infraguard.agent")
@@ -43,7 +43,7 @@ async def _persist_cycle_result(final_state: dict[str, object]) -> None:
     await insert_verdict(verdict, extras)
 
 
-async def heartbeat_loop(interval_seconds: int = 60) -> None:
+async def heartbeat_loop(interval_seconds: int = 120) -> None:
     _load_env()
     await init_db()
 
@@ -51,11 +51,17 @@ async def heartbeat_loop(interval_seconds: int = 60) -> None:
 
     while True:
         try:
-            # Disable local Docker log tailing for now; rely on Loki/Prometheus
-            docker_log_errors = []
+            # Tail the target container's error lines when Docker monitoring is enabled.
+            docker_log_errors: list[dict[str, str]] = []
+            if docker_monitoring_enabled():
+                container_name = os.environ.get("DEVPLANNER_CONTAINER_NAME", "").strip()
+                if container_name:
+                    docker_log_errors = await fetch_container_errors(container_name)
+            # The agent's memory: conditions the operator has already triaged.
+            known_conditions = await fetch_active_acks()
             final = await asyncio.to_thread(
                 run_cycle,
-                {"docker_log_errors": docker_log_errors},
+                {"docker_log_errors": docker_log_errors, "known_conditions": known_conditions},
             )
             await _persist_cycle_result(final)
             verdict = final.get("verdict") if isinstance(final.get("verdict"), dict) else {}

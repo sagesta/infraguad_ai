@@ -83,20 +83,26 @@ jobs:
             INFRAGUARD_USERNAME=${{ secrets.INFRAGUARD_USERNAME }}
             INFRAGUARD_PASSWORD=${{ secrets.INFRAGUARD_PASSWORD }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
-            GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-            GCP_REGION=${{ secrets.GCP_REGION }}
+            LLM_PROVIDER=gemini
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GEMINI_MODEL=gemini-3.6-flash
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+            ANTHROPIC_MODEL=claude-sonnet-5
             LOKI_URL=${{ secrets.LOKI_URL }}
             PROMETHEUS_URL=${{ secrets.PROMETHEUS_URL }}
+            NTFY_TOPIC=${{ secrets.NTFY_TOPIC }}
+            PROBE_URLS=${{ secrets.PROBE_URLS }}
             CROWDSEC_API_URL=${{ secrets.CROWDSEC_API_URL }}
             CROWDSEC_API_KEY=${{ secrets.CROWDSEC_API_KEY }}
-            NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}
-            NOTION_DATABASE_ID=${{ secrets.NOTION_DATABASE_ID }}
+            RUNBOOKS_DIR=/app/runbooks
+            ENABLE_DOCKER_MONITORING=1
             MONITORED_CONTAINERS=devplanner-api-1
+            DEVPLANNER_CONTAINER_NAME=devplanner-api-1
             USE_LANGCHAIN_AGENT=1
             DB_PATH=/data/verdicts.db
             DOCKER_HOST=unix:///var/run/docker.sock
-            GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp-key.json
             HEARTBEAT_INTERVAL_SECONDS=120
+            VERDICT_RETENTION_DAYS=30
             REGISTRY=${{ env.REGISTRY }}
             EOF
             gcloud auth configure-docker "${{ env.GCP_REGION }}-docker.pkg.dev" --quiet

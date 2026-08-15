@@ -1,22 +1,21 @@
-"""LangChain AgentExecutor wrapping Gemini via ChatVertexAI for multi-tool reasoning."""
+"""LangChain multi-tool reasoning across supported direct model APIs."""
 
 from __future__ import annotations
 
 import json
 import logging
 import os
-import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_google_vertexai import ChatVertexAI
 
+from agent.llm.providers import active_model, llm_provider
+from agent.llm.schema import VERDICT_OUTPUT_RULES, parse_verdict_text
 from agent.tools.langchain_tools import ALL_TOOLS
 
-_SYSTEM_PROMPT = """\
+_SYSTEM_PROMPT = f"""\
 You are a senior SRE analyzing infrastructure telemetry for a self-hosted application.
 
 You have access to three tools:
@@ -28,15 +27,91 @@ RULES:
 - Call ALL available tools to gather data before making your verdict.
 - If a tool returns "not_configured", that integration is intentionally absent — do NOT flag it.
 - Focus ONLY on the health of the monitored infrastructure based on Loki logs, Prometheus metrics, and HTTP probes.
-- Do NOT attempt to monitor local Docker containers or logs directly; rely on centralized telemetry.
+- Docker container telemetry (events, error log lines) may be included in the provided context; assess it only when present. Never speculate about containers otherwise.
 
-After gathering all data, produce your final verdict as a JSON object with exactly these fields:
-- severity: one of "ok", "warning", "high", "critical"
-- summary: one sentence describing the current state
-- root_cause: detailed analysis of what is wrong and why
-- recommended_action: specific steps to resolve
+After gathering all data:
+{VERDICT_OUTPUT_RULES}"""
 
-You must return ONLY raw, valid JSON. Under no circumstances should you utilize markdown code blocks, backticks, or append any conversational dialogue."""
+def build_chat_model() -> Any | dict[str, Any]:
+    """Construct the LangChain chat model for the configured provider.
+
+    Returns the model instance, or an ``ok: False`` error dict when the
+    provider is unconfigured/unknown (mirrors the single-call clients).
+    Shared by the multi-tool verdict agent and the RAG runbook assistant, so
+    both follow whichever LLM_PROVIDER is set — including a fully local Ollama.
+    """
+    provider = llm_provider()
+
+    if provider == "gemini":
+        api_key = (
+            os.environ.get("GEMINI_API_KEY", "").strip()
+            or os.environ.get("GOOGLE_API_KEY", "").strip()
+        )
+        if not api_key:
+            return {"ok": False, "error": "missing_env", "message": "GEMINI_API_KEY is not set"}
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+        except ImportError:
+            return {
+                "ok": False,
+                "error": "missing_dependency",
+                "message": "The 'langchain-google-genai' package is not installed",
+            }
+        return ChatGoogleGenerativeAI(
+            model=active_model(),
+            api_key=api_key,
+            vertexai=False,
+            temperature=0.2,
+        )
+
+    if provider == "ollama":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            return {
+                "ok": False,
+                "error": "missing_dependency",
+                "message": "The 'langchain-openai' package is not installed",
+            }
+        base_url = os.environ.get("OLLAMA_BASE_URL", "").strip() or "http://ollama:11434/v1"
+        # Ollama's OpenAI-compatible endpoint ignores the API key; a non-empty
+        # placeholder is required because the client validates the field.
+        return ChatOpenAI(model=active_model(), base_url=base_url, api_key="ollama")
+
+    if provider == "anthropic":
+        if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+            return {"ok": False, "error": "missing_env", "message": "ANTHROPIC_API_KEY is not set"}
+        try:
+            from langchain_anthropic import ChatAnthropic
+        except ImportError:
+            return {
+                "ok": False,
+                "error": "missing_dependency",
+                "message": "The 'langchain-anthropic' package is not installed",
+            }
+        # No temperature: removed on Claude Opus 5 (a non-default value 400s).
+        return ChatAnthropic(model=active_model(), max_tokens=8192)
+
+    if provider == "openai":
+        if not os.environ.get("OPENAI_API_KEY", "").strip():
+            return {"ok": False, "error": "missing_env", "message": "OPENAI_API_KEY is not set"}
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            return {
+                "ok": False,
+                "error": "missing_dependency",
+                "message": "The 'langchain-openai' package is not installed",
+            }
+        # No temperature: reasoning-tier models reject non-default sampling params.
+        return ChatOpenAI(model=active_model())
+
+    return {
+        "ok": False,
+        "error": "unknown_provider",
+        "message": f"LLM_PROVIDER '{provider}' is not one of gemini, anthropic, openai, ollama",
+    }
+
 
 def extract_raw_text(output: Any) -> str:
     """Extract raw text from a potential list of blocks."""
@@ -48,41 +123,6 @@ def extract_raw_text(output: Any) -> str:
     return str(output)
 
 
-def _extract_json(text: str) -> dict[str, Any] | None:
-    """Extract JSON from agent output text, aggressively stripping markdown artifacts."""
-    # Step 1: strip outer whitespace
-    text = text.strip()
-
-    # Step 2: strip markdown code fences (```json ... ``` or ``` ... ```)
-    fence = re.match(r"^```(?:json)?\s*([\s\S]*?)\s*```$", text, re.IGNORECASE)
-    if fence:
-        text = fence.group(1).strip()
-    else:
-        # Handle partial fences or multiple fences
-        text = re.sub(r"```json\s*", "", text)
-        text = re.sub(r"```\s*", "", text)
-        text = text.strip()
-
-    # Step 3: try direct parse
-    try:
-        data = json.loads(text)
-        if isinstance(data, dict):
-            return data
-    except json.JSONDecodeError:
-        pass
-
-    # Step 4: extract the outermost JSON object from surrounding prose
-    match = re.search(r"\{[\s\S]*\}", text)
-    if match:
-        try:
-            data = json.loads(match.group())
-            if isinstance(data, dict):
-                return data
-        except json.JSONDecodeError:
-            pass
-    return None
-
-
 def run_langchain_agent(context: str = "") -> dict[str, Any]:
     """Run the LangChain agent with multi-tool reasoning and return a verdict dict.
 
@@ -92,28 +132,12 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
     Returns:
         A dict with ``ok: True`` and verdict fields, or ``ok: False`` with error info.
     """
-    import os
-    creds_path = os.environ.get(
-        "GOOGLE_APPLICATION_CREDENTIALS",
-        "/app/credentials/gcp-key.json"
-    )
-    os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", creds_path)
-
-    project = os.environ.get("GCP_PROJECT_ID", "").strip()
-    region = os.environ.get("GCP_REGION", "us-central1").strip() or "us-central1"
-
-    if not project:
-        return {"ok": False, "error": "missing_env", "message": "GCP_PROJECT_ID is not set"}
+    llm_or_err = build_chat_model()
+    if isinstance(llm_or_err, dict):
+        return llm_or_err
+    llm = llm_or_err
 
     try:
-        llm = ChatVertexAI(
-            model_name="gemini-2.5-flash",
-            project=project,
-            location=region,
-            temperature=0.2,
-            max_output_tokens=2048,
-        )
-
         llm_with_tools = llm.bind_tools(ALL_TOOLS)
 
         messages: list[Any] = [
@@ -164,42 +188,14 @@ def run_langchain_agent(context: str = "") -> dict[str, Any]:
         else:
             final_text = str(raw)
 
-        # Strip markdown code fences
-        final_text = re.sub(r'^```json\s*', '', final_text.strip())
-        final_text = re.sub(r'```\s*$', '', final_text.strip())
-
-        logger.warning("LangChain agent raw output (first 500 chars): %s", final_text[:500])
-        parsed = _extract_json(final_text)
-        if not parsed:
+        parsed = parse_verdict_text(final_text)
+        if not parsed.get("ok"):
             logger.warning(
-                "Could not parse verdict JSON from agent output. Raw (first 300 chars): %r",
+                "Could not parse verdict from agent output (%s). Raw (first 300 chars): %r",
+                parsed.get("error"),
                 final_text[:300],
             )
-            return {
-                "ok": False,
-                "error": "json_decode",
-                "message": "Could not parse verdict JSON from agent output",
-                "raw": final_text,
-            }
-
-        severity = str(parsed.get("severity", "")).lower()
-        allowed = {"ok", "warning", "high", "critical"}
-        if severity not in allowed:
-            return {
-                "ok": False,
-                "error": "invalid_severity",
-                "message": f"Got severity '{severity}'",
-                "raw": parsed,
-            }
-
-        return {
-            "ok": True,
-            "severity": severity,
-            "summary": str(parsed.get("summary", "")),
-            "root_cause": str(parsed.get("root_cause", "")),
-            "recommended_action": str(parsed.get("recommended_action", "")),
-            "_raw_text": final_text,
-        }
+        return parsed
 
     except Exception as exc:  # noqa: BLE001
         logger.error("LLM Execution or Parsing Failed", exc_info=True)

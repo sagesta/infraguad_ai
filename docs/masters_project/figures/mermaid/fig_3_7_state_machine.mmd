@@ -1,0 +1,10 @@
+%% Figure 3.7 — State Machine of the LangGraph Reasoning Agent
+%% Appears in: Chapter 3, Section 3.4.6 (State Machine)
+%% Render to: ../fig_3_7_state_machine.png
+stateDiagram-v2
+  [*] --> collect_data
+  collect_data --> analyze
+  analyze --> decide_action
+  decide_action --> notify: severity high / critical
+  decide_action --> [*]: ok / warning
+  notify --> [*]

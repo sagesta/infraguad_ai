@@ -56,14 +56,15 @@ def collect_container_diagnostics() -> dict[str, Any]:
                 out["monitored"].append(entry)
                 continue
 
-            # Shallow copy so we can drop Config.Env (variable names leak into LLM context).
-            inspect_data = dict(container.attrs)
-            if "Config" in inspect_data and "Env" in inspect_data["Config"]:
-                inspect_data["Config"]["Env"] = []
-
-            state = inspect_data.get("State") or {}
+            # Keep only the fields an operator needs; the full inspect payload is
+            # large and includes container config that should not reach the LLM or DB.
+            attrs = container.attrs or {}
+            state = attrs.get("State") or {}
             health = state.get("Health")
             entry["status"] = state.get("Status")
+            entry["restart_count"] = attrs.get("RestartCount")
+            entry["started_at"] = state.get("StartedAt")
+            entry["exit_code"] = state.get("ExitCode")
             if health is not None:
                 log = health.get("Log") or []
                 entry["health"] = {
@@ -73,7 +74,14 @@ def collect_container_diagnostics() -> dict[str, Any]:
                 }
 
             try:
-                entry["stats"] = container.stats(stream=False)
+                stats = container.stats(stream=False) or {}
+                memory = stats.get("memory_stats", {}) or {}
+                entry["stats"] = {
+                    "memory_usage_bytes": memory.get("usage"),
+                    "memory_limit_bytes": memory.get("limit"),
+                    "cpu_total_usage": (stats.get("cpu_stats", {}) or {}).get("cpu_usage", {}).get("total_usage"),
+                    "pids": (stats.get("pids_stats", {}) or {}).get("current"),
+                }
             except (APIError, DockerException) as exc:
                 entry["stats_error"] = str(exc)
 
@@ -87,8 +95,7 @@ def collect_container_diagnostics() -> dict[str, Any]:
             except (APIError, DockerException) as exc:
                 entry["logs_error"] = str(exc)
 
-            entry["image"] = inspect_data.get("Config", {}).get("Image") or inspect_data.get("Image", "")
-            entry["inspect_data"] = inspect_data
+            entry["image"] = (attrs.get("Config", {}) or {}).get("Image") or attrs.get("Image", "")
             out["monitored"].append(entry)
 
         try:

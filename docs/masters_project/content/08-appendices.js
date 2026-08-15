@@ -3,7 +3,7 @@ const { Paragraph, TextRun, AlignmentType } = require('docx');
 
 function code(text) {
   // Render code in a monospaced font, preserved as-is (line breaks split into separate paragraphs).
-  const lines = text.split('\n');
+  const lines = text.replace(/[\u2013\u2014]/g, '-').split('\n');
   return lines.map(line =>
     new Paragraph({
       children: [new TextRun({ text: line || ' ', font: 'Consolas', size: 20 })],
@@ -17,406 +17,234 @@ function appendices() {
   const b = [];
 
   // ============ APPENDIX A ============
-  b.push(chapterLabel('APPENDIX A'));
-  b.push(pCenter('API ENDPOINT REFERENCE'));
+  b.push(chapterLabel('APPENDIX A: API ENDPOINT REFERENCE'));
   b.push(blank());
-  b.push(p('The following enumerates the principal HTTP endpoints exposed by the InfraGuard Pro control-plane API. Endpoints requiring authentication are marked with † (session cookie) or ‡ (satellite bearer token). Public endpoints have no marker.'));
+  b.push(p('Appendix A lists the HTTP endpoints exposed by the InfraGuard AI API. A dagger marks routes that require a valid session cookie. Only the health check and login routes are public.'));
   b.push(blank());
 
-  b.push(h2('A.1  Authentication and Session'));
-  b.push(p('POST /login — Submit username and password; sets a signed session cookie on success.'));
-  b.push(p('GET /logout † — Clear the session cookie.'));
-  b.push(p('GET /health — Liveness probe; returns 200 if the API and database are reachable.'));
+  b.push(h2('A.1  Authentication and Health'));
+  b.push(p('GET /login: Serve the login page. POST /login: Submit credentials; sets a signed session cookie on success; rate-limited to five attempts per minute.'));
+  b.push(p('GET /logout †: Clear the session cookie.'));
+  b.push(p('GET /health: Liveness probe; returns 200 when the API is reachable.'));
 
-  b.push(h2('A.2  Verdicts and Alerts'));
-  b.push(p('GET /status † — Latest verdict summary.'));
-  b.push(p('GET /alerts † — Recent 20 verdicts.'));
-  b.push(p('GET /api/verdicts † — Paged verdict listing with severity, server, provider, and time-range filters.'));
-  b.push(p('GET /api/verdicts/{id} † — Verdict detail including evidence chain, raw LLM output, audit references.'));
+  b.push(h2('A.2  Status, History, and Configuration'));
+  b.push(p('GET /status †: The latest verdict with staleness (age, stale) and memory (fingerprint, acknowledged, suppressed) fields.'));
+  b.push(p('GET /alerts †: The twenty most recent verdicts with their per-row memory fields.'));
+  b.push(p('GET /api/config †: Which integrations are configured, as booleans only (Loki, Prometheus, HTTP probes, local runbooks, CrowdSec, ntfy notifications, Docker monitoring).'));
+  b.push(p('GET /api/agent/mode †: The active reasoning mode (langchain or gemini_direct) and the model.'));
 
-  b.push(h2('A.3  SARIF Ingestion'));
-  b.push(p('POST /api/sarif/ingest † — Accept a SARIF 2.1.0 document (multipart/form-data or application/json).'));
+  b.push(h2('A.3  Verdict Memory'));
+  b.push(p('POST /api/verdicts/ack †: Acknowledge a verdict condition as a known non-issue, keyed on its fingerprint; rejected with HTTP 409 for high/critical severity.'));
+  b.push(p('POST /api/verdicts/unack †: Remove an acknowledgement so the condition re-opens.'));
+  b.push(p('GET /api/acks †: List the active acknowledgements.'));
 
-  b.push(h2('A.4  Remediation'));
-  b.push(p('GET /api/remediations † — List remediations with optional status, severity, provider filters.'));
-  b.push(p('GET /api/remediations/{id} † — Detail view including diff, evidence, audit chain, validation outcome.'));
-  b.push(p('POST /api/remediations/{id}/approve † — Approve and dispatch a human-approval-required remediation.'));
-  b.push(p('POST /api/remediations/{id}/reject † — Reject with reason recorded.'));
-  b.push(p('POST /api/remediations/{id}/rollback † — Open a reverting pull request.'));
+  b.push(h2('A.4  Threats'));
+  b.push(p('GET /api/threats †: Scan recent Loki logs for HTTP/SSH brute-force and port-scan patterns; returns detected threats and source IPs.'));
+  b.push(p('POST /api/threats/apply †: Build and apply a CrowdSec ban for a detected threat; runs in dry-run mode when CrowdSec is not configured.'));
 
-  b.push(h2('A.5  Agent and LLM Configuration'));
-  b.push(p('GET /api/agent/mode † — Current reasoning mode and active provider.'));
-  b.push(p('GET /api/agent/llm-config † — Active provider and model identifiers.'));
-  b.push(p('POST /api/agent/llm-config † — Hot-swap provider and model.'));
-  b.push(p('POST /api/agent/diagnose-now † — Trigger an out-of-cycle diagnosis cycle.'));
-
-  b.push(h2('A.6  Satellites and Containers'));
-  b.push(p('POST /api/satellites/register — First-boot satellite registration (no auth — issues a token).'));
-  b.push(p('POST /api/satellites/{id}/heartbeat ‡ — Periodic heartbeat from a satellite.'));
-  b.push(p('GET /api/satellites † — List of registered satellites.'));
-  b.push(p('GET /api/satellites/{id} † — Satellite detail with container inventory.'));
-  b.push(p('GET /api/satellites/{id}/actions ‡ — Satellite polls for approved remote actions.'));
-  b.push(p('POST /api/containers/{id}/restart † — Remote container restart.'));
-  b.push(p('POST /api/containers/{id}/stop † — Remote container stop.'));
-  b.push(p('GET /api/containers/{id}/logs † — WebSocket-upgraded log stream.'));
-  b.push(p('POST /api/containers/{id}/diagnose † — On-demand diagnosis for a specific container.'));
-
-  b.push(h2('A.7  RAG and Runbooks'));
-  b.push(p('GET /api/runbooks/list † — Indexed runbook inventory.'));
-  b.push(p('POST /api/runbooks/upload † — Upload a runbook (Markdown, text, or PDF).'));
-  b.push(p('POST /api/runbooks/index † — Trigger full re-index.'));
-  b.push(p('POST /api/runbooks/query † — RAG semantic search; returns answer and citations.'));
-  b.push(p('GET /api/incidents/similar † — Top-k historical incidents similar to supplied context.'));
-
-  b.push(h2('A.8  Traceway Bridge'));
-  b.push(p('GET /api/traceway/exceptions † — Proxied exception feed.'));
-  b.push(p('GET /api/traceway/traces/{trace_id} † — Specific trace by ID.'));
-  b.push(p('POST /api/traceway/correlate † — On-demand AI correlation between an exception and surrounding telemetry.'));
-
-  b.push(h2('A.9  Threats and CrowdSec'));
-  b.push(p('GET /api/threats † — Detected threat patterns and source IPs from latest verdict.'));
-  b.push(p('POST /api/threats/apply † — Apply a CrowdSec ban to a single satellite.'));
-  b.push(p('POST /api/threats/apply-global † — Apply a CrowdSec ban to all satellites.'));
-
-  b.push(h2('A.10  Audit'));
-  b.push(p('GET /api/audit † (admin) — Paged audit-log access with actor, action, and entity filters.'));
+  b.push(h2('A.5  Runbooks (RAG)'));
+  b.push(p('POST /api/runbooks/query †: Answer a question over the indexed runbooks; returns an answer and source citations.'));
+  b.push(p('POST /api/runbooks/index †: Re-index Markdown runbooks from the configured local directory into ChromaDB.'));
 
   // ============ APPENDIX B ============
-  b.push(chapterLabel('APPENDIX B'));
-  b.push(pCenter('SAMPLE CODE SNIPPETS'));
+  b.push(chapterLabel('APPENDIX B: SAMPLE CODE SNIPPETS'));
   b.push(blank());
-  b.push(p('The following code snippets illustrate the principal architectural patterns introduced by the project. They are excerpts from the reference implementation; complete source is available in the public repository.'));
-  b.push(blank());
-
-  b.push(h2('B.1  LLM Provider Abstract Base'));
-  b.push(p('From agent/llm/provider.py:'));
-  b.push(blank());
-  b.push(...code(`from __future__ import annotations
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any
-
-@dataclass
-class AgentContext:
-    telemetry: dict[str, Any]
-    rag_documents: list[dict]
-    finding: dict | None = None
-    patch_hint: str | None = None
-
-@dataclass
-class Verdict:
-    severity: str
-    summary: str
-    root_cause: str
-    recommended_action: str
-    confidence: float
-    evidence: list[dict]
-    provider: str
-    model: str
-    raw_text: str
-    patch: str | None = None
-
-class LLMProvider(ABC):
-    name: str
-    model: str
-
-    @abstractmethod
-    async def reason(self, context: AgentContext) -> Verdict: ...
-
-    @abstractmethod
-    async def health_check(self) -> bool: ...`));
+  b.push(p('The excerpts below show the fingerprint, severity safeguard, known-condition prompt block, threat detector, and LangGraph workflow. The project repository contains the complete source.'));
   b.push(blank());
 
-  b.push(h2('B.2  OpenAI Provider Implementation'));
-  b.push(p('From agent/llm/openai.py (excerpt):'));
+  b.push(h2('B.1  Verdict Fingerprint and Signature Derivation'));
+  b.push(p('From agent/memory.py, the condition-and-ruleset fingerprint used by the acknowledgement feature:'));
   b.push(blank());
-  b.push(...code(`from openai import AsyncOpenAI
-from .provider import LLMProvider, AgentContext, Verdict
-from .prompts import build_system_prompt, build_user_prompt
-from .parser import parse_structured_verdict
+  b.push(...code(`import hashlib, re
 
-class OpenAIProvider(LLMProvider):
-    name = "openai"
+PROMPT_VERSION = "1"           # bump to invalidate all prior acknowledgements
+DEFAULT_MODEL = "gemini-3.6-flash"
+OK_SIGNATURE = "none:healthy:all"
 
-    def __init__(self, api_key: str, model: str = "gpt-4o"):
-        self.client = AsyncOpenAI(api_key=api_key)
-        self.model = model
+def compute_fingerprint(signature, model=DEFAULT_MODEL,
+                        prompt_version=PROMPT_VERSION):
+    """Stable content-plus-ruleset fingerprint for a verdict condition."""
+    sig = (signature or "").strip().lower() or OK_SIGNATURE
+    basis = f"{sig}\\x1f{prompt_version}\\x1f{model}"
+    return hashlib.sha256(basis.encode("utf-8")).hexdigest()
 
-    async def reason(self, context: AgentContext) -> Verdict:
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            response_format={"type": "json_object"},
-            temperature=0.2,
-            messages=[
-                {"role": "system", "content": build_system_prompt()},
-                {"role": "user", "content": build_user_prompt(context)},
-            ],
-        )
-        return parse_structured_verdict(
-            raw=response.choices[0].message.content,
-            provider=self.name,
-            model=self.model,
-        )
-
-    async def health_check(self) -> bool:
-        try:
-            await self.client.models.retrieve(self.model)
-            return True
-        except Exception:
-            return False`));
+def derive_signature_fallback(severity, root_cause="", summary=""):
+    """Deterministic signature when the model does not supply one;
+    volatile tokens (IPs, numbers, hashes) are stripped so the same
+    condition normalises to the same string across heartbeats."""
+    sev = (severity or "warning").strip().lower()
+    if sev == "ok":
+        return OK_SIGNATURE
+    basis = _normalize(root_cause) or _normalize(summary)
+    slug = _NONWORD.sub("-", basis).strip("-")[:48] or "unspecified"
+    return f"{sev}:{slug}"`));
   b.push(blank());
 
-  b.push(h2('B.3  Policy Engine Rule Evaluation'));
-  b.push(p('From agent/remediation/policy.py (excerpt):'));
+  b.push(h2('B.2  Severity Safeguard'));
+  b.push(p('From api/store.py, the rule that prevents a high or critical verdict from being suppressed:'));
   b.push(blank());
-  b.push(...code(`from dataclasses import dataclass
-from fnmatch import fnmatch
-
-@dataclass
-class PolicyDecision:
-    mode: str            # "autonomous" | "approval" | "recommend"
-    rule_id: str
-    rationale: str
-
-class PolicyEngine:
-    def __init__(self, config: dict):
-        self.autonomous_globs = config.get("autonomous_globs", [])
-        self.autonomous_min_confidence = config.get("autonomous_min_confidence", 0.8)
-        self.autonomous_max_cvss = config.get("autonomous_max_cvss", 6.9)
-        self.approval_min_confidence = config.get("approval_min_confidence", 0.6)
-        self.max_files_for_autonomous = config.get("max_files_for_autonomous", 1)
-
-    def classify(self, finding, patch) -> PolicyDecision:
-        if patch.confidence < self.approval_min_confidence:
-            return PolicyDecision("recommend", "POL-001",
-                "confidence below approval threshold")
-        if finding.cvss and finding.cvss >= 9.0:
-            return PolicyDecision("approval", "POL-002",
-                "CVSS critical findings always require human approval")
-        if len(patch.files_touched) > self.max_files_for_autonomous:
-            return PolicyDecision("approval", "POL-003",
-                f"patch spans {len(patch.files_touched)} files")
-        if (patch.confidence >= self.autonomous_min_confidence
-            and finding.cvss <= self.autonomous_max_cvss
-            and all(any(fnmatch(f, g) for g in self.autonomous_globs)
-                    for f in patch.files_touched)):
-            return PolicyDecision("autonomous", "POL-100",
-                "all autonomous criteria satisfied")
-        return PolicyDecision("approval", "POL-200",
-            "default to human approval")`));
+  b.push(...code(`def is_suppressed(severity, acknowledged):
+    """An acknowledged condition is hidden only when low-risk;
+    high/critical always surface, acknowledged or not."""
+    return acknowledged and str(severity or "").lower() in {"ok", "warning"}`));
   b.push(blank());
 
-  b.push(h2('B.4  Audit-Log Hash Chain'));
-  b.push(p('From api/store/audit.py (excerpt):'));
+  b.push(h2('B.3  Known-Conditions Memory Block'));
+  b.push(p('From agent/llm/prompts.py, active acknowledgements included in the next prompt as contextual information:'));
   b.push(blank());
-  b.push(...code(`import hashlib
-import json
-
-class AuditService:
-    def __init__(self, db, salt: str):
-        self.db = db
-        self.salt = salt
-
-    @staticmethod
-    def _canonical_json(obj) -> str:
-        return json.dumps(obj, sort_keys=True, separators=(",", ":"))
-
-    async def append(self, *, actor, action, entity_type, entity_id, details):
-        prev = await self.db.fetch_last_audit_hash()
-        prev_hash = prev or self.salt
-        payload = (
-            prev_hash
-            + str(int(time.time() * 1000))
-            + actor
-            + action
-            + entity_type
-            + str(entity_id)
-            + self._canonical_json(details)
-        )
-        h = hashlib.sha256(payload.encode("utf-8")).hexdigest()
-        await self.db.insert_audit(
-            actor=actor, action=action, entity_type=entity_type,
-            entity_id=entity_id, details=details,
-            prev_hash=prev_hash, hash=h,
-        )
-        return h`));
+  b.push(...code(`def _known_conditions_block(known_conditions):
+    if not known_conditions:
+        return ""
+    lines = []
+    for kc in known_conditions:
+        sig = str(kc.get("signature") or "").strip()
+        if not sig:
+            continue
+        note = str(kc.get("note") or "").strip()
+        lines.append(f"- {sig}" + (f"; operator note: {note}" if note else ""))
+    if not lines:
+        return ""
+    return (
+        "OPERATOR-ACKNOWLEDGED KNOWN CONDITIONS (already triaged and "
+        "accepted as non-issues; do NOT re-flag or escalate these unless "
+        "the underlying condition has materially changed). If a current "
+        "observation matches one of these and has not materially changed, "
+        "return severity \\"ok\\" and reuse its signature:\\n"
+        + "\\n".join(lines) + "\\n\\n"
+    )`));
   b.push(blank());
 
-  b.push(h2('B.5  SARIF Adapter Excerpt'));
-  b.push(p('From agent/remediation/sarif.py (excerpt):'));
+  b.push(h2('B.4  Deterministic Threat Detection'));
+  b.push(p('From agent/tools/threat_response.py, the deterministic per-source-IP threshold detector:'));
   b.push(blank());
-  b.push(...code(`from typing import Iterator
-import json
+  b.push(...code(`def analyze_threats(loki_logs):
+    ip_401_count, ip_ssh_fail = {}, {}
+    for entry in loki_logs:
+        line = str(entry.get("line", ""))
+        low = line.lower()
+        if " 401 " in line or " 403 " in line or "unauthorized" in low:
+            for ip in _extract_ips(line):
+                ip_401_count[ip] = ip_401_count.get(ip, 0) + 1
+        if "failed password" in low or "authentication failure" in low:
+            for ip in _extract_ips(line):
+                ip_ssh_fail[ip] = ip_ssh_fail.get(ip, 0) + 1
+    threats = []
+    for ip, n in ip_401_count.items():
+        if n >= _BRUTE_FORCE_THRESHOLD:
+            threats.append({"threat_type": "http_brute_force",
+                            "source_ip": ip, "count": n})
+    # ... ssh and port-scan thresholds elided ...
+    return {"threats_found": bool(threats), "threats": threats}`));
+  b.push(blank());
 
-class SarifAdapter:
-    def __init__(self, nvd_client):
-        self.nvd = nvd_client
-
-    async def normalise(self, raw: dict) -> Iterator[dict]:
-        for run in raw.get("runs", []):
-            tool = run["tool"]["driver"]["name"]
-            for result in run.get("results", []):
-                location = result["locations"][0]["physicalLocation"]
-                rule_id = result.get("ruleId") or ""
-                cwe = self._extract_cwe(result)
-                cve = self._extract_cve(result)
-                cvss = await self.nvd.cvss_for(cve) if cve else None
-                yield {
-                    "source_scanner": tool,
-                    "rule_id": rule_id,
-                    "cwe": cwe,
-                    "cve": cve,
-                    "cvss": cvss,
-                    "severity": self._derive_severity(result, cvss),
-                    "file_path": location["artifactLocation"]["uri"],
-                    "line_start": location.get("region", {}).get("startLine", 0),
-                    "line_end": location.get("region", {}).get("endLine", 0),
-                    "message": result["message"]["text"],
-                    "sarif_raw": result,
-                }`));
+  b.push(h2('B.5  LangGraph Reasoning Loop'));
+  b.push(p('From agent/orchestrator.py, the four-node state machine:'));
+  b.push(blank());
+  b.push(...code(`def build_graph():
+    graph = StateGraph(GraphState)
+    graph.add_node("collect_data", _collect_data)
+    graph.add_node("analyze", _analyze)
+    graph.add_node("decide_action", _decide_action)
+    graph.add_node("notify", _notify)
+    graph.add_edge(START, "collect_data")
+    graph.add_edge("collect_data", "analyze")
+    graph.add_edge("analyze", "decide_action")
+    graph.add_conditional_edges("decide_action", _route_notify,
+                                {"notify": "notify", "skip": END})
+    graph.add_edge("notify", END)
+    return graph.compile()`));
   b.push(blank());
 
   // ============ APPENDIX C ============
-  b.push(chapterLabel('APPENDIX C'));
-  b.push(pCenter('DOCKER COMPOSE CONFIGURATIONS'));
+  b.push(chapterLabel('APPENDIX C: DOCKER COMPOSE CONFIGURATION'));
   b.push(blank());
-  b.push(p('Two Docker Compose configurations are provided: the central control plane composition and the satellite composition. Both have been simplified for inclusion here by omitting volume and network declarations; the complete versions are in the repository at docker-compose.yml and docker-compose.satellite.yml.'));
-  b.push(blank());
-
-  b.push(h2('C.1  Central Control Plane (docker-compose.yml)'));
+  b.push(p('The docker-compose.yml extract below defines the single-host deployment. The agent and API share the SQLite volume. The API also mounts the local Markdown runbooks, ChromaDB data, and local embedding cache. The optional Ollama service provides on-host inference, while cloud providers use API keys supplied through the environment file. No Google Cloud service-account credential is mounted.'));
   b.push(blank());
   b.push(...code(`services:
-  infraguard-api:
-    image: ghcr.io/sagesta/infraguard-pro-api:latest
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    image: \${REGISTRY:-infraguard}/api:latest
+    env_file:
+      - .env
+    ports: ["8080:8080"]
     environment:
-      - DATABASE_URL=postgresql+asyncpg://infra:secret@postgres:5432/infraguard
-      - SECRET_KEY=\${SECRET_KEY}
-      - INFRAGUARD_USERNAME=admin
-      - INFRAGUARD_PASSWORD=\${ADMIN_PASSWORD}
-      - LLM_PROVIDER=\${LLM_PROVIDER:-vertex_ai}
-      - LLM_MODEL=\${LLM_MODEL:-gemini-2.5-flash}
-      - LOKI_URL=http://loki:3100
-      - PROMETHEUS_URL=http://prometheus:9090
-      - TRACEWAY_URL=http://traceway:4318
-      - CHROMA_PATH=/data/chroma
-    depends_on: [postgres, chromadb, loki, prometheus, traceway]
-    ports: ["8000:8000"]
+      - PYTHONPATH=/app
+      - DB_PATH=/data/verdicts.db
+      - RUNBOOKS_DIR=/app/runbooks
+    volumes:
+      - ./runbooks:/app/runbooks:ro
+      - sqlite_data:/data
+      - chroma_data:/app/chroma_db
+      - embedding_cache:/root/.cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  infraguard-agent:
-    image: ghcr.io/sagesta/infraguard-pro-agent:latest
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    image: \${REGISTRY:-infraguard}/agent:latest
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://infra:secret@postgres:5432/infraguard
-      - LLM_PROVIDER=\${LLM_PROVIDER:-vertex_ai}
-      - REMEDIATION_WORKER_COUNT=4
-    depends_on: [infraguard-api]
-
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_USER=infra
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=infraguard
-
-  chromadb:
-    image: chromadb/chroma:0.5.0
-    volumes: ["chroma-data:/chroma/chroma"]
-
-  prometheus:
-    image: prom/prometheus:v2.55.0
-    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
-
-  loki:
-    image: grafana/loki:3.2.0
-
-  traceway:
-    image: traceway/traceway:latest
-    depends_on: [clickhouse]
-
-  clickhouse:
-    image: clickhouse/clickhouse-server:24.10
-
-  crowdsec:
-    image: crowdsecurity/crowdsec:v1.6
-    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]`));
-  b.push(blank());
-
-  b.push(h2('C.2  Satellite Agent (docker-compose.satellite.yml)'));
-  b.push(blank());
-  b.push(...code(`services:
-  infraguard-satellite:
-    image: ghcr.io/sagesta/infraguard-pro-satellite:latest
-    environment:
-      - CENTRAL_API_URL=https://infraguard.example.com
-      - SERVER_ID=\${SERVER_ID}
-      - SERVER_LABEL=\${SERVER_LABEL}
-      - SERVER_ENV=\${SERVER_ENV}
+      - PYTHONPATH=/app
+      - DB_PATH=/data/verdicts.db
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - satellite-state:/data
+      - sqlite_data:/data
+    restart: unless-stopped
+    depends_on:
+      - api
 
-  prometheus:
-    image: prom/prometheus:v2.55.0
-    volumes: ["./prometheus-satellite.yml:/etc/prometheus/prometheus.yml:ro"]
-
-  promtail:
-    image: grafana/promtail:3.2.0
+  ollama:
+    image: ollama/ollama:latest
     volumes:
-      - /var/log:/var/log:ro
-      - ./promtail-config.yml:/etc/promtail/config.yml:ro
-    command: -config.file=/etc/promtail/config.yml
-
-  crowdsec:
-    image: crowdsecurity/crowdsec:v1.6
-    volumes: ["/var/log:/var/log:ro"]
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
 
 volumes:
-  satellite-state:`));
+  sqlite_data: {}
+  chroma_data: {}
+  embedding_cache: {}
+  ollama_data: {}`));
   b.push(blank());
 
   // ============ APPENDIX D ============
-  b.push(chapterLabel('APPENDIX D'));
-  b.push(pCenter('EVALUATION DATASET SUMMARY'));
+  b.push(chapterLabel('APPENDIX D: PROPOSED USABILITY EVALUATION INSTRUMENT'));
   b.push(blank());
-  b.push(p('The 150-finding evaluation benchmark, referenced throughout Chapter Five, is summarised below by scanner class, CVSS severity band, and source provenance.'));
-  b.push(blank());
-
-  b.push(h2('D.1  Distribution by Scanner Class'));
-  b.push(blank());
-  const dColW = [3000, 2000, 2000, 2026];
-  const dHead = ['Scanner Class', 'Real-World', 'Synthetic', 'Total'];
-  const dRows = [
-    dHead,
-    ['SCA — Vulnerable Dependencies', '30', '15', '45'],
-    ['SAST — Insecure Source Patterns', '18', '12', '30'],
-    ['Container — Vulnerable Base Images', '14', '11', '25'],
-    ['IaC — Misconfigured Cloud Resources', '20', '10', '30'],
-    ['Secret — Hardcoded Credentials', '8', '12', '20'],
-    ['TOTAL', '90', '60', '150'],
-  ];
-  b.push(buildTable(dColW, dRows));
+  b.push(p('Appendix D contains the task script and System Usability Scale questionnaire prepared for a later practitioner study. The instrument was not administered for Chapter Five. The later study must obtain any ethics approval and participant consent required by University policy.'));
   b.push(blank());
 
-  b.push(h2('D.2  Distribution by CVSS Severity Band'));
-  b.push(blank());
-  const sColW = [3000, 3026, 3000];
-  const sHead = ['CVSS Band', 'Count', 'Approx. Share'];
-  const sRows = [
-    sHead,
-    ['Critical (9.0–10.0)', '40', '26.7%'],
-    ['High (7.0–8.9)', '50', '33.3%'],
-    ['Medium (4.0–6.9)', '40', '26.7%'],
-    ['Low (0.1–3.9)', '20', '13.3%'],
-    ['TOTAL', '150', '100.0%'],
-  ];
-  b.push(buildTable(sColW, sRows));
-  b.push(blank());
+  b.push(h2('D.1  Task Script'));
+  b.push(p('In a future session, each participant would receive a brief orientation and complete the following tasks while the facilitator records success, time, errors, and requests for help.'));
+  b.push(num('Log in to the dashboard and state the current overall severity.'));
+  b.push(num('Open the root-cause and recommended-action sections of a non-OK verdict and paraphrase them.'));
+  b.push(num('State which integrations are configured by reading the status chips.'));
+  b.push(num('Ask the runbook assistant a question and confirm a cited answer is returned.'));
+  b.push(num('Locate a detected threat and trigger the block-IP action (dry-run).'));
+  b.push(num('Mark a recurring warning as known, and confirm on the next refresh that it is suppressed.'));
+  b.push(num('Explain what the stale-agent banner indicates.'));
 
-  b.push(h2('D.3  Representative CWE Coverage'));
-  b.push(p('The benchmark exercises a deliberately broad CWE surface. The following weaknesses are each represented by at least three findings: CWE-79 (Cross-Site Scripting), CWE-89 (SQL Injection), CWE-200 (Information Exposure), CWE-22 (Path Traversal), CWE-78 (OS Command Injection), CWE-269 (Improper Privilege Management), CWE-798 (Hard-coded Credentials), CWE-1104 (Vulnerable Third-Party Component), CWE-94 (Improper Code Generation), CWE-352 (Cross-Site Request Forgery), CWE-732 (Incorrect Permission Assignment), CWE-863 (Incorrect Authorisation), CWE-918 (Server-Side Request Forgery), and CWE-1004 (Sensitive Cookie Without HttpOnly Flag).'));
+  b.push(h2('D.2  System Usability Scale Questionnaire'));
+  b.push(p('Participants rate each statement on a five-point scale from 1 (strongly disagree) to 5 (strongly agree). The standard SUS scoring is applied: for odd-numbered items subtract 1 from the response; for even-numbered items subtract the response from 5; sum the ten contributions and multiply by 2.5 to yield a score out of 100 (Brooke, 1996).'));
+  b.push(num('I think that I would like to use this dashboard frequently.'));
+  b.push(num('I found the dashboard unnecessarily complex.'));
+  b.push(num('I thought the dashboard was easy to use.'));
+  b.push(num('I think that I would need the support of a technical person to be able to use this dashboard.'));
+  b.push(num('I found the various functions in this dashboard were well integrated.'));
+  b.push(num('I thought there was too much inconsistency in this dashboard.'));
+  b.push(num('I would imagine that most people would learn to use this dashboard very quickly.'));
+  b.push(num('I found the dashboard very cumbersome to use.'));
+  b.push(num('I felt very confident using the dashboard.'));
+  b.push(num('I needed to learn a lot of things before I could get going with this dashboard.'));
   b.push(blank());
-
-  b.push(h2('D.4  Source Provenance'));
-  b.push(p('Real-world findings were harvested from public security advisories and scanner outputs against the following open-source projects: requests (PyPI), urllib3 (PyPI), Pillow (PyPI), Flask-related packages, FastAPI-related packages, lxml, paramiko, cryptography, axios (npm), express (npm), node-fetch (npm), lodash (npm), nginx official Docker images, postgres official Docker images, redis official Docker images, ubuntu base images, and the public Terraform modules in the hashicorp/terraform-aws-modules organisation. Synthetic findings were authored to exercise specific edge cases not adequately represented in the real-world corpus and are reproduced in the repository at tests/fixtures/synthetic/ for independent re-evaluation.'));
+  b.push(p('A short structured interview may follow the questionnaire and cover effectiveness, efficiency, learnability, and trust. When the study is conducted, the report should include participant characteristics, task results, SUS calculations, qualitative themes, and any interface changes.'));
 
   return b;
 }

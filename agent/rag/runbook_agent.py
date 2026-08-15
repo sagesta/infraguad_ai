@@ -1,16 +1,15 @@
-"""RAG runbook agent — retriever → prompt → Gemini LLM."""
+"""RAG runbook agent — retriever → prompt → configured LLM provider."""
 
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 
+from agent.llm.langchain_agent import build_chat_model
 from agent.rag.vector_store import similarity_search
 
 logger = logging.getLogger(__name__)
@@ -47,12 +46,6 @@ def query_runbooks(question: str) -> dict[str, Any]:
     Returns:
         Dict with answer text and source document titles.
     """
-    project = os.environ.get("GCP_PROJECT_ID", "").strip()
-    region = os.environ.get("GCP_REGION", "us-central1").strip() or "us-central1"
-
-    if not project:
-        return {"ok": False, "error": "missing_env", "message": "GCP_PROJECT_ID is not set"}
-
     try:
         # Retrieve relevant documents
         docs = similarity_search(question, k=4)
@@ -60,27 +53,21 @@ def query_runbooks(question: str) -> dict[str, Any]:
         if not docs:
             return {
                 "ok": True,
-                "answer": "No runbooks have been indexed yet. Use the /api/runbooks/index endpoint to load runbooks from Notion.",
+                "answer": "No runbooks have been indexed yet. Add Markdown files under the runbooks "
+                "directory and use the /api/runbooks/index endpoint to load them.",
                 "sources": [],
             }
 
-        # Build RAG chain
-        from langchain_google_vertexai import ChatVertexAI
-
-        llm = ChatVertexAI(
-            model_name="gemini-2.5-flash",
-            project=project,
-            location=region,
-            temperature=0.1,
-            max_output_tokens=1024,
-        )
+        llm = build_chat_model()
+        if isinstance(llm, dict):
+            return llm
 
         context = _format_docs(docs)
         chain = _RAG_PROMPT | llm | StrOutputParser()
         answer = chain.invoke({"context": context, "question": question})
 
         sources = [
-            {"title": doc.metadata.get("title", "Untitled"), "page_id": doc.metadata.get("page_id", "")}
+            {"title": doc.metadata.get("title", "Untitled"), "source": doc.metadata.get("source", "")}
             for doc in docs
         ]
 

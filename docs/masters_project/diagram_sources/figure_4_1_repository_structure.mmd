@@ -1,0 +1,22 @@
+%% Thesis figure: Figure 4.1
+%% Stable ID: FIG-4.1
+%% Caption: Folder Structure of the InfraGuard AI Reference Implementation
+%% Output PNG: ../figures/fig_4_1_folder.png
+flowchart TB
+  ROOT["infraguard_ai/"]
+
+  ROOT --> AGENT["agent/"]
+  AGENT --> CORE["main.py<br/>orchestrator.py<br/>memory.py"]
+  AGENT --> LLM["llm/<br/>schema, prompts, providers, agent mode"]
+  AGENT --> RAG["rag/<br/>local loader, vector store, runbook agent"]
+  AGENT --> TOOLS["tools/<br/>Loki, Prometheus, probes, Docker, threats, notifications"]
+
+  ROOT --> API["api/"]
+  API --> APICORE["main.py<br/>auth.py<br/>store.py"]
+  API --> MW["middleware/<br/>audit, security, rate limiting"]
+
+  ROOT --> DASH["dashboard/<br/>index.html, login.html"]
+  ROOT --> TESTS["tests/<br/>agent, API, store, memory, RAG, threat, tools"]
+  ROOT --> TERRAFORM["terraform/"]
+  ROOT --> WORKFLOWS[".github/workflows/<br/>test.yml, deploy.yml"]
+  ROOT --> DEPLOY["docker-compose.yml<br/>agent/Dockerfile<br/>api/Dockerfile"]

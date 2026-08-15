@@ -1,10 +1,13 @@
-// Master build script for the InfraGuard Pro master's project docx.
+// Master build script for the InfraGuard AI master's project docx.
 // Assembles preliminary pages + six chapters + references + appendices.
-// Outputs InfraGuard_Pro_Masters_Project.docx in the same folder.
+// Outputs InfraGuard_AI_Masters_Project.docx in the same folder.
 
 const fs = require('fs');
 const path = require('path');
-const { Document, Packer, Header, Footer, Paragraph, TextRun, AlignmentType, PageNumber } = require('docx');
+const {
+  Document, Packer, Footer, Paragraph, TextRun, AlignmentType, PageNumber,
+  NumberFormat, SectionType,
+} = require('docx');
 
 const { numbering, styles, sectionProps, FONT, SIZE_BODY } = require('./helpers');
 const { preliminary } = require('./content/00-prelim');
@@ -22,30 +25,18 @@ function buildFooter() {
     children: [new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({ text: 'Page ', font: FONT, size: 20 }),
         new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 20 }),
-        new TextRun({ text: ' of ', font: FONT, size: 20 }),
-        new TextRun({ children: [PageNumber.TOTAL_PAGES], font: FONT, size: 20 }),
       ],
     })],
   });
 }
 
-function buildHeader() {
-  return new Header({
-    children: [new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun({
-        text: 'InfraGuard Pro — MIT Master’s Project',
-        font: FONT, size: 18, italics: true, color: '666666',
-      })],
-    })],
-  });
+function buildEmptyFooter() {
+  return new Footer({ children: [new Paragraph({ children: [] })] });
 }
 
-function assembleChildren() {
+function assembleBody() {
   const blocks = [];
-  blocks.push(...preliminary());
   blocks.push(...chapter1());
   blocks.push(...chapter2());
   blocks.push(...chapter3());
@@ -58,26 +49,53 @@ function assembleChildren() {
 }
 
 async function main() {
-  const children = assembleChildren();
+  const preliminaryChildren = preliminary();
+  const bodyChildren = assembleBody();
+
+  const preliminaryProps = {
+    ...sectionProps,
+    titlePage: true,
+    page: {
+      ...sectionProps.page,
+      pageNumbers: { start: 1, formatType: NumberFormat.LOWER_ROMAN },
+    },
+  };
+  const bodyProps = {
+    ...sectionProps,
+    type: SectionType.NEXT_PAGE,
+    page: {
+      ...sectionProps.page,
+      pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL },
+    },
+  };
 
   const doc = new Document({
-    creator: 'InfraGuard Pro MIT Project',
-    title: 'Design and Development of an LLM-Based Autonomous Security Remediation System for Cloud-Native CI/CD Pipelines',
-    description: 'Professional Master of Information Technology Project — Miva Open University Abuja, Nigeria',
+    creator: 'InfraGuard AI MIT Project',
+    title: 'InfraGuard AI: An LLM-Driven Observability and Incident-Triage Agent for Self-Hosted Cloud-Native Infrastructure',
+    description: 'Professional Master of Information Technology Project, Miva Open University Abuja, Nigeria',
     styles,
     numbering,
-    sections: [{
-      properties: sectionProps,
-      headers: { default: buildHeader() },
-      footers: { default: buildFooter() },
-      children,
-    }],
+    settings: { updateFields: true },
+    sections: [
+      {
+        properties: preliminaryProps,
+        footers: { default: buildFooter(), first: buildEmptyFooter() },
+        children: preliminaryChildren,
+      },
+      {
+        properties: bodyProps,
+        footers: { default: buildFooter() },
+        children: bodyChildren,
+      },
+    ],
   });
 
   const buffer = await Packer.toBuffer(doc);
-  const out = path.join(__dirname, 'InfraGuard_Pro_Masters_Project.docx');
+  const out = process.argv[2]
+    ? path.resolve(process.argv[2])
+    : path.join(__dirname, 'InfraGuard_AI_Masters_Project.docx');
   fs.writeFileSync(out, buffer);
-  console.log(`Wrote ${out} (${buffer.length} bytes, ${children.length} top-level blocks).`);
+  console.log(`Wrote ${out} (${buffer.length} bytes, ${preliminaryChildren.length + bodyChildren.length} top-level blocks).`);
 }
 
 main().catch(err => {

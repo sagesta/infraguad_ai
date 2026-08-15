@@ -1,0 +1,26 @@
+%% Figure 3.2 — Single-Host Deployment Topology
+%% Appears in: Chapter 3, Section 3.3.5 (Deployment Topology)
+%% Render to: ../fig_3_2_topology.png
+flowchart TB
+  subgraph VM["Google Compute Engine VM (Terraform)"]
+    subgraph COMPOSE["Docker Compose"]
+      AGENTC["agent container"]
+      APIC["api container"]
+    end
+    V1[("sqlite_data volume")]
+    V2[("chroma_data volume")]
+    PROMTAIL["Promtail"]
+    LOKI["Loki"]
+    PROM["Prometheus"]
+    AGENTC --- V1
+    APIC --- V1
+    APIC --- V2
+    PROMTAIL -->|ship logs| LOKI
+    AGENTC --> LOKI
+    AGENTC --> PROM
+  end
+  MODEL["Direct model API"]
+  NTFY["ntfy.sh"]
+  APIC -.->|HTTPS| MODEL
+  AGENTC -.->|HTTPS| MODEL
+  AGENTC -.->|HTTPS| NTFY

@@ -1,0 +1,22 @@
+%% Thesis figure: Figure 3.3
+%% Stable ID: FIG-3.3
+%% Caption: Heartbeat Verdict Pipeline: Collect, Analyse, Store, Present
+%% Output PNG: ../figures/fig_3_3_remediation_flow.png
+flowchart LR
+  START(["Heartbeat starts"])
+  ACK["Load active<br/>acknowledgements"]
+  COLLECT["Collect telemetry<br/>Logs, metrics, probes"]
+  PROMPT["Build bounded prompt<br/>Evidence and known conditions"]
+  MODEL["Analyse with<br/>configured LLM"]
+  VALIDATE["Validate structured verdict<br/>Severity, summary, signature"]
+  FP["Derive fingerprint<br/>Signature + prompt version + model"]
+  STORE[("Store verdict<br/>SQLite")]
+  PRESENT["Present through<br/>API and dashboard"]
+  RISK{"High or critical?"}
+  NOTIFY["Send ntfy.sh<br/>notification"]
+  END(["Cycle ends"])
+
+  START --> ACK --> COLLECT --> PROMPT --> MODEL --> VALIDATE --> FP --> STORE --> PRESENT --> RISK
+  ACK -.->|"Known conditions"| PROMPT
+  RISK -->|"Yes"| NOTIFY --> END
+  RISK -->|"No"| END

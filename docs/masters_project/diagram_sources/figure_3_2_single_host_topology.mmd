@@ -1,0 +1,38 @@
+%% Thesis figure: Figure 3.2
+%% Stable ID: FIG-3.2
+%% Caption: Single-Host Deployment Topology
+%% Output PNG: ../figures/fig_3_2_topology.png
+flowchart TB
+  USER(["Operator browser"])
+
+  subgraph GCE["Google Compute Engine virtual machine<br/>Provisioned with Terraform"]
+    subgraph COMPOSE["Docker Compose"]
+      API["API container<br/>FastAPI and dashboard"]
+      AGENT["Agent container<br/>Scheduled heartbeat"]
+    end
+
+    SQLITE[("sqlite_data volume")]
+    CHROMA[("chroma_data volume")]
+    PROMTAIL["Promtail"]
+    LOKI["Loki"]
+    PROM["Prometheus"]
+
+    API --- SQLITE
+    AGENT --- SQLITE
+    API --- CHROMA
+    PROMTAIL -->|"Ship logs"| LOKI
+    AGENT -->|"Log queries"| LOKI
+    AGENT -->|"Metric queries"| PROM
+  end
+
+  MODEL["Direct model API"]
+  NTFY["ntfy.sh"]
+  RUNBOOKS["Local Markdown runbooks"]
+  CROWDSEC["CrowdSec LAPI<br/>(optional)"]
+
+  USER <-->|"HTTPS"| API
+  API -.->|"Model and embedding requests"| MODEL
+  AGENT -.->|"Reasoning request"| MODEL
+  AGENT -.->|"Alert notification"| NTFY
+  RUNBOOKS -->|"Read-only mount"| API
+  API -.->|"Approved enforcement"| CROWDSEC

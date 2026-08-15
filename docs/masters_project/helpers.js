@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const {
   Paragraph, TextRun, AlignmentType, HeadingLevel, PageBreak,
-  Table, TableRow, TableCell, BorderStyle, WidthType, ShadingType,
+  Table, TableRow, TableCell, BorderStyle, WidthType, ShadingType, TableLayoutType,
   LevelFormat, TabStopType, TabStopPosition,
   ImageRun,
 } = require('docx');
@@ -21,11 +21,28 @@ const CONTENT_W = 9026;        // A4 (11906) minus 1in margins
 const border = { style: BorderStyle.SINGLE, size: 4, color: '808080' };
 const borders = { top: border, bottom: border, left: border, right: border };
 
+// Keep generated prose typographically conservative and consistent. The
+// thesis uses ASCII dashes so punctuation does not become a proxy for authoring
+// method and renders consistently across Word installations.
+function cleanText(value) {
+  return String(value ?? '')
+    .replace(/[\u2013\u2014]/g, ',')
+    .replace(/\u00a0/g, ' ');
+}
+
+let numberInstance = 0;
+let numberingActive = false;
+
+function breakNumbering() {
+  numberingActive = false;
+}
+
 // --- Paragraph helpers ---
 function p(text, opts = {}) {
+  breakNumbering();
   const runs = Array.isArray(text)
-    ? text.map(t => (typeof t === 'string' ? new TextRun({ text: t, font: FONT, size: SIZE_BODY }) : t))
-    : [new TextRun({ text, font: FONT, size: SIZE_BODY })];
+    ? text.map(t => (typeof t === 'string' ? new TextRun({ text: cleanText(t), font: FONT, size: SIZE_BODY }) : t))
+    : [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_BODY })];
   return new Paragraph({
     children: runs,
     alignment: opts.align || AlignmentType.JUSTIFIED,
@@ -40,8 +57,9 @@ function pCenter(text, opts = {}) {
 }
 
 function pBold(text, opts = {}) {
+  breakNumbering();
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_BODY, bold: true })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_BODY, bold: true })],
     alignment: opts.align || AlignmentType.JUSTIFIED,
     spacing: { line: LINE_125, after: opts.after ?? 120 },
     pageBreakBefore: !!opts.pageBreakBefore,
@@ -49,8 +67,9 @@ function pBold(text, opts = {}) {
 }
 
 function chapterTitle(text) {
+  breakNumbering();
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_H1, bold: true })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_H1, bold: true })],
     alignment: AlignmentType.CENTER,
     spacing: { line: LINE_125, before: 240, after: 360 },
     pageBreakBefore: true,
@@ -58,8 +77,11 @@ function chapterTitle(text) {
 }
 
 function chapterLabel(text) {
+  breakNumbering();
+  const isTocHeading = text.startsWith('CHAPTER') || text === 'REFERENCES' || text.startsWith('APPENDIX');
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_H1, bold: true })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_H1, bold: true })],
+    heading: isTocHeading ? HeadingLevel.HEADING_1 : undefined,
     alignment: AlignmentType.CENTER,
     spacing: { line: LINE_125, before: 480, after: 120 },
     pageBreakBefore: true,
@@ -67,32 +89,44 @@ function chapterLabel(text) {
 }
 
 function h2(text) {
+  breakNumbering();
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_H2, bold: true })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_H2, bold: true })],
+    heading: HeadingLevel.HEADING_2,
     alignment: AlignmentType.LEFT,
     spacing: { line: LINE_125, before: 240, after: 120 },
+    keepNext: true,
+    keepLines: true,
   });
 }
 
 function h3(text) {
+  breakNumbering();
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_H3, bold: true })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_H3, bold: true })],
+    heading: HeadingLevel.HEADING_3,
     alignment: AlignmentType.LEFT,
     spacing: { line: LINE_125, before: 200, after: 100 },
+    keepNext: true,
+    keepLines: true,
   });
 }
 
 function h4(text) {
+  breakNumbering();
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_BODY, bold: true, italics: true })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_BODY, bold: true, italics: true })],
     alignment: AlignmentType.LEFT,
     spacing: { line: LINE_125, before: 120, after: 60 },
+    keepNext: true,
+    keepLines: true,
   });
 }
 
 function bullet(text, level = 0) {
+  breakNumbering();
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_BODY })],
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_BODY })],
     numbering: { reference: 'bullets', level },
     spacing: { line: LINE_125, after: 80 },
     alignment: AlignmentType.JUSTIFIED,
@@ -100,19 +134,25 @@ function bullet(text, level = 0) {
 }
 
 function num(text, level = 0) {
+  if (!numberingActive) {
+    numberInstance += 1;
+    numberingActive = true;
+  }
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: SIZE_BODY })],
-    numbering: { reference: 'numbers', level },
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: SIZE_BODY })],
+    numbering: { reference: 'numbers', level, instance: numberInstance },
     spacing: { line: LINE_125, after: 80 },
     alignment: AlignmentType.JUSTIFIED,
   });
 }
 
 function pageBreak() {
+  breakNumbering();
   return new Paragraph({ children: [new PageBreak()] });
 }
 
 function blank() {
+  breakNumbering();
   return new Paragraph({
     children: [new TextRun({ text: '', font: FONT, size: SIZE_BODY })],
     spacing: { line: LINE_125, after: 120 },
@@ -121,6 +161,7 @@ function blank() {
 
 // Embed an image (path is relative to docs/masters_project/). Width/height in inches.
 function image(relPath, opts = {}) {
+  breakNumbering();
   const absPath = path.resolve(__dirname, relPath);
   const buffer = fs.readFileSync(absPath);
   const widthIn = opts.w || 6.0;
@@ -143,9 +184,10 @@ function image(relPath, opts = {}) {
 
 // --- Table helpers ---
 function tableCell(text, opts = {}) {
+  breakNumbering();
   const runs = (Array.isArray(text) ? text : [text]).map(t =>
     new TextRun({
-      text: typeof t === 'string' ? t : t.text,
+      text: cleanText(typeof t === 'string' ? t : t.text),
       font: FONT,
       size: opts.size || 22,
       bold: !!opts.bold,
@@ -163,14 +205,17 @@ function tableCell(text, opts = {}) {
   });
 }
 
-function buildTable(columnWidths, rows, headerShade = 'D9E2F3') {
+function buildTable(columnWidths, rows, headerShade = 'D9E2F3', fixedLayout = false) {
+  breakNumbering();
   const totalWidth = columnWidths.reduce((a, b) => a + b, 0);
   return new Table({
     width: { size: totalWidth, type: WidthType.DXA },
     columnWidths,
+    layout: fixedLayout ? TableLayoutType.FIXED : undefined,
     rows: rows.map((row, ri) =>
       new TableRow({
         tableHeader: ri === 0,
+        cantSplit: true,
         children: row.map((cellText, ci) =>
           tableCell(cellText, {
             width: columnWidths[ci],
@@ -179,6 +224,26 @@ function buildTable(columnWidths, rows, headerShade = 'D9E2F3') {
             size: 20,
           })),
       })),
+  });
+}
+
+function figureCaption(text) {
+  breakNumbering();
+  return new Paragraph({
+    style: 'FigureCaption',
+    alignment: AlignmentType.CENTER,
+    spacing: { line: LINE_125, before: 60, after: 160 },
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: 22, italics: true })],
+  });
+}
+
+function tableCaption(text) {
+  breakNumbering();
+  return new Paragraph({
+    style: 'TableCaption',
+    alignment: AlignmentType.CENTER,
+    spacing: { line: LINE_125, before: 60, after: 160 },
+    children: [new TextRun({ text: cleanText(text), font: FONT, size: 22, italics: true })],
   });
 }
 
@@ -216,6 +281,12 @@ const styles = {
     { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
       run: { size: SIZE_H3, bold: true, font: FONT },
       paragraph: { spacing: { before: 180, after: 100, line: LINE_125 }, outlineLevel: 2 } },
+    { id: 'FigureCaption', name: 'Figure Caption', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+      run: { size: 22, italics: true, font: FONT },
+      paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 60, after: 160, line: LINE_125 } } },
+    { id: 'TableCaption', name: 'Table Caption', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+      run: { size: 22, italics: true, font: FONT },
+      paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 60, after: 160, line: LINE_125 } } },
   ],
 };
 
@@ -229,5 +300,6 @@ const sectionProps = {
 module.exports = {
   p, pCenter, pBold, chapterTitle, chapterLabel, h2, h3, h4,
   bullet, num, pageBreak, blank, buildTable, tableCell, image,
+  figureCaption, tableCaption, cleanText,
   numbering, styles, sectionProps, FONT, SIZE_BODY, CONTENT_W,
 };

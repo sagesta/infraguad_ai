@@ -1,0 +1,27 @@
+%% Figure 3.4 — Use-Case Diagram (Operator and Agent)
+%% Appears in: Chapter 3, Section 3.4.2 (Use-Case Model)
+%% Render to: ../fig_3_4_usecase.png
+%% NOTE: Mermaid has no native UML use-case diagram — this is a flowchart
+%% approximation. For proper use-case ovals and stick-figure actors, use the
+%% companion file fig_3_4_usecase.drawio instead.
+flowchart LR
+  OP(["Operator"])
+  AG(["Agent"])
+  LLM(["LLM Provider"])
+  subgraph SYS["InfraGuard AI"]
+    UC1(["View status & verdict"])
+    UC2(["Acknowledge known condition"])
+    UC3(["Review & block threat"])
+    UC4(["Ask runbook assistant"])
+    UC5(["Re-index runbooks"])
+    UC6(["Generate verdict (heartbeat)"])
+    UC7(["Send notification"])
+  end
+  OP --- UC1
+  OP --- UC2
+  OP --- UC3
+  OP --- UC4
+  OP --- UC5
+  AG --- UC6
+  AG --- UC7
+  UC6 --- LLM

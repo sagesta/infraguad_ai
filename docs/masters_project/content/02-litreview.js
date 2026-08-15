@@ -1,299 +1,270 @@
-const { p, pCenter, chapterLabel, h2, h3, h4, bullet, num, blank, pageBreak, buildTable } = require('../helpers');
+const { p, pCenter, chapterLabel, h2, h3, h4, bullet, num, blank, pageBreak, buildTable, tableCaption } = require('../helpers');
 
 function chapter2() {
   const b = [];
 
-  b.push(chapterLabel('CHAPTER TWO'));
-  b.push(pCenter('LITERATURE REVIEW AND TECHNOLOGY CONTEXT'));
+  b.push(chapterLabel('CHAPTER TWO: LITERATURE REVIEW AND TECHNOLOGY CONTEXT'));
   b.push(blank());
 
   // 2.1 CONCEPTUAL REVIEW
   b.push(h2('2.1  Conceptual Review'));
-  b.push(p('This section establishes the conceptual vocabulary used throughout the remainder of the report. Each concept is defined briefly, situated relative to the project, and traced to its principal sources in the academic and industry literature. The concepts are organised into six thematic groups: (i) DevSecOps and the security shift-left movement, (ii) continuous integration and delivery pipelines, (iii) automated security scanning and the SARIF standard, (iv) large language models and agentic AI systems, (v) retrieval-augmented generation, and (vi) cloud-native observability and site reliability engineering.'));
+  b.push(p('Six concepts frame the design: cloud-native observability, site reliability engineering, AIOps, large language models and agents, retrieval-augmented generation, and acknowledgement memory. The discussion below defines each concept and states how it affects the implementation.'));
 
-  b.push(h3('2.1.1  DevSecOps and the Security Shift-Left'));
-  b.push(p('DevSecOps emerged in the mid-2010s as a corrective extension of DevOps, addressing the observation that security activities had been disproportionately concentrated at the end of the software delivery lifecycle, frequently as a release-blocking penetration test, and that this concentration was incompatible with the high-cadence delivery rhythm DevOps had enabled. The shift-left principle holds that security activities — threat modelling, code review, dependency analysis, secret scanning, container hardening — should be integrated into the earliest stages of the pipeline, ideally before code is merged. The empirical literature is consistent in its finding that defects discovered earlier in the lifecycle cost an order of magnitude less to remediate than those discovered after deployment, and that automated, machine-speed feedback is essential to making shift-left compatible with continuous delivery (Myrbakken and Colomo-Palacios, 2017; Rajapakse et al., 2022).'));
+  b.push(h3('2.1.1  Cloud-Native Observability and the Three Pillars'));
+  b.push(p('Observability is the ability to infer a system\'s internal state from its outputs. Common telemetry types include metrics, logs, traces, and service events. Prometheus is widely used for metrics, Grafana Loki for logs, and OpenTelemetry for instrumentation. These tools make signals available for investigation, but an operator must still determine what the signals mean in the context of a particular service. InfraGuard AI consumes logs and metrics directly, supplemented by HTTP probes and optional Docker telemetry.'));
 
-  b.push(h3('2.1.2  Continuous Integration and Continuous Delivery'));
-  b.push(p('Continuous integration (CI) is the practice of automatically building and testing every code change as it is committed to a shared repository; continuous delivery (CD) extends CI by automating the packaging and deployment of every change that passes its tests into production-equivalent environments. The CI/CD pipeline is the orchestration mechanism that executes these activities, typically expressed declaratively as a configuration file (GitHub Actions YAML, GitLab CI YAML, Tekton Pipelines, Jenkinsfile). Within this pipeline, individual jobs are responsible for compilation, unit testing, integration testing, security scanning, container image construction, image signing, artefact publishing, and deployment to the target environment. The pipeline is the natural insertion point for autonomous remediation: it is the only location in the software lifecycle that simultaneously sees source code, dependency graph, container image, IaC manifests, and deployment configuration.'));
+  b.push(h3('2.1.2  Site Reliability Engineering and Incident Management'));
+  b.push(p('Site reliability engineering uses telemetry, service-level objectives, and operational automation to improve reliability. Beyer et al. (2016) use the term toil for repetitive manual work that scales with service growth. Alert review and repeated handling of known conditions are relevant examples. InfraGuard AI addresses a limited part of this work by generating a first-pass verdict and recording operator acknowledgements.'));
 
-  b.push(h3('2.1.3  Automated Security Scanning and the SARIF Standard'));
-  b.push(p('Automated security scanners in the modern pipeline fall into five canonical categories: Static Application Security Testing (SAST), Software Composition Analysis (SCA), container image scanning, Infrastructure-as-Code (IaC) scanning, and secret scanning. Each category historically used its own proprietary output format, producing significant integration overhead for downstream tooling. The Static Analysis Results Interchange Format (SARIF), standardised by OASIS as version 2.1.0 in 2020 and revised through 2023, provides a uniform JSON Schema for representing scanner findings, including rule identifiers, severity levels, source locations, suggested fixes, and tool provenance. SARIF adoption is now nearly universal across both open-source and commercial scanners and is the natural ingestion format for any orchestrating system. The present project standardises exclusively on SARIF 2.1.0 for its ingestion pipeline.'));
+  b.push(h3('2.1.3  AIOps: Artificial Intelligence for IT Operations'));
+  b.push(p('AIOps applies machine learning and analytics to operations data for tasks such as anomaly detection, event correlation, fault diagnosis, and remediation support. Chen et al. (2025) present AIOpsLab as a reproducible environment for deploying cloud systems, injecting faults, exporting telemetry, and evaluating LLM agents across operational tasks. Their results also show that agent capability depends on the task and evaluation setting. InfraGuard AI does not train an anomaly detector or claim autonomous remediation. It asks a general-purpose LLM to interpret a bounded set of collected evidence and returns the result for operator review.'));
 
   b.push(h3('2.1.4  Large Language Models and Agentic AI'));
-  b.push(p('Large language models are statistical models — typically transformer-based neural networks with parameter counts ranging from approximately one billion to several trillion — trained on extensive corpora of natural language and source code. Models such as OpenAI’s GPT-4o, Anthropic’s Claude 3.5 Sonnet, Google DeepMind’s Gemini 2.5, Moonshot AI’s Kimi-K2, and the open-weight Llama 3.1, DeepSeek-R1, and Mistral families now exhibit sufficient capability to read source code, reason about its behaviour, and produce syntactically valid and semantically reasonable patches. When integrated with tool-use interfaces and grounded in external retrieval, LLMs function as agents: systems that decompose a high-level goal into sub-tasks, invoke external tools to gather evidence, and iterate towards a verified outcome. The agentic paradigm has matured rapidly through frameworks such as LangChain, LangGraph, AutoGen, CrewAI, and OpenAI’s Assistants API, all of which converge on a common loop of plan, act, observe, reflect. InfraGuard Pro adopts the LangGraph implementation of this loop as its reasoning substrate.'));
+  b.push(p('Large language models generate text from a supplied context and can be connected to tools that retrieve additional evidence. ReAct interleaves model reasoning with tool actions (Yao et al., 2023), while Reflexion studies the use of verbal feedback across attempts (Shinn et al., 2023). InfraGuard AI uses LangGraph to define a bounded workflow and offers an optional LangChain mode in which the configured model selects from a small telemetry tool set. These mechanisms do not guarantee a correct diagnosis, so the system keeps the operator responsible for action.'));
 
   b.push(h3('2.1.5  Retrieval-Augmented Generation'));
-  b.push(p('Retrieval-augmented generation (RAG) is a technique that grounds an LLM’s output in a body of external, organisation-specific knowledge by retrieving relevant documents at inference time and injecting them into the model’s context window (Lewis et al., 2020). In a DevSecOps remediation setting, RAG enables the LLM to consult curated runbooks, vulnerability advisories, and past incident records before generating a patch. This dramatically reduces the risk of hallucinated fixes and provides an audit trail in the form of citation references. InfraGuard Pro implements RAG over a ChromaDB vector store populated from four source classes: Notion-hosted runbooks, local Markdown runbooks, uploaded artefact files, and historical verdict records.'));
+  b.push(p('Retrieval-augmented generation (RAG) retrieves relevant documents and supplies them as context to a language model at inference time (Lewis et al., 2020). In an operations setting, the retrieved material can come from the organisation\'s runbooks. This gives the model relevant local context and source titles, although the answer still requires operator review. InfraGuard AI loads local Markdown runbooks, embeds them on the host, stores the vectors in ChromaDB, and exposes retrieval through the dashboard.'));
 
-  b.push(h3('2.1.6  Cloud-Native Observability and Site Reliability Engineering'));
-  b.push(p('Observability is the property of a system that permits its internal state to be inferred from its external outputs — logs, metrics, traces, exceptions, and events. The cloud-native observability stack converged in the mid-2020s on the OpenTelemetry standard for instrumentation and on a small number of complementary storage backends: Prometheus for metrics, Loki or Elasticsearch for logs, Tempo or Jaeger for traces, and emerging unified platforms such as Traceway that store all three in a ClickHouse column store with cross-correlation by trace identifier. Site Reliability Engineering (SRE), the operational discipline formalised by Google (Beyer et al., 2016), prescribes the use of this telemetry to maintain service-level objectives and to drive incident response. The present project treats post-deployment observability not as a separate concern but as the closed-loop validation surface for autonomous remediation: every patch deployed by the system is monitored for runtime regression through the satellite-agent topology before the remediation is marked successful.'));
+  b.push(h3('2.1.6  Statelessness, Alert Deduplication, and Agent Memory'));
+  b.push(p('A scheduled triage loop can show the same condition on successive cycles even after it has been reviewed. Alert grouping and log-template research show why the identity used for matching matters. A broad key can merge different conditions, while exact raw text often fails to match because timestamps, identifiers, and values change. Drain, for example, derives stable log templates by separating fixed and variable tokens (He et al., 2017). InfraGuard AI applies a related idea at verdict level: it combines a condition signature with the prompt version and model to produce a fingerprint. A matching acknowledgement marks an ok or warning verdict as suppressed in the API and dashboard. It does not prevent the model call on the next heartbeat.'));
 
-  // 2.2 EXISTING SYSTEMS / SOLUTIONS - 15 PAPER TABLE
+  // 2.2 EXISTING SYSTEMS / SOLUTIONS
   b.push(h2('2.2  Review of Existing Systems and Solutions'));
-  b.push(p('This section first reviews the academic literature on LLM-driven and AI-driven vulnerability remediation through a structured comparative table of fifteen recent and closely related studies, then surveys the commercial state-of-the-art in DevSecOps tooling and autonomous remediation features. Each entry in the table is summarised under the headings of methodological approach, tools and models used, principal findings, identified limitations or gaps, and the manner in which the present InfraGuard Pro project addresses those gaps. The table forms the empirical evidence base for the gap analysis presented in Section 2.4.'));
+  b.push(p('The review covers thirteen studies on site reliability engineering, AIOps, log parsing, retrieval, and LLM-assisted operations. Each study is compared by method, evidence, limitation, and relevance to InfraGuard AI. Current product documentation is used separately for the commercial and open-source tools.'));
 
-  b.push(h3('2.2.1  Comparative Table of Fifteen Recent and Related Studies'));
-  b.push(p('Table 2.1 presents a structured comparison of fifteen recent and closely related studies on the use of large language models, agentic systems, retrieval augmentation, and automated tooling for vulnerability detection, repair, and CI/CD security automation. The studies were selected on the basis of recency (2020–2025, with emphasis on 2023–2025), publication venue credibility (peer-reviewed top-tier conferences and journals, with a small number of widely-cited preprints from major industry research laboratories), and direct topical relevance to LLM-assisted security remediation. Each row identifies the study, summarises its approach, lists the tools or models employed, captures its principal findings, identifies the limitations or gaps it leaves open, and explicitly states how InfraGuard Pro addresses those gaps.'));
+  b.push(h3('2.2.1  Comparative Table of Thirteen Recent and Related Studies'));
+  b.push(p('Table 2.1 compares thirteen studies covering site reliability engineering, AIOps, LLM-based incident analysis, log parsing, tool use, and retrieval. The selection emphasises work published from 2020 to 2025, established research venues, and direct relevance to the implemented design.'));
   b.push(blank());
 
-  // Build the 15-paper table
-  // Column widths sum to 9026 (A4 content width)
-  // Columns: # (350) | Citation (1200) | Approach (1500) | Tools/Models (1300) | Key Findings (1700) | Gap (1500) | How InfraGuard Pro Addresses (1476)
-  const colWidths = [350, 1200, 1500, 1300, 1700, 1500, 1476];
+  const colWidths = [750, 1500, 1300, 1150, 1350, 1500, 1476];
   const headers = [
-    'No.', 'Study (Author, Year)', 'Approach / Methodology', 'Tools and Models Used',
-    'Key Findings', 'Identified Limitations / Gaps', 'How InfraGuard Pro Addresses the Gap'
+    '#', 'Study (author, year)', 'Method', 'Tools / models',
+    'Reported result', 'Limitation', 'Use in InfraGuard AI'
   ];
 
   const litRows = [
     [
       '1',
-      'Pearce, Tan, Ahmad, Karri & Dolan-Gavitt (2023). “Examining Zero-Shot Vulnerability Repair with Large Language Models.” IEEE Symposium on Security and Privacy (S&P).',
-      'Empirical zero-shot evaluation of multiple LLMs on the task of repairing known software vulnerabilities without fine-tuning, across synthetic and real-world C/C++ defects.',
-      'OpenAI Codex, GPT-2, GPT-J, polycoder, jurassic-1 jumbo; CWE-tagged benchmark.',
-      'Demonstrated that zero-shot LLMs can repair a meaningful fraction of vulnerabilities but with high variance across CWE classes and brittle behaviour on real-world bugs.',
-      'No CI/CD pipeline integration; no policy controls; no retrieval grounding; single-vendor LLM scope; no closed-loop runtime validation.',
-      'Integrates SARIF ingestion directly into CI/CD; adds policy engine with three execution modes; grounds generation in RAG over runbooks and historical fixes; supports five LLM providers; validates patches via post-deploy multi-server telemetry.'
+      'Beyer, Jones, Petoff & Murphy (2016). “Site Reliability Engineering.” O’Reilly / Google.',
+      'Foundational practitioner text codifying SRE practice: service-level objectives, error budgets, on-call, and incident response.',
+      'Operational framework; no software artefact.',
+      'Defines telemetry-driven operations and describes repetitive manual work that grows with service scale as toil.',
+      'Predates the LLM era; assumes a human performs the interpretation of telemetry into action.',
+      'Implements a first-pass telemetry summary as a structured verdict. Its effect on operator workload still requires a field study.'
     ],
     [
       '2',
-      'Fu, Tantithamthavorn, Nguyen & Le (2023). “ChatGPT for Vulnerability Detection, Classification, and Repair: How Far Are We?” IEEE Asia-Pacific Software Engineering Conference (APSEC).',
-      'Empirical study of ChatGPT (GPT-3.5 and GPT-4) on three vulnerability tasks across multiple CWE categories, comparing prompt engineering strategies.',
-      'ChatGPT GPT-3.5-turbo and GPT-4; Big-Vul and CVEfixes datasets.',
-      'GPT-4 outperformed specialised supervised baselines for vulnerability detection but lagged for classification; repair quality was inconsistent and often introduced new bugs.',
-      'Operated only on isolated source snippets; no integration with scanner output formats; no production validation; no provider abstraction.',
-      'Operates on SARIF findings situated in their full repository context; provides regression validation through post-deploy telemetry; abstracts over five LLM providers; tracks per-patch confidence and citation evidence.'
+      'Chen, Shetty, Somashekar et al. (2025). “AIOpsLab: A Holistic Framework to Evaluate AI Agents for Enabling Autonomous Clouds.” MLSys.',
+      'Builds a framework that deploys cloud environments, injects faults, generates workloads, exports telemetry, and evaluates operational agents.',
+      'Open AIOpsLab framework, agent-cloud interface, benchmark environments, and LLM agents.',
+      'Provides a reproducible benchmark and reports that current agents have uneven capability across complex operational tasks.',
+      'Focuses on benchmarked agent evaluation rather than a small operator-facing deployment with persistent acknowledgement memory.',
+      'Motivates reproducible evaluation while InfraGuard AI supplies an inspectable single-host implementation and states which live-model tests remain outstanding.'
     ],
     [
       '3',
-      'Wu, Mascarenhas, Murphy-Hill, Murali, Maddila, Bird, Macedo, Tirelo & Schäfer (2023). “How Effective Are Neural Networks for Fixing Security Vulnerabilities.” ACM ISSTA.',
-      'Comparative evaluation of deep-learning and LLM approaches for security bug fixing on a curated corpus of 1,400 real-world Java vulnerabilities.',
-      'Codex, PLBART, CodeT5, VulRepair; Java CVEs dataset.',
-      'LLMs outperform earlier neural baselines on Java security fixes but still fail on complex multi-file, multi-hunk patches; data leakage in benchmarks identified.',
-      'Limited to single-language (Java) and single-file repairs; no orchestration of multiple scanner sources; no autonomous deployment of fixes.',
-      'Supports multi-language (Python, JavaScript, Go, Java, Terraform, Dockerfile, YAML) findings; consumes output from six distinct scanner classes; orchestrates the full lifecycle from SARIF to merged pull request.'
+      'He, Zhu, Zheng & Lyu (2017). “Drain: An Online Log Parsing Approach with Fixed Depth Tree.” IEEE ICWS.',
+      'Streaming log parser that abstracts raw log lines into templates by stripping variable tokens via a fixed-depth parse tree.',
+      'The Drain algorithm.',
+      'Enables stable grouping of semantically identical log events despite volatile parameters such as timestamps and identifiers.',
+      'Provides parsing only; no reasoning over the parsed events and no operator-facing memory of judgements.',
+      'The verdict-memory applies the same volatile-token-normalisation principle so that the same condition fingerprints stably across heartbeats, enabling reliable acknowledgement.'
     ],
     [
       '4',
-      'Khoury, Avila, Brunelle & Camara (2023). “How Secure Is Code Generated by ChatGPT?” IEEE International Conference on Systems, Man and Cybernetics (SMC).',
-      'Adversarial probing study examining whether code generated by ChatGPT introduces new security vulnerabilities under naïve, security-aware, and exploitation-focused prompts.',
-      'ChatGPT GPT-3.5; 21 hand-crafted security-sensitive programming tasks.',
-      'A majority of generated programs were insecure under default prompts; security-aware prompts significantly improved outcomes but did not eliminate vulnerabilities.',
-      'Highlights the risk of LLM-introduced vulnerabilities but offers no architectural defence; no validation loop; no human-in-the-loop policy controls.',
-      'Embeds policy classification of every patch with three execution modes; subjects every LLM-generated patch to the original scanner suite before merging; logs every action in a tamper-evident audit trail.'
+      'Yao, Zhao, Yu, Du, Shafran, Narasimhan & Cao (2023). “ReAct: Synergizing Reasoning and Acting in Language Models.” ICLR.',
+      'Introduces an interleaved reasoning-and-acting prompting paradigm allowing an LLM to alternate chain-of-thought with tool invocations.',
+      'GPT-3 / PaLM with external tool environments.',
+      'Outperforms the reported reasoning-only and acting-only baselines on the study’s knowledge and decision tasks.',
+      'Domain-agnostic foundational technique with no operations application or production evaluation.',
+      'Adopted in the LangChain multi-tool mode, where Gemini interleaves reasoning with calls to the Loki, Prometheus, and HTTP-probe tools before producing a verdict.'
     ],
     [
       '5',
-      'Yang, Prenner, Kıcıman, Macedo, Murali, Bird & Tirelo (2024). “SWE-agent: Agent–Computer Interfaces Enable Automated Software Engineering.” NeurIPS.',
-      'Designs a custom agent–computer interface enabling an LLM to autonomously edit, navigate, and test code in real repositories; evaluated on SWE-bench.',
-      'GPT-4 / GPT-4-turbo with a constrained shell, file-editor, and test-runner toolset.',
-      'Achieves substantially higher SWE-bench resolution rates than prompt-only baselines through careful interface design and tool ergonomics.',
-      'Evaluated only on functional bug-fix tasks rather than security findings; no SARIF integration; no policy engine; single LLM provider in published experiments.',
-      'Inherits the agent–computer interface paradigm via LangGraph but specialises tools to security-finding workflows: SARIF parser, CVE lookup, dependency-graph queries, Git provider API, scanner re-run.'
+      'Shinn, Cassano, Gopinath, Narasimhan & Yao (2023). “Reflexion: Language Agents with Verbal Reinforcement Learning.” NeurIPS.',
+      'Self-improving agent loop in which the model reflects on failed actions through verbal critique and revises its plan.',
+      'GPT-4 with a reflection memory.',
+      'Outperforms the reported single-shot baselines on the study’s multi-step tasks.',
+      'Demonstrated on toy code and QA tasks; no integration with telemetry or operations systems.',
+      'Provides a contrast with InfraGuard AI: the project stores operator acknowledgements, not a model-generated reflection memory.'
     ],
     [
       '6',
-      'Jimenez, Yang, Wettig, Yao, Pei, Press & Narasimhan (2024). “SWE-bench: Can Language Models Resolve Real-World GitHub Issues?” ICLR.',
-      'Constructs a benchmark of 2,294 real GitHub issues with paired pull-request fixes drawn from twelve popular Python repositories; evaluates leading LLMs.',
-      'GPT-4, Claude 2, ChatGLM-6B; SWE-bench dataset.',
-      'Even strongest LLMs resolved less than 5% of real-world issues end-to-end without specialised scaffolding; reveals the gap between code generation and applied software engineering.',
-      'Benchmark covers general bug fixing rather than security; does not measure CI/CD integration overhead; no production deployment.',
-      'Restricts scope to the security-finding subclass where structured input (SARIF) is available, dramatically narrowing the reasoning space; provides per-finding evidence chains to compensate for residual LLM weakness.'
+      'Yuan, Tang, Liu et al. (2025). “Incident Diagnosing and Reporting System Based on Retrieval Augmented Large Language Model.” AAAI.',
+      'RAIDR retrieves system documents and similar incident records, then uses an LLM to diagnose IoT anomalies and draft incident reports.',
+      'Incident signatures, relationship-aware anomaly analysis, retrieval, and an LLM report generator.',
+      'Demonstrates a retrieval-augmented incident diagnosis and reporting workflow over IoT sensor data.',
+      'Short demonstration paper focused on IoT incidents; it does not evaluate the single-host observability and acknowledgement workflow used here.',
+      'Supports the use of organisation-specific documents for incident assistance; InfraGuard AI applies retrieval to runbooks and returns source titles.'
     ],
     [
       '7',
-      'Hou, Wang, Wei, Zhang, Yang, Zhang, Wang, Liu, Liu, Yu, Chen, Zhang, Wang, Cao, Zhao, Zhao, Han, Zhao, Wang, Liu, Wang, Chen, Liu, Wang & Liu (2024). “Large Language Models for Software Engineering: A Systematic Literature Review.” ACM Transactions on Software Engineering and Methodology (TOSEM).',
-      'Systematic literature review covering 395 primary studies on LLM applications across the software engineering lifecycle, organised by activity, model, and evaluation metric.',
-      'GPT-3/4, Codex, CodeT5, StarCoder, Llama-family; meta-analysis only.',
-      'Identifies code generation, summarisation, and bug fixing as the most-studied activities and notes a striking under-representation of security-specific and CI/CD-integrated work.',
-      'Confirms (rather than fills) the gap; provides no implementation; identifies LLM hallucination, evaluation rigour, and reproducibility as standing open problems.',
-      'Directly addresses the under-represented LLM-for-CI/CD-security category; ships a reproducible, open-source reference implementation; defines a 150-finding benchmark to seed future empirical work.'
+      'Ahmed, Ghosh, Bansal, Zimmermann, Zhang and Rajmohan (2023). “Recommending Root-Cause and Mitigation Steps for Cloud Incidents Using Large Language Models.” ICSE.',
+      'Prompts and fine-tunes LLMs to recommend root cause and mitigation steps from production incident data at scale.',
+      'GPT-3.0 and GPT-3.5 models on more than 40,000 Microsoft incidents.',
+      'Reports zero-shot, fine-tuned, and multi-task results, followed by evaluation with incident owners.',
+      'Operates inside a proprietary hyperscale cloud; not self-hostable; no operator-facing memory; no open implementation.',
+      'Brings grounded root-cause and recommended-action verdicts to a self-hosted, open reference system sized for small teams, with an operator acknowledgement memory layered on top.'
     ],
     [
       '8',
-      'Jin, Shahriar, Tufano, Shi, Lou, Sundaresan & Le (2023). “InferFix: End-to-End Program Repair with LLMs.” ACM ESEC/FSE.',
-      'End-to-end industrial pipeline combining a static analyser, a retriever, and an LLM to produce patches for warnings issued by Microsoft’s Infer static analyser.',
-      'Codex; Microsoft Infer; in-house dense retriever.',
-      'Achieves industrial-grade patch acceptance rates for null-dereference and resource-leak warnings; demonstrates the value of retrieval grounding for repair.',
-      'Tied to a single proprietary scanner (Infer); single LLM provider; not open-sourced; no policy controls for autonomous merging.',
-      'Generalises the retrieval-grounded repair pattern to six open-source scanners through SARIF; abstracts the LLM provider; adds explicit policy controls and audit logging; ships the implementation as open source.'
+      'Jin, Zhang, Ma et al. (2023). “Assess and Summarize: Improve Outage Understanding with Large Language Models.” ESEC/FSE.',
+      'Oasis groups incidents to assess outage impact and uses a fine-tuned model to generate an outage summary.',
+      'Fine-tuned GPT-3.x models on data from 18 Microsoft cloud systems.',
+      'Reports an empirical evaluation and a human evaluation with outage owners; a prototype entered experimental adoption.',
+      'Evaluates outage summarisation after evidence has been collected; the data and deployment are proprietary.',
+      'Runs on a scheduled heartbeat and stores each structured verdict for later review and acknowledgement.'
     ],
     [
       '9',
-      'Yao, Zhao, Yu, Du, Shafran, Narasimhan & Cao (2023). “ReAct: Synergizing Reasoning and Acting in Language Models.” ICLR.',
-      'Introduces an interleaved reasoning-and-acting prompting paradigm that allows an LLM to interleave chain-of-thought reasoning with tool invocations against external environments.',
-      'GPT-3 (text-davinci-002), PaLM-540B; HotpotQA, FEVER, ALFWorld, WebShop benchmarks.',
-      'Significant accuracy gains on knowledge-intensive and decision-making tasks relative to chain-of-thought-only or act-only baselines.',
-      'Domain-agnostic foundational technique with no security application; no evaluation on production systems.',
-      'Adopts the ReAct paradigm in the LangGraph implementation of the reasoning agent; specialises the tool surface to SARIF parsing, CVE lookup, code search, and scanner re-execution.'
+      'Chen, Xie, Ma et al. (2024). “Automatic Root Cause Analysis via Large Language Models for Cloud Incidents.” EuroSys.',
+      'RCACopilot matches incidents to handlers by alert type, gathers diagnostic information, predicts a root-cause category, and generates an explanation.',
+      'Incident matching and diagnostic collection with an LLM-generated explanation over Microsoft incident data.',
+      'Reports root-cause accuracy up to 0.766; its diagnostic collection component had been used at Microsoft for more than four years.',
+      'Targets hyperscale operations; heavyweight; not bounded for, or deployable by, small single-host estates.',
+      'Restricts collection to selected sources on one host and exposes the implementation for inspection.'
     ],
     [
       '10',
-      'Shinn, Cassano, Berman, Gopinath, Narasimhan & Yao (2023). “Reflexion: Language Agents with Verbal Reinforcement Learning.” NeurIPS.',
-      'Self-improving agent loop in which the LLM reflects on its own failed actions through verbal critique and rewrites its plan accordingly.',
-      'GPT-4 with custom reflection memory; HumanEval, MBPP, HotpotQA.',
-      'Substantial performance improvements over single-shot baselines, especially for tasks requiring multi-step reasoning.',
-      'Demonstrated on code-generation toy tasks; no integration with real scanner output or CI/CD systems.',
-      'Adopts the Reflexion-style critique loop for patches that fail post-deployment scanner re-runs, automatically refining the patch up to a configurable retry limit.'
+      'Roy, Zhang, Bhave et al. (2024). “Exploring LLM-Based Agents for Root Cause Analysis.” FSE Companion.',
+      'Investigates autonomous LLM agents for root-cause analysis and the interface and grounding choices that make them effective.',
+      'Tool-augmented LLM agents on incident datasets.',
+      'Reports that tool and grounding choices affect root-cause-analysis performance.',
+      'Uses Microsoft incident data and diagnostic services; it does not present a general self-hosted deployment or an acknowledgement feature.',
+      'Contributes the self-hosted, human-in-the-loop, memory-equipped variant: operator-approved threat response and a stateful acknowledgement memory.'
     ],
     [
       '11',
-      'Lewis, Perez, Piktus, Petroni, Karpukhin, Goyal, Küttler, Lewis, Yih, Rocktäschel, Riedel & Kiela (2020). “Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.” NeurIPS.',
-      'Introduces RAG as a hybrid parametric–non-parametric memory architecture in which a dense retriever supplies relevant documents to a generative model.',
-      'BART-large generator with DPR retriever; Wikipedia, Natural Questions.',
-      'Establishes RAG as the canonical mechanism for grounding generative outputs in evolving external knowledge.',
-      'Foundational architecture only; no security or code-repair specialisation; corpus is static encyclopaedic content.',
-      'Applies the RAG architecture to a dynamic, organisation-specific corpus combining Notion runbooks, local Markdown, uploaded artefacts, and historical verdicts indexed by a ChromaDB vector store.'
+      'Xu, Zhang, Zhong et al. (2025). “OpenRCA: Can Large Language Models Locate the Root Cause of Software Failures?” ICLR.',
+      'Introduces a benchmark for locating software-failure root causes from heterogeneous logs, metrics, traces, and dependency information.',
+      'OpenRCA: 335 failures from three enterprise systems and more than 68 GB of telemetry; evaluated LLMs and an RCA agent.',
+      'The best reported configuration, an RCA agent using Claude 3.5, solved 11.34 percent of the benchmark cases.',
+      'Offline benchmark rather than a deployed incident workflow; results show that current models remain unreliable on difficult cases.',
+      'Supports the project’s human-review boundary and the decision not to claim diagnostic accuracy from software tests alone.'
     ],
     [
       '12',
-      'Nong, Hu, Liu, Singh, Khoury, Brookshire & Cai (2024). “VGX: Large-Scale Sample Generation for Boosting Learning-Based Software Vulnerability Analyses.” ICSE.',
-      'Uses LLMs to synthesise large-scale labelled vulnerability and patch datasets to overcome the scarcity of real-world ground-truth data.',
-      'GPT-3.5, CodeT5; CWE-tagged synthetic corpus.',
-      'Demonstrates that LLM-synthesised training data can improve downstream vulnerability detector performance.',
-      'Targets training-time data augmentation rather than inference-time remediation; no policy or deployment artefacts.',
-      'Uses analogous synthetic-augmentation principles to seed the historical-fix RAG corpus when an organisation does not yet have sufficient real-world patch history, ensuring useful retrieval from day one.'
+      'Hou, Zhao, Liu et al. (2024). “Large Language Models for Software Engineering: A Systematic Literature Review.” ACM TOSEM.',
+      'Systematic review of 395 studies on LLM applications across the software lifecycle.',
+      'Meta-analysis.',
+      'Catalogues models, data practices, evaluation methods, and software-engineering tasks, and identifies uneven coverage across the field.',
+      'Reviews the gap but does not provide an operations implementation; it also identifies hallucination and reproducibility concerns.',
+      'Provides an inspectable implementation of one LLM-assisted operations workflow and documents its output constraints.'
     ],
     [
       '13',
-      'Ahmad, Tan, Pearce, Karri & Dolan-Gavitt (2024). “Fixing Hardware Security Bugs with Large Language Models.” IEEE Transactions on Information Forensics and Security.',
-      'Extends LLM-based repair from software vulnerabilities to hardware description language (Verilog) security bugs.',
-      'OpenAI Codex, GPT-3.5, GPT-4; CWE-1191/1234/1241 Verilog corpus.',
-      'Shows that capable LLMs generalise repair behaviour to hardware DSLs but require careful prompt engineering and structured grounding.',
-      'Hardware-only focus; no orchestration of multiple finding types; no policy or deployment integration.',
-      'Generalises the structured-prompt grounding pattern to the heterogeneous mix of software languages, IaC dialects, and Dockerfiles encountered in cloud-native pipelines.'
-    ],
-    [
-      '14',
-      'Rajapakse, Zahedi, Babar & Shen (2022). “Challenges and Solutions When Adopting DevSecOps: A Systematic Review.” Information and Software Technology.',
-      'Systematic review of 53 primary studies on the organisational and technical challenges of DevSecOps adoption in industrial practice.',
-      'Meta-analysis; no implementation artefact.',
-      'Identifies the absence of automated remediation, alert fatigue, and integration overhead between scanners and ticketing systems as the most frequently cited adoption barriers.',
-      'Provides only a problem characterisation; does not propose or evaluate a remediation architecture.',
-      'Directly addresses every adoption barrier identified: unifies multi-scanner output via SARIF; automates remediation; surfaces a single dashboard rather than disjoint ticket queues.'
-    ],
-    [
-      '15',
-      'Liu, Wei, Xu, Yu, Wang, Yang, Chen, Yang & Jiang (2024). “Refining ChatGPT-Generated Code: Characterizing and Mitigating Code Quality Issues.” ACM TOSEM.',
-      'Large-scale empirical characterisation of code-quality defects in ChatGPT-generated code, with a taxonomy of seventeen defect categories and an automated refinement pipeline.',
-      'ChatGPT GPT-3.5; 4,066 generated programs; static analysers SonarQube and SpotBugs.',
-      'Identifies that 65% of generated programs contain at least one quality defect; demonstrates that iterative refinement with static analyser feedback reduces defect density by half.',
-      'Quality-focused rather than security-focused; no SARIF orchestration; single LLM vendor; no CI/CD pipeline deployment.',
-      'Adopts the iterative-refinement principle but specialises the feedback signal to the original SARIF rule violations, re-running the scanner suite against each generated patch until the finding is closed or the retry budget exhausted.'
+      'Guo, Yang, Lu et al. (2024). “OWL: A Large Language Model for IT Operations.” ICLR.',
+      'Develops a domain-specialised LLM and benchmark for IT-operations question answering.',
+      'Domain-tuned LLM; IT-ops benchmark.',
+      'Domain specialisation improves operations question-answering performance over general models.',
+      'Model-centric; no end-to-end agent, no live telemetry loop, and the bespoke model raises cost and operational complexity.',
+      'Uses a configurable general-purpose provider with bounded telemetry context instead of training a domain-specific model.'
     ],
   ];
 
-  // Build header + data rows
-  const rows = [headers, ...litRows.map((row, idx) => row)];
-  b.push(buildTable(colWidths, rows));
+  const rows = [headers, ...litRows];
+  b.push(buildTable(colWidths, rows, 'D9E2F3', true));
   b.push(blank());
-  b.push(p('Table 2.1: Comparative Review of Fifteen Recent and Related Studies on LLM-Driven and AI-Driven Vulnerability Remediation. Compiled by the author from peer-reviewed conference and journal sources.', { align: require('docx').AlignmentType.CENTER }));
+  b.push(tableCaption('Table 2.1: Comparative Review of Thirteen Studies in AIOps and LLM-Assisted Operations.'));
   b.push(blank());
 
-  // Narrative discussion of the table
   b.push(h3('2.2.2  Synthesis of the Reviewed Studies'));
-  b.push(p('Several patterns are visible when the fifteen studies are read collectively. First, the academic frontier has moved decisively from demonstrating that LLMs can repair isolated vulnerabilities (entries 1, 2, 3, 4, 13) to integrating them into multi-step agentic workflows (entries 5, 6, 8, 9, 10). The capability question is, in the main, settled — capable LLMs can repair a meaningful fraction of findings; the open questions concern integration, orchestration, governance, and production safety. Second, the studies that ship industrial-grade pipelines (notably InferFix, entry 8) remain tightly coupled to a single proprietary scanner and a single LLM vendor; this is the precise gap addressed by the SARIF-based ingestion and the LLM provider abstraction in InfraGuard Pro. Third, retrieval augmentation (entry 11) and reflective self-correction (entry 10) are individually well-validated techniques but have not been systematically combined in a security-remediation context — InfraGuard Pro composes both. Fourth, the systematic reviews (entries 7 and 14) confirm that the security-CI/CD intersection remains structurally under-represented in the academic literature, providing direct justification for the present work as a research contribution rather than an engineering exercise. Finally, every reviewed study, without exception, leaves the post-deployment validation gap open: none of them re-run the original scanner against the patched artefact, none of them watch production telemetry for regressions, and none of them maintain an audit trail of LLM decisions in a form suitable for regulated environments. The closed-loop validation architecture introduced in Chapter Three is, to the best of the author’s knowledge, the first published treatment of this end-to-end loop.'));
+  b.push(p('Ahmed et al. (2023), Jin et al. (2023), Chen et al. (2024), and Roy et al. (2024) evaluate LLMs for incident recommendations, outage summaries, or tool-assisted root-cause analysis, largely with proprietary cloud data. More recent open work addresses reproducible evaluation and exposes the remaining difficulty: AIOpsLab evaluates agents in controlled cloud environments, while OpenRCA reports that its best configuration solved 11.34 percent of 335 benchmark failures (Chen et al., 2025; Xu et al., 2025). RAIDR applies retrieval to incident diagnosis and reporting in an IoT setting (Yuan et al., 2025). InfraGuard AI uses related tool and retrieval patterns over a small telemetry surface, but keeps the operator responsible for action and does not claim diagnostic accuracy from software tests.'));
 
-  // 2.2.3 Commercial / Industrial state of the art
-  b.push(h3('2.2.3  Commercial and Industrial State of the Art'));
-  b.push(p('Beyond the academic literature, several commercial and open-source platforms have begun to populate the LLM-assisted remediation space. The most prominent are reviewed here.'));
-  b.push(h4('Snyk DeepCode AI Fix'));
-  b.push(p('Snyk has integrated an LLM-backed fix-suggestion engine, marketed under the DeepCode AI Fix brand, into its SAST product. The feature generates suggested patches for a subset of supported rules and presents them to the developer within the Snyk dashboard and IDE integrations. The principal limitations of the offering are its confinement to Snyk’s own scanner output (no SARIF orchestration across third-party tools), its closed and undisclosed underlying model, the absence of a transparent policy framework, and the necessity of a paid Snyk subscription priced beyond the reach of many emerging-market organisations.'));
-  b.push(h4('GitHub Copilot Autofix and GitHub Advanced Security'));
-  b.push(p('GitHub launched Copilot Autofix as a remediation feature on top of GitHub Advanced Security in 2024, leveraging OpenAI models to generate patches for CodeQL alerts. The integration is tight, the developer experience is excellent, and the feature is widely available. Its principal limitations from the perspective of the present work are the lock-in to GitHub as the Git provider and to CodeQL as the SAST engine; the inability to operate on container image, IaC, or secret-scanning findings; the closed-source nature of the orchestration logic; and the inapplicability to self-hosted Git providers (GitLab, Gitea, Forgejo) prevalent in regulated and air-gapped environments.'));
-  b.push(h4('Mend.io AppSec AI'));
-  b.push(p('Mend.io (formerly WhiteSource) offers an AppSec AI product that combines LLM analysis with its own SCA dataset to prioritise and partially automate dependency upgrades. The product is enterprise-priced and focused on the SCA dimension; it does not currently address SAST, IaC, or container scanning in a unified manner, and like its peers it does not expose the underlying policy or model configuration.'));
-  b.push(h4('Endor Labs and Dependabot'));
-  b.push(p('Endor Labs offers reachability-prioritised SCA with LLM-assisted upgrade suggestions, while GitHub’s Dependabot has long provided automated dependency-update pull requests without LLM involvement. Both tools are valuable but neither addresses the full remediation surface, neither provides a vendor-neutral LLM substrate, and Dependabot in particular is limited to template-based rather than context-aware patches.'));
-  b.push(h4('Open-Source Adjacent Work: Bunkerweb, OpenGrep, OWASP Nettacker'));
-  b.push(p('The open-source DevSecOps community has produced an extensive catalogue of scanners (Trivy, Semgrep, Bandit, Checkov, Gitleaks, Grype, OpenGrep) and observability tools (Prometheus, Loki, Grafana, OpenTelemetry, Traceway) but, at the time of writing, no widely-adopted open-source orchestrator unifies their output and applies LLM-driven autonomous remediation across the full surface. The present work is positioned to fill this open-source gap.'));
+  b.push(h3('2.2.3  Commercial and Open-Source State of the Art'));
+  b.push(p('The following products provide related observability or incident-analysis functions. Their descriptions are limited to features stated in current product documentation.'));
+  b.push(h4('Datadog Bits AI and Watchdog'));
+  b.push(p('Datadog Bits AI supports investigations using Datadog telemetry, runbooks, environment context, feedback, and investigation memories (Datadog, n.d.). It is part of Datadog\'s managed commercial platform.'));
+  b.push(h4('New Relic AI'));
+  b.push(p('New Relic AI provides natural-language access to telemetry held in the New Relic platform and can return explanations, summaries, charts, and troubleshooting guidance (New Relic, n.d.). It is a managed platform feature rather than an operator-hosted reference implementation.'));
+  b.push(h4('PagerDuty AIOps'));
+  b.push(p('PagerDuty AIOps provides alert grouping, noise reduction, triage, root-cause features, event orchestration, and automation within PagerDuty\'s managed incident platform (PagerDuty, n.d.). Its event-grouping functions are related to, but not identical with, the acknowledgement memory studied here.'));
+  b.push(h4('k8sgpt (Open Source)'));
+  b.push(p('k8sgpt is an open-source tool that analyses Kubernetes resources and sends selected information to a configured AI backend for explanation (k8sgpt, n.d.). Its primary scope is Kubernetes diagnosis rather than the multi-source heartbeat implemented by InfraGuard AI.'));
 
-  // 2.2.4 Capability matrix
   b.push(h3('2.2.4  Capability Comparison'));
-  b.push(p('Table 2.2 summarises the capability differences between InfraGuard Pro and the principal commercial offerings reviewed above. Capabilities are scored on a three-point scale: ✓ for full support, P for partial support, and ✗ for absence.'));
+  b.push(p('Table 2.2 compares the main emphasis and deployment model of the reviewed systems. It avoids binary capability scores because commercial features change and are not fully observable from public documentation.'));
   b.push(blank());
 
-  const capColWidths = [2200, 1300, 1300, 1300, 1300, 1626];
-  const capHeaders = ['Capability', 'InfraGuard Pro', 'Snyk DeepCode', 'GitHub Copilot Autofix', 'Mend AppSec AI', 'Dependabot'];
+  const capColWidths = [1800, 2000, 2000, 3226];
+  const capHeaders = ['System', 'Deployment', 'Primary Scope', 'Relevant Distinction'];
   const capRows = [
     capHeaders,
-    ['Unified SARIF ingestion across SAST, SCA, IaC, container, secret scanners', '✓', '✗', 'P', 'P', '✗'],
-    ['Multi-vendor LLM provider abstraction (≥ 5 providers)', '✓', '✗', '✗', '✗', 'n/a'],
-    ['Self-hosted / sovereign LLM option (Ollama, LM Studio)', '✓', '✗', '✗', '✗', 'n/a'],
-    ['Three-mode policy engine (recommend / approve / autonomous)', '✓', 'P', 'P', 'P', '✗'],
-    ['Multi-provider Git integration (GitHub, GitLab, Gitea)', '✓', 'P', '✗', 'P', 'P'],
-    ['RAG over organisation-specific runbooks', '✓', '✗', '✗', '✗', '✗'],
-    ['Historical-fix retrieval and similar-incident learning', '✓', '✗', '✗', 'P', '✗'],
-    ['Closed-loop post-deployment regression validation', '✓', '✗', '✗', '✗', '✗'],
-    ['Multi-server satellite-agent topology', '✓', '✗', '✗', '✗', '✗'],
-    ['Tamper-evident audit trail for every action', '✓', 'P', 'P', 'P', 'P'],
-    ['Open-source, self-hostable', '✓', '✗', '✗', '✗', '✗'],
+    ['InfraGuard AI', 'Operator-hosted reference implementation', 'Scheduled triage over selected telemetry sources', 'Condition-and-ruleset acknowledgement; human-approved CrowdSec action'],
+    ['Datadog Bits AI', 'Managed commercial platform', 'Investigation over Datadog telemetry and knowledge sources', 'Runbooks, environment context, feedback, and investigation memories'],
+    ['New Relic AI', 'Managed commercial platform', 'Natural-language analysis of New Relic telemetry', 'Platform-integrated explanations, queries, summaries, and charts'],
+    ['PagerDuty AIOps', 'Managed commercial platform', 'Event grouping, triage, RCA support, and orchestration', 'Noise reduction and event-processing automation'],
+    ['k8sgpt', 'Open-source tool run by the user', 'Kubernetes resource analysis', 'Kubernetes-specific analyzers with a selectable AI backend'],
   ];
   b.push(buildTable(capColWidths, capRows));
   b.push(blank());
-  b.push(p('Table 2.2: Capability Comparison — InfraGuard Pro vs Commercial DevSecOps Platforms.', { align: require('docx').AlignmentType.CENTER }));
+  b.push(tableCaption('Table 2.2: Deployment and Scope Comparison of Representative Systems.'));
   b.push(blank());
 
   // 2.3 TOOLS AND FRAMEWORKS
   b.push(h2('2.3  Review of Relevant Technologies, Tools, and Frameworks'));
-  b.push(p('This section surveys the technologies, tools, and frameworks selected for the InfraGuard Pro implementation, organised by architectural layer. The selection criteria across all layers were maturity (production deployments in comparable organisations), licensing compatibility with self-hosting, active community maintenance, and applicability to the multi-server cloud-native context.'));
+  b.push(p('The selected technologies are grouped by architectural layer. Selection considered maintenance status, licensing, support for self-hosting, and fit with a small single-host deployment.'));
 
-  b.push(h3('2.3.1  Programming Languages and Runtimes'));
-  b.push(p('Python 3.11+ was selected as the primary backend language. The decision was driven by three considerations. First, Python has emerged as the dominant language of the LLM ecosystem; the official client libraries for every targeted provider (OpenAI, Anthropic, Google Vertex AI, Moonshot, Ollama) are first-class Python packages, and orchestration frameworks (LangChain, LangGraph) are Python-native. Second, the existing InfraGuard codebase upon which the project builds is already written in Python 3.11. Third, asynchronous I/O via asyncio is fundamental to the satellite-agent and heartbeat-loop architecture and is well-supported in modern Python. TypeScript was selected for the dashboard frontend on the basis of the maturity of the SvelteKit framework and the type-safety advantages for a multi-page operations dashboard.'));
+  b.push(h3('2.3.1  Programming Language and Runtime'));
+  b.push(p('Python 3.11+ was selected because the required model-provider, LangChain, and LangGraph libraries are available for Python. The FastAPI service and heartbeat loop also use asyncio, while aiosqlite, httpx, and ChromaDB cover persistence, HTTP access, and retrieval. The dashboard uses one HTML file with CSS and JavaScript, so deployment does not require a separate frontend build service.'));
 
-  b.push(h3('2.3.2  Web and API Frameworks'));
-  b.push(p('FastAPI was selected as the API framework on grounds of its first-class asyncio support, automatic OpenAPI schema generation (which proved invaluable for satellite-agent client generation), dependency-injection ergonomics, and very low overhead. SvelteKit 5 with Svelte 5 was selected for the dashboard on grounds of bundle size (an order of magnitude smaller than equivalent React or Next.js applications), first-class TypeScript support, and its file-system-based routing that maps naturally to the multi-section operations console required by the project.'));
+  b.push(h3('2.3.2  Web and API Framework'));
+  b.push(p('FastAPI supports the asynchronous routes used by the application and generates an OpenAPI description of the API. Its dependency mechanism is used for route-level controls. The same application serves the dashboard and its JSON endpoints, with both using the session cookie for authentication. This avoids a separate dashboard service.'));
 
-  b.push(h3('2.3.3  LLM Orchestration Frameworks'));
-  b.push(p('LangGraph was selected over plain LangChain for orchestrating the reasoning agent. LangGraph’s explicit state-machine model maps cleanly to the four-phase agent loop (collect, analyse, decide, notify) inherited from the existing InfraGuard implementation, supports cyclic reasoning required for reflective patch refinement, and provides better observability than LangChain’s implicit chain construction. The LangChain ecosystem is retained for tool integrations (Prometheus, Loki, HTTP probes) and for the ChromaDB vector store binding.'));
+  b.push(h3('2.3.3  LLM Orchestration and Provider'));
+  b.push(p('LangGraph was selected because its explicit graph maps to the collect, analyse, decide, and notify workflow (LangChain, n.d.). LangChain is retained for the optional multi-tool mode and the ChromaDB integration. The implementation defaults to Gemini through the Gemini Developer API, while the provider abstraction also supports Anthropic, OpenAI, and local Ollama backends. Provider and model names can be changed through environment variables.'));
 
-  b.push(h3('2.3.4  Observability and Telemetry'));
-  b.push(p('Prometheus and Loki, the de-facto open-source standards for metrics and logs respectively, are retained from the existing InfraGuard baseline and extended to operate in a federated mode across the satellite topology. Traceway is introduced as the OpenTelemetry-native correlation backbone, providing trace, metric, log, and grouped-exception ingestion through OTLP/HTTP and storing telemetry in ClickHouse. CrowdSec is retained for IP-based threat response and bridged into the verdict pipeline. Promtail is used as the log-shipping agent on each satellite.'));
+  b.push(h3('2.3.4  Observability and Telemetry Sources'));
+  b.push(p('Prometheus and Grafana Loki are the primary metric and log sources and are queried through their HTTP APIs. The deployment expects those services to be configured separately; it does not deploy a log shipper or monitoring backend. HTTP probes provide endpoint checks, the Docker Engine API provides optional local-container telemetry, and CrowdSec is available for operator-approved IP bans. Distributed tracing is outside the project scope.'));
 
   b.push(h3('2.3.5  Data Stores'));
-  b.push(p('PostgreSQL is selected as the central relational store for the control-plane state (server registry, verdict records, remediation queue, audit log, user accounts), replacing the SQLite store used by the original single-host InfraGuard. SQLite is retained on the satellite agents as a local buffer for telemetry when central-plane connectivity is intermittent. ChromaDB is retained as the vector store for the RAG corpus. ClickHouse is used (transparently, through Traceway) as the telemetry store.'));
+  b.push(p('SQLite, accessed asynchronously through aiosqlite, is the persistence layer for verdict records and operator acknowledgements; its single-file, zero-administration profile suits a self-hosted single-host deployment, and an automatic retention policy bounds its growth. ChromaDB is the vector store for the runbook RAG corpus, which uses local ONNX embeddings. No external relational database server is required.'));
 
-  b.push(h3('2.3.6  Container and Deployment Tooling'));
-  b.push(p('Docker and Docker Compose are used throughout for both the central control plane and the satellite agents, in keeping with the project’s self-hosting orientation. Terraform is used for the cloud infrastructure portions of the deployment (GCE instances, networking, artefact registry), inherited from the existing InfraGuard Terraform module set. GitHub Actions is used as the canonical CI/CD reference implementation for the remediation engine, with GitLab CI as a secondary supported target.'));
+  b.push(h3('2.3.6  Security and Deployment'));
+  b.push(p('Application controls include signed timestamped session cookies, rate limiting, response headers, output escaping, and request logging. Docker Compose packages the API and agent, Terraform provisions a Google Compute Engine host, and GitHub Actions runs tests before the deployment job builds and publishes images. A production deployment still requires HTTPS termination, restricted firewall rules, and protected secret handling.'));
 
   b.push(h3('2.3.7  Relevant Standards and Specifications'));
-  b.push(p('Table 2.3 lists the principal standards and specifications adopted by the project, organised by layer.'));
+  b.push(p('Table 2.3 lists the standards and specifications referenced in the design.'));
   b.push(blank());
 
   const stdColWidths = [2400, 1900, 4726];
-  const stdHeaders = ['Standard / Specification', 'Issuing Body', 'Role in InfraGuard Pro'];
+  const stdHeaders = ['Standard / Specification', 'Source', 'Role in InfraGuard AI'];
   const stdRows = [
     stdHeaders,
-    ['SARIF 2.1.0', 'OASIS', 'Canonical input format for all scanner findings consumed by the Remediation Engine.'],
-    ['OpenTelemetry (OTel)', 'CNCF', 'Telemetry data model for traces, metrics, and logs forwarded from satellites to Traceway.'],
-    ['OpenAPI 3.1', 'OpenAPI Initiative', 'API description format for the control-plane REST surface; used for satellite client generation.'],
-    ['Common Vulnerabilities and Exposures (CVE)', 'MITRE', 'Vulnerability identifier referenced in SARIF findings and in the RAG corpus.'],
-    ['Common Vulnerability Scoring System (CVSS) v4.0', 'FIRST', 'Severity scoring used in the policy engine for risk-classification thresholds.'],
-    ['Common Weakness Enumeration (CWE)', 'MITRE', 'Weakness taxonomy used to route patches to appropriate retrieval shards in the RAG corpus.'],
-    ['ISO/IEC 27001:2022', 'ISO/IEC', 'Information-security management reference for audit-trail and access-control design choices.'],
-    ['NIST SP 800-218 (SSDF)', 'NIST', 'Secure Software Development Framework whose practices PO.5, PW.7, and RV.2 align directly with the project’s automation goals.'],
-    ['Nigeria Data Protection Act 2023', 'NDPC, Nigeria', 'Regional regulatory anchor for the audit and access-control requirements.'],
-    ['OWASP Top Ten (2021/2025 draft)', 'OWASP Foundation', 'CWE-to-OWASP mapping used to prioritise high-impact remediation flows in the dashboard.'],
+    ['Prometheus Exposition Format', 'Prometheus Authors (n.d.)', 'Metric data format consumed by the metrics-collection tool.'],
+    ['Loki HTTP API (LogQL)', 'Grafana Labs (n.d.)', 'Log query interface used to retrieve recent log lines over an explicit time window.'],
+    ['OpenAPI 3.1', 'OpenAPI Initiative (2025)', 'Automatic description of the control-plane REST surface generated by FastAPI.'],
+    ['System Usability Scale (SUS)', 'Brooke (1996)', 'Standardised instrument used in the usability evaluation of the dashboard.'],
+    ['ISO/IEC 27001:2022', 'International Organization for Standardization (2022)', 'Information-security management reference informing audit-trail and access-control design.'],
+    ['Nigeria Data Protection Act 2023', 'Federal Republic of Nigeria (2023)', 'Regional legal context for access control, accountability, and responsible processing.'],
+    ['Risk-Based Cybersecurity Framework for DMBs and PSBs', 'Central Bank of Nigeria (2024)', 'Sector-specific context for monitoring, reporting, and resilience controls.'],
+    ['NIST AI 600-1', 'National Institute of Standards and Technology (2024)', 'Generative-AI risk reference for grounding, output validation, human oversight, and post-deployment monitoring.'],
+    ['OWASP Top Ten', 'OWASP Foundation (2025)', 'Reference for the dashboard’s security-header, session, and threat-handling choices.'],
   ];
   b.push(buildTable(stdColWidths, stdRows));
   b.push(blank());
-  b.push(p('Table 2.3: Summary of Relevant Standards and Specifications Adopted by InfraGuard Pro.', { align: require('docx').AlignmentType.CENTER }));
+  b.push(tableCaption('Table 2.3: Relevant Standards and Specifications.'));
 
   // 2.4 GAP ANALYSIS
   b.push(h2('2.4  Gap Analysis'));
-  b.push(p('Drawing together the academic literature reviewed in Section 2.2.1, the commercial landscape surveyed in Section 2.2.3, and the technology stack reviewed in Section 2.3, eight distinct gaps emerge in the current state of LLM-driven autonomous security remediation. Each is restated here together with the specific InfraGuard Pro design decision that addresses it.'));
+  b.push(p('Seven gaps in the reviewed work shaped the design decisions described below.'));
 
-  b.push(num('Multi-scanner orchestration gap. No reviewed academic study and no surveyed commercial platform uniformly orchestrates the full set of SAST, SCA, IaC, container image, and secret-scanning findings. InfraGuard Pro addresses this through a single SARIF-based ingestion pipeline that normalises output from Trivy, Semgrep, Bandit, Checkov, Gitleaks, and OSV-Scanner into a unified internal finding model.'));
-  b.push(num('LLM-vendor lock-in gap. Every reviewed system is tightly coupled to a single LLM vendor. InfraGuard Pro addresses this through a pluggable provider abstraction supporting Vertex AI, OpenAI, Anthropic, Moonshot Kimi, Ollama, and LM Studio, with runtime switching and per-verdict provider attribution.'));
-  b.push(num('Policy governance gap. The literature consistently treats remediation as binary (suggest or apply) rather than as a graduated continuum. InfraGuard Pro introduces an explicit three-mode policy engine: recommend-only, human-approval-required, and autonomous-low-risk, configurable per finding category and per severity threshold.'));
-  b.push(num('Audit and compliance gap. Few reviewed systems treat audit logging as a first-class concern; those that do, do so opaquely. InfraGuard Pro records every ingestion, every LLM invocation, every patch proposal, every policy decision, and every applied action in a tamper-evident audit log structured for regulator-grade review.'));
-  b.push(num('Closed-loop validation gap. No reviewed study or commercial product re-runs the original scanner against the patched artefact, watches runtime telemetry for regressions, and uses that observation to mark the remediation successful or failed. InfraGuard Pro implements this closed loop as a core architectural element.'));
-  b.push(num('Retrieval-grounding gap. While RAG is well-established as a technique, no reviewed remediation system applies it specifically to a corpus combining vulnerability advisories, organisation-specific runbooks, and historical fix outcomes. InfraGuard Pro indexes all three into ChromaDB and cites retrieved evidence on every patch.'));
-  b.push(num('Multi-server operability gap. Existing systems are uniformly designed for a single repository or a single deployment environment. InfraGuard Pro is architected from the ground up around a satellite-agent topology supporting the multi-server reality of African mid-market operations such as LivWell.'));
-  b.push(num('Open-source availability gap. The leading commercial offerings (Snyk DeepCode, GitHub Copilot Autofix, Mend AppSec AI) are closed-source and priced beyond the reach of most African digital enterprises. InfraGuard Pro is delivered as an open-source reference implementation under a permissive licence, fully self-hostable on commodity infrastructure.'));
+  b.push(h3('2.4.1  Grounding and response validation'));
+  b.push(p('An LLM can infer an unsupported cause or return malformed output. The NIST Generative AI Profile identifies confabulation, information security, human oversight, and post-deployment monitoring as risk-management concerns (National Institute of Standards and Technology, 2024). InfraGuard AI supplies selected telemetry, tells the model not to treat absent integrations as faults, and checks the response fields and severity. These controls constrain the interface, but they do not establish diagnostic accuracy.'));
+  b.push(h3('2.4.2  Deployment control'));
+  b.push(p('The commercial platforms reviewed are vendor-managed services. InfraGuard AI keeps the API, dashboard, database, and runbook index on the operator\'s host. A prompt still leaves the host when the operator selects a cloud LLM provider.'));
+  b.push(h3('2.4.3  Inspectable entry point'));
+  b.push(p('A small reference implementation allows the collection and reasoning paths to be inspected without adopting a full observability platform. This does not imply lower operating cost; cost depends on the host, provider, prompt size, and request rate.'));
+  b.push(h3('2.4.4  Recurring-condition acknowledgement'));
+  b.push(p('A scheduled triage loop needs a durable distinction between a reviewed low-risk condition and a new finding. InfraGuard AI stores a fingerprinted acknowledgement and suppresses the matching ok or warning verdict in the default view. A change to the signature, prompt version, or model produces a different fingerprint.'));
+  b.push(h3('2.4.5  Operator approval for enforcement'));
+  b.push(p('IP bans can interrupt legitimate traffic. InfraGuard AI therefore applies a CrowdSec ban only after an operator approves the detected threat. Acknowledgement rules also prevent high and critical findings from being hidden.'));
+  b.push(h3('2.4.6  Organisation-specific runbooks'));
+  b.push(p('Generic advice may conflict with an organisation\'s procedures. The runbook assistant retrieves from locally maintained Markdown documents and returns the source titles used for its answer.'));
+  b.push(h3('2.4.7  Reproducibility'));
+  b.push(p('Private datasets and managed infrastructure limit direct reproduction of several reviewed systems. InfraGuard AI keeps the collection, matching, persistence, and API logic in one repository so another evaluator can inspect those decisions.'));
 
-  b.push(p('These eight gaps collectively justify the proposed solution as a substantive contribution to both the academic literature and the practical DevSecOps tooling ecosystem. Chapter Three translates these gap responses into a concrete methodology and system design.'));
+  b.push(p('Together, these gaps define the implementation boundary. Chapter Three explains how they were translated into requirements and design decisions.'));
 
   return b;
 }

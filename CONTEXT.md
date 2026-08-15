@@ -5,7 +5,7 @@ This file is the single source of truth for assistants working on this repositor
 ```toml
 [project]
 name = "infraguard-ai"
-description = "Agentic LLM platform for DevSecOps observability, automated threat response, and RAG runbooks"
+description = "Agentic LLM platform for DevSecOps observability, operator-approved threat response, and RAG runbooks"
 language = "Python 3.11+"
 package_manager = "pip + requirements.txt"
 containerized = true
@@ -20,49 +20,58 @@ docker_monitored = "MONITORED_CONTAINERS env var (comma-separated container name
 devplanner_logs_container = "DEVPLANNER_CONTAINER_NAME — Docker container name for log error tail (main heartbeat)"
 
 [llm]
-provider = "Google Vertex AI (Agent Platform)"
-model = "gemini-2.5-flash"
-client = "google-genai (genai.Client, vertexai=True, API v1) or langchain-google-vertexai (ChatVertexAI)"
-auth = "GOOGLE_APPLICATION_CREDENTIALS — service account JSON key path (ADC)"
+provider = "Configurable direct API: Gemini (default), Anthropic, OpenAI, or local Ollama"
+model = "gemini-3.6-flash by default; provider-specific env override"
+client = "google-genai or langchain-google-genai for Gemini; provider-native clients for alternatives"
+auth = "GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY; Ollama needs no key"
 output_format = "JSON — severity, summary, root_cause, recommended_action"
 
 [agent]
 framework = "LangGraph + LangChain"
-schedule = "60 second asyncio heartbeat loop"
+schedule = "asyncio heartbeat loop, HEARTBEAT_INTERVAL_SECONDS (default 120)"
 severity_levels = ["ok", "warning", "high", "critical"]
 notify_on = ["high", "critical"]
-docker_diagnostics_on = ["critical"]
-langchain_mode = "USE_LANGCHAIN_AGENT=1 uses LangChain multi-tool reasoning instead of single-shot Gemini"
-llm_mode_field = "Each verdict includes llm_mode ('langchain' or 'gemini_direct') to track which reasoning path produced it"
+docker_monitoring = "Opt-in via ENABLE_DOCKER_MONITORING=1 (off by default; needs Docker socket mount)"
+docker_diagnostics_on = ["high", "critical"]
+langchain_mode = "USE_LANGCHAIN_AGENT=1 uses LangChain multi-tool reasoning instead of a direct single call"
+llm_mode_field = "Each verdict includes llm_mode ('langchain' or 'direct') to track which reasoning path produced it"
 
-[mcp_tools]
-loki = "fetch_loki_logs() — last 50 lines"
+[agent_tools]
+loki = "fetch_loki_logs(limit=50, window_minutes=15) — query_range, newest-first, explicit time window"
 prometheus = "query_prometheus() — CPU, RAM, disk, error rate"
-docker_events = "get_docker_events() — restarts, unhealthy containers"
-docker_api = "collect_container_diagnostics() — stats, logs, health via Docker socket"
-docker_logs = "fetch_container_errors() — Docker SDK log tail + keyword filter (async); invoked from main heartbeat"
+docker_events = "get_docker_events() — restarts, unhealthy containers (only when ENABLE_DOCKER_MONITORING=1)"
+docker_api = "collect_container_diagnostics() — slim status/health/stats/log-tail summary on high/critical verdicts"
+docker_logs = "fetch_container_errors() — Docker SDK log tail + keyword filter (async); invoked from main heartbeat when enabled"
 http_probe = "probe_endpoints() — status + latency"
 notify = "send_push_notification() — ntfy.sh"
-threats = "analyze_threats() / apply_crowdsec_decision() — CrowdSec integration"
+threats = "analyze_threats() / suggest_crowdsec_decision() / apply_crowdsec_decision() — CrowdSec integration"
 
 [api]
 framework = "FastAPI"
-storage = "SQLite via aiosqlite"
-endpoints = ["/status", "/alerts", "/health", "/login", "/logout", "/api/agent/mode", "/api/threats", "/api/threats/apply", "/api/runbooks/query", "/api/runbooks/index"]
+storage = "SQLite via aiosqlite; verdicts pruned after VERDICT_RETENTION_DAYS (default 30)"
+endpoints = ["/", "/status", "/alerts", "/health", "/login", "/logout", "/api/config", "/api/agent/mode", "/api/threats", "POST /api/threats/apply", "POST /api/runbooks/query", "POST /api/runbooks/index"]
 docker_port = "8080"
-middleware = ["SecurityHeadersMiddleware", "AuditMiddleware", "AuthMiddleware"]
-auth = "Cookie-based session using itsdangerous, INFRAGUARD_USERNAME and INFRAGUARD_PASSWORD env vars"
+middleware_order = "Audit (outermost) -> SecurityHeaders -> SlowAPI rate limit -> Auth (innermost); registered in reverse because Starlette wraps last-added outermost"
+rate_limits = "60/minute per IP default; 5/minute on POST /login"
+auth = "Cookie-based session using itsdangerous, INFRAGUARD_USERNAME and INFRAGUARD_PASSWORD env vars; SESSION_COOKIE_SECURE=1 marks the cookie Secure for HTTPS"
+blocking_work = "Sync LLM/Loki calls inside async routes are wrapped in asyncio.to_thread to keep the event loop responsive"
+
+[threat_response]
+detection = "GET /api/threats fetches up to 500 recent Loki lines and scans for HTTP brute force (>=10 401/403s per IP), SSH brute force (>=10 auth failures), port scans (>=20 connection attempts)"
+response = "Dashboard 'Block IP' button -> POST /api/threats/apply with the threat object; the CrowdSec decision is built server-side (suggest_crowdsec_decision) and applied via the Local API. Dry-run when CROWDSEC_API_URL is unset."
 
 [rag]
 vector_store = "ChromaDB (local to chroma_data volume)"
-embeddings = "VertexAI text-embedding-004"
-loader = "Notion API via notion-client"
+embeddings = "Local ONNX all-MiniLM-L6-v2 embeddings"
+loader = "Markdown files under RUNBOOKS_DIR"
+reindex = "POST /api/runbooks/index, triggered by the dashboard '⟳ Re-index' button"
 
 [dashboard]
 type = "Single HTML page (dark mode)"
-refresh_interval = "30 seconds"
+refresh_interval = "30 seconds (status/history), 60 seconds (threats)"
 served_by = "FastAPI static"
-features = ["Severity cards", "Alerts table", "Threat detection panel", "Runbook chat UI"]
+features = ["Integration status chips (/api/config)", "Stale-agent banner", "Severity verdict card", "Check History table with issues-only filter", "Threat panel with Block IP buttons", "Runbook chat UI with Re-index button"]
+xss = "All server/LLM/log-derived text is HTML-escaped via esc() before innerHTML"
 
 [notifications]
 provider = "ntfy.sh"
@@ -70,37 +79,33 @@ topic = "NTFY_TOPIC env var"
 priority_map = { ok = "min", warning = "default", high = "high", critical = "urgent" }
 
 [env_vars]
-required = ["LOKI_URL", "PROMETHEUS_URL", "DEVPLANNER_CONTAINER_NAME", "MONITORED_CONTAINERS", "GCP_PROJECT_ID", "GCP_REGION", "GOOGLE_APPLICATION_CREDENTIALS", "NTFY_TOPIC", "PROBE_URLS", "SECRET_KEY", "INFRAGUARD_USERNAME", "INFRAGUARD_PASSWORD"]
-optional = ["NOTION_TOKEN", "NOTION_DATABASE_ID", "CROWDSEC_API_URL", "CROWDSEC_API_KEY", "USE_LANGCHAIN_AGENT", "DOCKER_HOST"]
+required = ["SECRET_KEY", "INFRAGUARD_USERNAME", "INFRAGUARD_PASSWORD", "one provider key unless LLM_PROVIDER=ollama"]
+optional = ["LLM_PROVIDER", "GEMINI_MODEL", "ANTHROPIC_MODEL", "OPENAI_MODEL", "LOKI_URL", "PROMETHEUS_URL", "PROBE_URLS", "NTFY_TOPIC", "CROWDSEC_API_URL", "CROWDSEC_API_KEY", "USE_LANGCHAIN_AGENT", "ENABLE_DOCKER_MONITORING", "MONITORED_CONTAINERS", "DEVPLANNER_CONTAINER_NAME", "DOCKER_HOST", "HEARTBEAT_INTERVAL_SECONDS", "VERDICT_RETENTION_DAYS", "SESSION_COOKIE_SECURE", "REGISTRY", "DB_PATH", "RUNBOOKS_DIR"]
 
 [testing]
-framework = "pytest + respx"
-test_files = ["tests/test_tools.py", "tests/test_agent.py"]
+framework = "pytest + respx (asyncio_mode=auto)"
+test_files = ["tests/test_tools.py", "tests/test_agent.py", "tests/test_api.py", "tests/test_store.py", "tests/test_rag.py", "tests/test_threat_response.py"]
 
 [infrastructure]
 terraform = "Google Cloud resources (GCE VM, IP, Firewall, Artifact Registry, GCS backend)"
-ci_cd = "GitHub Actions (.github/workflows/deploy.yml)"
+ci_cd = "GitHub Actions: test.yml on PRs; deploy.yml on main (tests -> build/push images -> SSH deploy with regenerated .env)"
 log_collection = "Promtail pushing local logs to cloud Loki (promtail/config.yml)"
 ```
 
-## LLM Client
+## LLM Clients
 
-- **SDK**: `google-genai>=1.0.0` for basic access, `langchain-google-vertexai` for advanced reasoning.
-- **Model**: `gemini-2.5-flash` via Vertex AI Agent Platform.
-- **Auth**: GCP service account via `GOOGLE_APPLICATION_CREDENTIALS` (Application Default Credentials).
-- **Config**: `GCP_PROJECT_ID`, `GCP_REGION` (default when unset: `us-central1`).
-- **Note**: **Agent Platform APIs must be enabled on the GCP project.** If they are not, inference can fail with **404** responses that look like generic routing errors and are easy to misdiagnose. Enable and manage access in the [Google Cloud Agent Platform console](https://console.cloud.google.com/agent-platform).
+- **Default**: Gemini Developer API through `google-genai` and `langchain-google-genai`, using `GEMINI_API_KEY` and `GEMINI_MODEL`.
+- **Anthropic**: Claude API through `anthropic` and `langchain-anthropic`, using `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`.
+- **Other options**: OpenAI API or a local Ollama server.
+- **No Vertex dependency**: inference does not use a GCP service account, Vertex IAM, or `GOOGLE_APPLICATION_CREDENTIALS`.
 
 ## Runtime notes
 
-- **PYTHONPATH**: run commands from the `infraguard-ai/` directory (see `pytest.ini` and Docker `ENV PYTHONPATH=/app`).
-- **SQLite path**: set `DB_PATH` to a shared path in Docker (compose uses `/data/verdicts.db`).
-- **GCP credentials in Docker**: place your service account JSON **file** at `secrets/gcp-key.json` (gitignored). Compose mounts it to `/run/secrets/gcp-key.json`; set `GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json` in `.env`. If the host path is a directory by mistake, the container sees a directory at the mount target and ADC fails in non-obvious ways—remove the wrong path and use a single JSON file only.
-- **Docker socket**: the agent mounts `/var/run/docker.sock` read-only for `docker_events`, `collect_container_diagnostics`, and `fetch_container_errors` (DevPlanner log tail from `main` heartbeat). Restrict the client to read-only API calls in code; `:ro` on the socket is not a full security boundary.
-- **Docker builds**: `docker-compose.yml` uses `context: .` with `agent/Dockerfile` and `api/Dockerfile` (not separate image contexts, so `requirements.txt` stays at repo root).
-- **Docker events**: uses `DOCKER_HOST` if set, otherwise the default unix socket when available inside the container.
-- **Auth**: Only `/health` and `/login` are public. All other API and dashboard routes require an active session cookie.
-
-## Cursor / assistant prompt (LLM section)
-
-Use **Google Vertex AI** via the **`google-genai`** SDK or **LangChain** wrappers. Install `google-genai>=1.0.0` and `langchain-google-vertexai`. Use model **`gemini-2.5-flash`**. Authenticate with **`GOOGLE_APPLICATION_CREDENTIALS`** pointing to a service account JSON key. For multi-tool reasoning, the agent can use `agent/llm/langchain_agent.py` by setting `USE_LANGCHAIN_AGENT=1`. Ensure **Agent Platform APIs are enabled** on the project (see **LLM Client** above) or expect misleading **404s**.
+- **PYTHONPATH**: run commands from the repository root (see `pytest.ini` and Docker `ENV PYTHONPATH=/app`).
+- **SQLite path**: set `DB_PATH` to a shared path in Docker (compose uses `/data/verdicts.db` on the `sqlite_data` volume). Verdict rows are pruned automatically on insert after `VERDICT_RETENTION_DAYS`.
+- **Model credentials in Docker**: Compose reads provider keys from `.env`; no cloud credential file is mounted.
+- **Docker builds**: `docker-compose.yml` defines `build:` sections (`context: .` with `agent/Dockerfile` and `api/Dockerfile`) so `docker compose up -d --build` works locally with no registry; `image:` falls back to `${REGISTRY:-infraguard}/...` for CI-pushed images.
+- **Docker socket**: the agent mounts `/var/run/docker.sock` read-only; it is only used when `ENABLE_DOCKER_MONITORING=1` (`get_docker_events`, `collect_container_diagnostics`, `fetch_container_errors`). Remove the mount if you keep monitoring disabled. `:ro` on the socket is not a full security boundary.
+- **env_file caveat**: docker compose `env_file` does **not** strip inline comments — `FLAG=1  # comment` becomes the literal value `1  # comment`. Keep comments on their own lines in `.env`.
+- **Auth**: Only `/health` and `/login` are public. All other API and dashboard routes require an active session cookie. Failed logins re-serve the login page with the error injected server-side.
+- **Staleness**: `/status` returns `age_seconds` and `stale` (true when the latest verdict is older than 3× the heartbeat interval); the dashboard shows a warning banner when stale.

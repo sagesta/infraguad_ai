@@ -1,0 +1,49 @@
+%% Thesis figure: Figure 3.1
+%% Stable ID: FIG-3.1
+%% Caption: InfraGuard AI High-Level System Architecture
+%% Output PNG: ../figures/fig_3_1_architecture.png
+flowchart TB
+  OP(["Operator<br/>Web browser"])
+
+  subgraph HOST["Single host: Docker Compose"]
+    API["FastAPI service<br/>Dashboard and REST API"]
+    AGENT["Heartbeat agent<br/>LangGraph workflow"]
+    MEMORY["Verdict memory<br/>Fingerprint and acknowledgement"]
+    STORE[("SQLite<br/>Verdicts and acknowledgements")]
+    RAG["Runbook service<br/>Retrieval-augmented answers"]
+    VECTOR[("ChromaDB<br/>Runbook vectors")]
+    THREAT["Threat detector<br/>CrowdSec adapter"]
+  end
+
+  subgraph TELEMETRY["Telemetry sources"]
+    LOKI["Loki logs"]
+    PROM["Prometheus metrics"]
+    PROBE["HTTP probes"]
+    DOCKER["Docker telemetry<br/>(optional)"]
+  end
+
+  subgraph EXTERNAL["External services"]
+    MODEL["Direct model API<br/>Gemini · Anthropic · OpenAI"]
+    NTFY["ntfy.sh"]
+    CROWDSEC["CrowdSec LAPI"]
+    RUNBOOKS["Local Markdown runbooks"]
+  end
+
+  OP <-->|"HTTPS and JSON"| API
+  API <-->|"Read and write"| STORE
+  AGENT -->|"Persist verdict"| STORE
+  MEMORY --- STORE
+  API --> RAG
+  RAG <-->|"Index and retrieve"| VECTOR
+  RUNBOOKS -->|"Load runbooks"| RAG
+  API --> THREAT
+
+  LOKI --> AGENT
+  PROM --> AGENT
+  PROBE --> AGENT
+  DOCKER -.-> AGENT
+
+  AGENT -->|"Bounded telemetry prompt"| MODEL
+  RAG -->|"Answer generation"| MODEL
+  AGENT -->|"High or critical verdict"| NTFY
+  THREAT -->|"Operator-approved ban"| CROWDSEC
