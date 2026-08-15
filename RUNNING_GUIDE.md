@@ -12,16 +12,13 @@ Step-by-step instructions for setting up, running, testing, and demonstrating th
 | Docker + Docker Compose | 24+ / v2+ | Containerised deployment |
 | Node.js | 18+ | Master's project docx builder only |
 | Git | 2.40+ | Version control |
-| GCP service account key | — | Vertex AI / Gemini inference |
+| Model-provider API key | — | Gemini, Anthropic, or OpenAI inference |
 
 Optional (for specific features):
 
 | Requirement | Purpose |
 |-------------|---------|
-| Prometheus instance | Metrics collection |
-| Loki instance | Log aggregation |
-| Notion integration token | RAG runbook ingestion |
-| CrowdSec local API | Threat response |
+| DevPlanner Compose stack | Same-VPS metrics, logs, probes, and CrowdSec |
 | Terraform | GCP infrastructure provisioning |
 
 ---
@@ -56,18 +53,24 @@ INFRAGUARD_USERNAME=admin
 INFRAGUARD_PASSWORD=your-password
 SECRET_KEY=any-random-string-32-chars
 
-# GCP / Vertex AI
-GCP_PROJECT_ID=your-gcp-project-id
-GCP_REGION=us-central1
-GOOGLE_APPLICATION_CREDENTIALS=./credentials/gcp-key.json
+# Model provider
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your-google-ai-studio-key
+GEMINI_MODEL=gemini-3.6-flash
 
 # Target container (name of the Docker container you want to monitor)
 DEVPLANNER_CONTAINER_NAME=devplanner-api
 
-# Observability (leave empty if not available — agent degrades gracefully)
-LOKI_URL=
-PROMETHEUS_URL=
-PROBE_URLS=https://httpbin.org/status/200
+# Same-VPS private Docker network and DevPlanner services
+OBSERVABILITY_NETWORK=infraguard-observability
+LOKI_URL=http://devplanner-loki:3100
+PROMETHEUS_URL=http://devplanner-prometheus:9090
+PROBE_URLS=http://devplanner-api:3001/health,http://devplanner-web:3000
+
+# CrowdSec machine credentials; use the same values in DevPlanner
+CROWDSEC_API_URL=http://devplanner-crowdsec:8080
+CROWDSEC_MACHINE_ID=infraguard
+CROWDSEC_MACHINE_PASSWORD=use-a-strong-random-password
 
 # Notifications
 NTFY_TOPIC=infraguard-test
@@ -80,12 +83,12 @@ USE_LANGCHAIN_AGENT=1
 HEARTBEAT_INTERVAL_SECONDS=120
 ```
 
-### 1.3 GCP Credentials
+### 1.3 Model Credentials
 
-1. Create a GCP service account with the **Vertex AI User** role.
-2. Download the JSON key file.
-3. Place it at `credentials/gcp-key.json` (this path is gitignored).
-4. Ensure **Agent Platform APIs** are enabled on the GCP project (Google Cloud Console > Agent Platform). Without this, Gemini calls return misleading 404 errors.
+Create a Gemini Developer API key in Google AI Studio, or select Anthropic or
+OpenAI and set the corresponding provider key. No GCP service account, Vertex
+IAM role, or Notion token is required. Local Markdown files under `runbooks/`
+provide the retrieval corpus.
 
 ### 1.4 Run Without Docker (Development)
 
@@ -118,29 +121,15 @@ Access the dashboard at `http://localhost:8080`. Log in with the credentials fro
 
 ### 2.1 Build and Run
 
-For local Docker builds (without a registry), first update `docker-compose.yml` to use local builds:
-
-```yaml
-services:
-  api:
-    build:
-      context: .
-      dockerfile: api/Dockerfile
-    # image: ${REGISTRY}/api:latest   # comment this out for local builds
-    ...
-  agent:
-    build:
-      context: .
-      dockerfile: agent/Dockerfile
-    # image: ${REGISTRY}/agent:latest  # comment this out for local builds
-    ...
-```
-
-Then:
+Create the external network once, start DevPlanner, and then start InfraGuard:
 
 ```bash
+docker network create infraguard-observability
 docker compose up -d --build
 ```
+
+Register InfraGuard's CrowdSec machine once from the DevPlanner directory using
+the matching credentials in both `.env` files.
 
 ### 2.2 Verify
 
@@ -178,6 +167,7 @@ PYTHONPATH=. pytest -v
 
 # Run specific test files
 PYTHONPATH=. pytest tests/test_agent.py -v
+```
 PYTHONPATH=. pytest tests/test_api.py -v
 PYTHONPATH=. pytest tests/test_rag.py -v
 PYTHONPATH=. pytest tests/test_threat_response.py -v
@@ -193,26 +183,23 @@ $env:PYTHONPATH = "."
 pytest -v
 ```
 
-The tests use `respx` to mock external HTTP calls (Vertex AI, Loki, Prometheus, etc.), so they run without any infrastructure dependencies.
+The tests mock model-provider and telemetry HTTP calls, so they run without live infrastructure dependencies.
 
 ---
 
 ## 4. Indexing Runbooks (RAG)
 
-If you have a Notion workspace with runbooks:
-
-1. Set `NOTION_TOKEN` and `NOTION_DATABASE_ID` in `.env`.
-2. Start the API server.
-3. Trigger indexing:
+Add Markdown files under `./runbooks` (subdirectories become categories), start
+the API server, and trigger indexing:
 
 ```bash
 # Via curl (requires an active session cookie)
-curl -X GET http://localhost:8080/api/runbooks/index \
+curl -X POST http://localhost:8080/api/runbooks/index \
   -b "session=$(curl -s -c - http://localhost:8080/login \
     -d 'username=admin&password=your-password' | grep session | awk '{print $7}')"
 ```
 
-Or navigate to `/api/runbooks/index` in an authenticated browser session.
+You can also click **Re-index** in the authenticated dashboard.
 
 Once indexed, query runbooks via the dashboard chat or:
 
@@ -234,8 +221,8 @@ Use this sequence to demonstrate the platform to a supervisor or examiner.
 Open `system_architecture.md` and walk through the Mermaid diagram. Key points:
 - Telemetry flows in from Prometheus, Loki, Docker, and HTTP probes.
 - LangGraph orchestrator coordinates the reasoning pipeline.
-- Vertex AI Gemini provides LLM inference.
-- ChromaDB + Notion power the RAG runbook system.
+- Gemini, Anthropic, OpenAI, or Ollama provides LLM inference.
+- ChromaDB and local Markdown runbooks provide retrieval context.
 - CrowdSec provides threat detection and response.
 
 ### Step 2: Start the Stack
@@ -390,8 +377,9 @@ Push to `main`. The GitHub Actions workflow (`.github/workflows/deploy.yml`) wil
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| Agent logs "404" from Vertex AI | Agent Platform APIs not enabled | Enable at GCP Console > Agent Platform |
-| `GOOGLE_APPLICATION_CREDENTIALS` fails in Docker | Mounted path is a directory, not a file | Ensure `credentials/gcp-key.json` is a single JSON file, not a folder |
+| Model request is rejected | Provider key or model name is invalid | Check `LLM_PROVIDER` and its matching API key/model variables |
+| DevPlanner aliases do not resolve | Shared Docker network is missing | Create `infraguard-observability` and recreate both Compose stacks |
+| CrowdSec decision returns 401 | Machine credentials are missing or not registered | Register the machine in DevPlanner CrowdSec and copy the same credentials to both `.env` files |
 | Dashboard returns 401 | Session cookie expired (24h max) | Log in again at `/login` |
 | ChromaDB permission error | Volume not writable | Check `chroma_data` volume permissions |
 | Tests fail with import errors | PYTHONPATH not set | Run with `PYTHONPATH=.` prefix |
