@@ -53,9 +53,10 @@ Configure these in your `.env` file (see `.env.example` for a complete annotated
 - `USE_LANGCHAIN_AGENT` — `1` enables multi-tool AI reasoning (recommended).
 
 ### 3. Observability Endpoints
-- `LOKI_URL` — Loki instance URL (also powers the threat scanner).
-- `PROMETHEUS_URL` — Prometheus instance URL.
-- `PROBE_URLS` — Comma-separated URLs to ping for uptime checks.
+- `OBSERVABILITY_NETWORK` — External Docker network shared with DevPlanner.
+- `LOKI_URL` — `http://devplanner-loki:3100` on the same VPS.
+- `PROMETHEUS_URL` — `http://devplanner-prometheus:9090` on the same VPS.
+- `PROBE_URLS` — Internal DevPlanner API health and web URLs.
 
 ### 4. Docker Monitoring (optional)
 - `ENABLE_DOCKER_MONITORING` — `1` to scan container events and gather diagnostics (off by default).
@@ -73,7 +74,9 @@ Configure these in your `.env` file (see `.env.example` for a complete annotated
 - `RUNBOOKS_DIR` — Directory containing local Markdown runbooks; Compose uses `/app/runbooks`.
 
 ### 7. Threat Response (optional)
-- `CROWDSEC_API_URL` / `CROWDSEC_API_KEY` — CrowdSec Local API for applying IP bans. Without these, bans run in dry-run mode.
+- `CROWDSEC_API_URL` — `http://devplanner-crowdsec:8080` on the shared network.
+- `CROWDSEC_MACHINE_ID` / `CROWDSEC_MACHINE_PASSWORD` — Machine credentials used to obtain a JWT and create decisions. Bouncer API keys are read-only.
+- Without `CROWDSEC_API_URL`, actions run in dry-run mode. Decisions require a compatible bouncer or firewall integration before traffic is actually blocked.
 
 ---
 
@@ -82,8 +85,16 @@ Configure these in your `.env` file (see `.env.example` for a complete annotated
 ### Local Development
 1. Copy the example env file: `cp .env.example .env`.
 2. Set `GEMINI_API_KEY` for the default provider, or switch `LLM_PROVIDER` and add the matching provider key.
-3. Start the app: `docker compose up -d --build api agent`.
-4. Open **`http://localhost:8080`** and log in.
+3. Create the shared network once: `docker network create infraguard-observability`.
+4. Start DevPlanner first, then run `docker compose up -d --build api agent` here.
+5. Open **`http://localhost:8080`** and log in.
+
+For a same-VPS deployment, keep Loki, Prometheus, CrowdSec, and InfraGuard's
+dashboard bound to loopback on the host. Containers communicate through the
+shared network using `devplanner-api`, `devplanner-web`, `devplanner-loki`,
+`devplanner-prometheus`, and `devplanner-crowdsec`. A host-installed Cloudflare
+Tunnel can publish the DevPlanner web/API and InfraGuard dashboard without
+opening their ports publicly.
 
 ### Production Deployment (GitHub Actions → GCE)
 The `.github/workflows/deploy.yml` pipeline runs on every push to `main`:

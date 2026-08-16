@@ -144,7 +144,8 @@ def apply_crowdsec_decision(decision: dict[str, Any]) -> dict[str, Any]:
         Result dict with ok status and mode.
     """
     api_url = os.environ.get("CROWDSEC_API_URL", "").strip()
-    api_key = os.environ.get("CROWDSEC_API_KEY", "").strip()
+    machine_id = os.environ.get("CROWDSEC_MACHINE_ID", "").strip()
+    machine_password = os.environ.get("CROWDSEC_MACHINE_PASSWORD", "").strip()
 
     if not api_url:
         logger.info("CrowdSec dry-run: would apply decision %s", decision)
@@ -155,16 +156,42 @@ def apply_crowdsec_decision(decision: dict[str, Any]) -> dict[str, Any]:
             "message": "CrowdSec not configured — decision logged but not applied",
         }
 
-    try:
-        headers: dict[str, str] = {"Content-Type": "application/json"}
-        if api_key:
-            headers["X-Api-Key"] = api_key
+    if not machine_id or not machine_password:
+        return {
+            "ok": False,
+            "error": "configuration",
+            "message": "CrowdSec machine ID and password are required for live decisions",
+            "decision": decision,
+        }
 
+    try:
         with httpx.Client(timeout=10.0) as client:
+            login_resp = client.post(
+                f"{api_url.rstrip('/')}/v1/watchers/login",
+                json={"machine_id": machine_id, "password": machine_password},
+            )
+            login_resp.raise_for_status()
+            login_payload = login_resp.json()
+            token = (
+                str(login_payload.get("token", "")).strip()
+                if isinstance(login_payload, dict)
+                else ""
+            )
+            if not token:
+                return {
+                    "ok": False,
+                    "error": "authentication",
+                    "message": "CrowdSec login response did not include a token",
+                    "decision": decision,
+                }
+
             resp = client.post(
                 f"{api_url.rstrip('/')}/v1/decisions",
                 json=[decision],
-                headers=headers,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
             )
             resp.raise_for_status()
             return {

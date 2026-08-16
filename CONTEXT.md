@@ -14,8 +14,10 @@ compose_file = "docker-compose.yml"
 [target]
 app = "DevPlanner (Hono + PostgreSQL + Redis)"
 connectivity = "Same host as InfraGuard; Docker Compose internal DNS (service names)"
-metrics_url = "PROMETHEUS_URL env var"
-logs_url = "LOKI_URL env var"
+shared_network = "OBSERVABILITY_NETWORK, default infraguard-observability"
+metrics_url = "http://devplanner-prometheus:9090"
+logs_url = "http://devplanner-loki:3100"
+probes = "http://devplanner-api:3001/health and http://devplanner-web:3000"
 docker_monitored = "MONITORED_CONTAINERS env var (comma-separated container names)"
 devplanner_logs_container = "DEVPLANNER_CONTAINER_NAME — Docker container name for log error tail (main heartbeat)"
 
@@ -58,7 +60,7 @@ blocking_work = "Sync LLM/Loki calls inside async routes are wrapped in asyncio.
 
 [threat_response]
 detection = "GET /api/threats fetches up to 500 recent Loki lines and scans for HTTP brute force (>=10 401/403s per IP), SSH brute force (>=10 auth failures), port scans (>=20 connection attempts)"
-response = "Dashboard 'Block IP' button -> POST /api/threats/apply with the threat object; the CrowdSec decision is built server-side (suggest_crowdsec_decision) and applied via the Local API. Dry-run when CROWDSEC_API_URL is unset."
+response = "Dashboard 'Block IP' button -> POST /api/threats/apply with the threat object; InfraGuard logs in to the CrowdSec Local API as a machine, receives a JWT, and posts the server-built decision. Dry-run when CROWDSEC_API_URL is unset. A bouncer is still required for network enforcement."
 
 [rag]
 vector_store = "ChromaDB (local to chroma_data volume)"
@@ -80,7 +82,7 @@ priority_map = { ok = "min", warning = "default", high = "high", critical = "urg
 
 [env_vars]
 required = ["SECRET_KEY", "INFRAGUARD_USERNAME", "INFRAGUARD_PASSWORD", "one provider key unless LLM_PROVIDER=ollama"]
-optional = ["LLM_PROVIDER", "GEMINI_MODEL", "ANTHROPIC_MODEL", "OPENAI_MODEL", "LOKI_URL", "PROMETHEUS_URL", "PROBE_URLS", "NTFY_TOPIC", "CROWDSEC_API_URL", "CROWDSEC_API_KEY", "USE_LANGCHAIN_AGENT", "ENABLE_DOCKER_MONITORING", "MONITORED_CONTAINERS", "DEVPLANNER_CONTAINER_NAME", "DOCKER_HOST", "HEARTBEAT_INTERVAL_SECONDS", "VERDICT_RETENTION_DAYS", "SESSION_COOKIE_SECURE", "REGISTRY", "DB_PATH", "RUNBOOKS_DIR"]
+optional = ["LLM_PROVIDER", "GEMINI_MODEL", "ANTHROPIC_MODEL", "OPENAI_MODEL", "OBSERVABILITY_NETWORK", "LOKI_URL", "PROMETHEUS_URL", "PROBE_URLS", "NTFY_TOPIC", "CROWDSEC_API_URL", "CROWDSEC_MACHINE_ID", "CROWDSEC_MACHINE_PASSWORD", "USE_LANGCHAIN_AGENT", "ENABLE_DOCKER_MONITORING", "MONITORED_CONTAINERS", "DEVPLANNER_CONTAINER_NAME", "DOCKER_HOST", "HEARTBEAT_INTERVAL_SECONDS", "VERDICT_RETENTION_DAYS", "SESSION_COOKIE_SECURE", "INFRAGUARD_BIND_ADDRESS", "INFRAGUARD_PORT", "REGISTRY", "DB_PATH", "RUNBOOKS_DIR"]
 
 [testing]
 framework = "pytest + respx (asyncio_mode=auto)"
@@ -105,6 +107,8 @@ log_collection = "Promtail pushing local logs to cloud Loki (promtail/config.yml
 - **SQLite path**: set `DB_PATH` to a shared path in Docker (compose uses `/data/verdicts.db` on the `sqlite_data` volume). Verdict rows are pruned automatically on insert after `VERDICT_RETENTION_DAYS`.
 - **Model credentials in Docker**: Compose reads provider keys from `.env`; no cloud credential file is mounted.
 - **Docker builds**: `docker-compose.yml` defines `build:` sections (`context: .` with `agent/Dockerfile` and `api/Dockerfile`) so `docker compose up -d --build` works locally with no registry; `image:` falls back to `${REGISTRY:-infraguard}/...` for CI-pushed images.
+- **Same-VPS network**: create `infraguard-observability` once and attach both Compose projects. InfraGuard uses DevPlanner's stable network aliases rather than `localhost` or a public/VPN address.
+- **CrowdSec authentication**: machine login/password credentials can create decisions; bouncer API keys can only read them. Register the InfraGuard machine once in the DevPlanner CrowdSec container.
 - **Docker socket**: the agent mounts `/var/run/docker.sock` read-only; it is only used when `ENABLE_DOCKER_MONITORING=1` (`get_docker_events`, `collect_container_diagnostics`, `fetch_container_errors`). Remove the mount if you keep monitoring disabled. `:ro` on the socket is not a full security boundary.
 - **env_file caveat**: docker compose `env_file` does **not** strip inline comments — `FLAG=1  # comment` becomes the literal value `1  # comment`. Keep comments on their own lines in `.env`.
 - **Auth**: Only `/health` and `/login` are public. All other API and dashboard routes require an active session cookie. Failed logins re-serve the login page with the error injected server-side.

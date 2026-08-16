@@ -7,7 +7,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8080:8080"
+      - "${INFRAGUARD_BIND_ADDRESS:-127.0.0.1}:${INFRAGUARD_PORT:-8080}:8080"
     environment:
       - PYTHONPATH=/app
       - DB_PATH=/data/verdicts.db
@@ -25,6 +25,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      default: {}
+      infraguard-observability: {}
 
   agent:
     build:
@@ -44,6 +47,9 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+    networks:
+      default: {}
+      infraguard-observability: {}
 
   # Fully self-hosted LLM backend for LLM_PROVIDER=ollama — no cloud account,
   # no API key. Idle until you pull a model:
@@ -62,6 +68,11 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
+
+networks:
+  infraguard-observability:
+    external: true
+    name: ${OBSERVABILITY_NETWORK:-infraguard-observability}
 
 volumes:
   sqlite_data: {}
