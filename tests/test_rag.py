@@ -3,10 +3,12 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
+import numpy as np
 from langchain_core.documents import Document
 
 from agent.rag.local_runbooks_loader import load_local_runbooks, runbooks_configured
 from agent.rag.runbook_agent import query_runbooks
+from agent.rag.vector_store import _LocalEmbeddings
 
 
 # --- local_runbooks_loader ---
@@ -46,6 +48,20 @@ def test_runbooks_configured(tmp_path, monkeypatch) -> None:
     assert runbooks_configured() is False
     (tmp_path / "one.md").write_text("content", encoding="utf-8")
     assert runbooks_configured() is True
+
+
+def test_local_embeddings_return_native_python_floats() -> None:
+    embeddings = object.__new__(_LocalEmbeddings)
+    embeddings._fn = lambda texts: np.array(
+        [[0.25, -0.5] for _ in texts],
+        dtype=np.float32,
+    )
+
+    document_vectors = embeddings.embed_documents(["first", "second"])
+    query_vector = embeddings.embed_query("question")
+
+    assert all(type(value) is float for vector in document_vectors for value in vector)
+    assert all(type(value) is float for value in query_vector)
 
 
 # --- runbook_agent.query_runbooks ---

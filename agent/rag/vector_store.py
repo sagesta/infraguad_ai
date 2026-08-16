@@ -30,10 +30,13 @@ class _LocalEmbeddings(Embeddings):
         self._fn = DefaultEmbeddingFunction()
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return [list(vector) for vector in self._fn(texts)]
+        # Chroma's ONNX embedder returns NumPy scalar values. Newer Chroma
+        # releases validate every scalar and reject ``numpy.float32`` even
+        # though it is numerically valid, so normalise to built-in ``float``.
+        return [[float(value) for value in vector] for vector in self._fn(texts)]
 
     def embed_query(self, text: str) -> list[float]:
-        return list(self._fn([text])[0])
+        return [float(value) for value in self._fn([text])[0]]
 
 
 def _get_embedding_function() -> Any:
