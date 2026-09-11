@@ -1,0 +1,207 @@
+{
+  "benchmark_version": "1.0.0",
+  "spec_sha256": "7936721040238a95c57d51ec6fa86b9ee104b6b4021df83efdf903604ab58fee",
+  "spec_path": "/workspace/evaluation/benchmark_v1.json",
+  "started_or_resumed_at_utc": "2026-08-18T16:52:51.559696+00:00",
+  "runs_per_case": 3,
+  "temperature": 0.0,
+  "evidence_governance": {
+    "objective_benchmark_status": "Authoritative for the frozen qwen2.5:3b run and the recorded automated metrics.",
+    "human_assessment_status": "Two human operations practitioners completed exploratory DevOps and SRE role-lens scoring. The authoritative public records are the unchanged role reports and their SHA-256 hashes under evaluation/practitioner_confirmation/.",
+    "authoritative_human_reports": [
+      {
+        "path": "evaluation/practitioner_confirmation/InfraGuard_DevOps_Assessment_Report.docx",
+        "public_assessor_code": "A1",
+        "canonical_role_package_seed": 2026082405,
+        "sha256": "741b5446c8dffaabfeac20823aa7a4427a4a61c058b1b9e9c619000c641d6720"
+      },
+      {
+        "path": "evaluation/practitioner_confirmation/InfraGuard_SRE_Assessment_Report.docx",
+        "public_assessor_code": "A2",
+        "canonical_role_package_seed": 2026082412,
+        "sha256": "7c91dfd735a4a070ce4e6053c5addcfb70cec2d67002b199b43f22f21133efdb",
+        "seed_correction": "The opening record and executive summary state 2026082412. The method-table value 2026081902 belongs to excluded historical assessment material."
+      }
+    ],
+    "public_assessor_csv_status": "The four A/B CSV worksheets are uncompleted templates. Each contains 72 evidence rows and zero populated human score cells.",
+    "public_item_level_limitation": "No completed item-level human scoring file is present in the inspected public evidence directories. Aggregate scores and agreement statistics cannot be independently recomputed from this public package alone.",
+    "excluded_from_defence_submission": [
+      {
+        "path": "evaluation/results/qwen2.5-3b-v1/InfraGuard_AI_AI_Simulated_DevOps_SRE_Assessment_Report.docx",
+        "sha256": "501fc887b47ea135e922b18828b901243336d0a5dd06e3723adfbfebce16bb8b",
+        "reason": "Historical development artefact; non-evidential and excluded from the human evidence chain."
+      },
+      {
+        "path": "evaluation/results/qwen2.5-3b-v1/InfraGuard_AI_AI_Simulated_DevOps_SRE_Assessment.xlsx",
+        "sha256": "786988ab39789fdaf3ceb5a06bcfcbb9ee50eea68e20986fc6e4ba34f0f5ca80",
+        "reason": "Historical development artefact; non-evidential and excluded from the human evidence chain."
+      }
+    ]
+  },
+  "model_metadata": {
+    "requested_model": "qwen2.5:3b",
+    "base_url_kind": "local_ollama",
+    "ollama_version": "0.30.11",
+    "resolved_model": "qwen2.5:3b",
+    "digest": "357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b",
+    "size_bytes": 1929912432,
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "3.1B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 2048
+    },
+    "modified_at": "2026-08-18T16:37:18.866301713Z"
+  },
+  "source_snapshot": {
+    "combined_sha256": "5f3f1460b9441e39e4f5780df542e1f445768fc8428f5ed3e8cbdc27d4b3769c",
+    "file_count": 26,
+    "files": [
+      {
+        "path": "agent/llm/prompts.py",
+        "sha256": "3461d17e45235e158a313fd4ae6431f329b6020a54ddbe1dca08d55b10de29c7",
+        "bytes": 5603
+      },
+      {
+        "path": "agent/llm/schema.py",
+        "sha256": "2497f34035cf8deca7a3176bf7edb39656cda1f1b5d17ea28eaabc48e502cdfe",
+        "bytes": 4711
+      },
+      {
+        "path": "agent/rag/local_runbooks_loader.py",
+        "sha256": "1647d2d6ea62ff58875a71571068b7fb30cac65ee104abc5522048bdfd68c569",
+        "bytes": 2474
+      },
+      {
+        "path": "agent/rag/vector_store.py",
+        "sha256": "5a21ff8cb06da3473e89d10fb4b4ae4e404290582b9e9123cc58c35a9e74a3ee",
+        "bytes": 3839
+      },
+      {
+        "path": "evaluation/benchmark_v1.json",
+        "sha256": "7936721040238a95c57d51ec6fa86b9ee104b6b4021df83efdf903604ab58fee",
+        "bytes": 21371
+      },
+      {
+        "path": "evaluation/run_benchmark.py",
+        "sha256": "c7acf90ac379acf737c86c43d403ee096f618d32f77ed6ff18354a730a9bff8a",
+        "bytes": 38955
+      },
+      {
+        "path": "runbooks/application/api-latency-high.md",
+        "sha256": "11c1d94a6ad4edec4de261479b8a98411fcfd71d287f7052ae7a3ade4e8b8693",
+        "bytes": 1314
+      },
+      {
+        "path": "runbooks/application/database-connection-exhaustion.md",
+        "sha256": "8702e19d80eb88a8c8d0e3331db9f93e72fed6e965a137cf11cb64b2732ab908",
+        "bytes": 1399
+      },
+      {
+        "path": "runbooks/application/http-5xx-spike.md",
+        "sha256": "568092e6f9e807d97d2384c1bef78e3380a6ecc8a7c94cfb6d15442a844b4e96",
+        "bytes": 1943
+      },
+      {
+        "path": "runbooks/application/redis-unavailable.md",
+        "sha256": "d711adeb46ff878a4e6319d465edfbcb36a98758e9169084e852fea10599c52b",
+        "bytes": 1342
+      },
+      {
+        "path": "runbooks/containers/container-restart-loop.md",
+        "sha256": "496478bc5cd52279c84f748d3832e35f7e191ad00742736413773fc077bb2b1b",
+        "bytes": 1792
+      },
+      {
+        "path": "runbooks/containers/container-unhealthy.md",
+        "sha256": "5b2c6c22410a3b9e07417287f4fe1a10a7bb65a9bd4370c1ddf40993c60b220d",
+        "bytes": 1373
+      },
+      {
+        "path": "runbooks/containers/deployment-regression.md",
+        "sha256": "7af5bd60215837af6eb0d8f0f9930f54cb1ce7e003ddb42fb2eadda33baa0f63",
+        "bytes": 1430
+      },
+      {
+        "path": "runbooks/infrastructure/cpu-saturation.md",
+        "sha256": "a49f5cf578af8b55f4ccdcebdaf918f4b77e687297358862b7129c7c737aeccc",
+        "bytes": 1561
+      },
+      {
+        "path": "runbooks/infrastructure/disk-space-high.md",
+        "sha256": "f7fe4722db7f70a37a2ba181627004e6a8da8d8a9495e287daaeeee62c4ff089",
+        "bytes": 2202
+      },
+      {
+        "path": "runbooks/infrastructure/dns-resolution-failure.md",
+        "sha256": "421f7938b99dc6749bcf4bbafbbc43e442abc1c2f9f1dfe8e92dba9527272d30",
+        "bytes": 1305
+      },
+      {
+        "path": "runbooks/infrastructure/load-average-high.md",
+        "sha256": "8224ef11ef8a7c6ab2c1af6791992f0c2039107b9cd20a6b8fbdd3b68a1550b0",
+        "bytes": 1284
+      },
+      {
+        "path": "runbooks/infrastructure/memory-pressure.md",
+        "sha256": "5b3728d94f35b5fd86a10e86aee5ead18fdf095c8440510ea1167eca6d620436",
+        "bytes": 1456
+      },
+      {
+        "path": "runbooks/infrastructure/network-latency.md",
+        "sha256": "813712aed5f1320265cae31b50d81402d2440053c2247b72d677c1b00a8734bb",
+        "bytes": 1456
+      },
+      {
+        "path": "runbooks/observability/http-probe-failure.md",
+        "sha256": "3f381103eb0b0bcc43f408795c3ea4d9dd4671967fc517eed2ef128c8940fa04",
+        "bytes": 1724
+      },
+      {
+        "path": "runbooks/observability/loki-ingestion-gap.md",
+        "sha256": "16dd07a750e2300a6c25c53858ab911d2453040f01437a1dbeef99d57192fc97",
+        "bytes": 1452
+      },
+      {
+        "path": "runbooks/observability/metrics-stale.md",
+        "sha256": "032f2649310e098ed141adf4e218ed667daabc901b6c5ed7c10396c97c8f2809",
+        "bytes": 1328
+      },
+      {
+        "path": "runbooks/observability/prometheus-target-down.md",
+        "sha256": "05ee44a98ebfd638fdfb8edca4f8d398d7b061c5d12d3785ebb631627237364f",
+        "bytes": 1414
+      },
+      {
+        "path": "runbooks/security/http-brute-force.md",
+        "sha256": "97fe9dc2679eba2ba9570ac87ab5fd4c5818d98b91df5cc4cf743a34da497bc5",
+        "bytes": 2209
+      },
+      {
+        "path": "runbooks/security/port-scan.md",
+        "sha256": "a4aab49918c39a69b9dac8f82ef57c249dbaa7451cc4d95474d54700ace06947",
+        "bytes": 1430
+      },
+      {
+        "path": "runbooks/security/ssh-brute-force.md",
+        "sha256": "f8300971956bf57912edac8f2fa351cdf18360fb1c2274e8855773a778cf202d",
+        "bytes": 1473
+      }
+    ]
+  },
+  "python_version": "3.11.16 (main, Aug 13 2026, 19:40:50) [GCC 14.2.0]",
+  "production_modules_reused": [
+    "agent.llm.prompts.assemble_prompt_from_collected",
+    "agent.llm.schema.VERDICT_SYSTEM_INSTRUCTION",
+    "agent.llm.schema.parse_verdict_text",
+    "agent.rag.local_runbooks_loader.load_local_runbooks",
+    "agent.rag.vector_store.build_index",
+    "agent.rag.vector_store.similarity_search"
+  ]
+}

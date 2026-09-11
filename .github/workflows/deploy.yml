@@ -79,10 +79,12 @@ jobs:
             mkdir -p infraguad_ai
             cd infraguad_ai
             export REGISTRY="${{ env.REGISTRY }}"
+            umask 077
             cat > .env <<EOF
             INFRAGUARD_USERNAME=${{ secrets.INFRAGUARD_USERNAME }}
             INFRAGUARD_PASSWORD=${{ secrets.INFRAGUARD_PASSWORD }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
+            SESSION_COOKIE_SECURE=1
             LLM_PROVIDER=gemini
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             GEMINI_MODEL=gemini-3.6-flash
@@ -105,6 +107,7 @@ jobs:
             VERDICT_RETENTION_DAYS=30
             REGISTRY=${{ env.REGISTRY }}
             EOF
+            chmod 600 .env
             gcloud auth configure-docker "${{ env.GCP_REGION }}-docker.pkg.dev" --quiet
             docker pull ${REGISTRY}/agent:latest
             docker pull ${REGISTRY}/api:latest

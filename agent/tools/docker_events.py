@@ -138,6 +138,8 @@ def get_docker_events() -> dict[str, Any]:
                             flags["unhealthy"].append(name)
                         if len(events) >= 200:
                             break
+                    if len(events) >= 200:
+                        break
     except httpx.HTTPError as exc:
         return {
             "ok": False,

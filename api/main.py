@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import re
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,6 +34,10 @@ from api.auth import PUBLIC_PATHS, create_session_token, validate_session_token,
 from api.middleware.audit import AuditMiddleware
 from api.middleware.rate_limit import limiter
 from api.middleware.security import SecurityHeadersMiddleware
+
+MAX_ACK_NOTE_LENGTH = 500
+_CONTROL_CHARACTER_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+_FINGERPRINT_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 # --- Auth Middleware ---
@@ -153,6 +159,57 @@ def _current_user(request: Request) -> str:
     return "operator"
 
 
+def _normalize_ack_note(value: Any) -> str:
+    """Validate optional acknowledgement prose before persistence.
+
+    Notes are audit/UI metadata and are never sent to the model. Rejecting
+    control characters also keeps log, CSV, and terminal rendering predictable.
+    """
+    if not isinstance(value, str):
+        raise ValueError("note must be a string")
+    if len(value) > MAX_ACK_NOTE_LENGTH:
+        raise ValueError(f"note must be at most {MAX_ACK_NOTE_LENGTH} characters")
+    if _CONTROL_CHARACTER_RE.search(value):
+        raise ValueError("note must not contain control characters")
+    return value.strip()
+
+
+async def _read_json_object(request: Request) -> tuple[dict[str, Any] | None, JSONResponse | None]:
+    """Read one JSON object without allowing decoder errors to become HTTP 500."""
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, JSONResponse(
+            {"ok": False, "error": "invalid_json", "message": "Request body must be valid JSON"},
+            status_code=400,
+        )
+    if not isinstance(body, dict):
+        return None, JSONResponse(
+            {"ok": False, "error": "invalid_request", "message": "Request JSON must be an object"},
+            status_code=400,
+        )
+    return body, None
+
+
+def _read_fingerprint(body: dict[str, Any]) -> tuple[str | None, JSONResponse | None]:
+    value = body.get("fingerprint")
+    if value is None or value == "":
+        return None, JSONResponse(
+            {"ok": False, "error": "missing_fingerprint"},
+            status_code=400,
+        )
+    if not isinstance(value, str) or _FINGERPRINT_RE.fullmatch(value) is None:
+        return None, JSONResponse(
+            {
+                "ok": False,
+                "error": "invalid_fingerprint",
+                "message": "fingerprint must be 64 lowercase hexadecimal characters",
+            },
+            status_code=400,
+        )
+    return value, None
+
+
 def _heartbeat_interval_seconds() -> int:
     raw = os.environ.get("HEARTBEAT_INTERVAL_SECONDS", "").strip() or "120"
     try:
@@ -228,20 +285,55 @@ async def get_alerts() -> JSONResponse:
 async def ack_verdict(request: Request) -> JSONResponse:
     """Acknowledge a verdict condition as a known non-issue.
 
-    Keyed on the fingerprint (content + ruleset version), so it auto-expires when
-    the condition or the prompt/model changes. high/critical cannot be suppressed.
+    Keyed on the fingerprint (content + ruleset version), so a changed condition,
+    prompt, or model requires a fresh acknowledgement. high/critical cannot be
+    suppressed.
     """
-    body = await request.json()
-    fingerprint = str(body.get("fingerprint", "")).strip()
-    note = str(body.get("note", "")).strip()
-    if not fingerprint:
-        return JSONResponse({"ok": False, "error": "missing_fingerprint"}, status_code=400)
+    body, error = await _read_json_object(request)
+    if error is not None:
+        return error
+    assert body is not None
+    fingerprint, error = _read_fingerprint(body)
+    if error is not None:
+        return error
+    assert fingerprint is not None
+    try:
+        note = _normalize_ack_note(body.get("note", ""))
+    except ValueError as exc:
+        return JSONResponse(
+            {"ok": False, "error": "invalid_note", "message": str(exc)},
+            status_code=400,
+        )
+    ttl_days = body.get("ttl_days")
+    if ttl_days is not None and (
+        isinstance(ttl_days, bool)
+        or not isinstance(ttl_days, int)
+        or not 1 <= ttl_days <= 365
+    ):
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "invalid_ttl_days",
+                "message": "ttl_days must be a whole number from 1 to 365",
+            },
+            status_code=400,
+        )
 
     verdict = await store.fetch_verdict_by_fingerprint(fingerprint)
     if not verdict:
         return JSONResponse({"ok": False, "error": "unknown_fingerprint"}, status_code=404)
 
     severity = str(verdict.get("severity", "")).lower()
+    signature = str(verdict.get("signature", ""))
+    if signature.startswith("pipeline:"):
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "cannot_ack_system",
+                "message": "analysis-pipeline failures require operator review and cannot be suppressed",
+            },
+            status_code=409,
+        )
     if severity in {"high", "critical"}:
         return JSONResponse(
             {
@@ -254,21 +346,26 @@ async def ack_verdict(request: Request) -> JSONResponse:
 
     result = await store.insert_ack(
         fingerprint,
-        signature=str(verdict.get("signature", "")),
+        signature=signature,
         severity=severity,
         summary=str(verdict.get("summary", "")),
         note=note,
         acked_by=_current_user(request),
+        ttl_days=ttl_days,
     )
     return JSONResponse({"ok": True, **result})
 
 
 @app.post("/api/verdicts/unack")
 async def unack_verdict(request: Request) -> JSONResponse:
-    body = await request.json()
-    fingerprint = str(body.get("fingerprint", "")).strip()
-    if not fingerprint:
-        return JSONResponse({"ok": False, "error": "missing_fingerprint"}, status_code=400)
+    body, error = await _read_json_object(request)
+    if error is not None:
+        return error
+    assert body is not None
+    fingerprint, error = _read_fingerprint(body)
+    if error is not None:
+        return error
+    assert fingerprint is not None
     await store.delete_ack(fingerprint)
     return JSONResponse({"ok": True})
 
@@ -329,42 +426,83 @@ async def get_agent_mode() -> JSONResponse:
 
 # --- Threat Routes ---
 
-@app.get("/api/threats")
-async def get_threats() -> JSONResponse:
-    """Scan recent Loki logs for brute-force / port-scan patterns."""
+async def _scan_current_threats() -> dict[str, Any]:
+    """Fetch recent Loki evidence and rerun deterministic detection server-side."""
     from agent.tools.loki import fetch_loki_logs
     from agent.tools.threat_response import analyze_threats
 
     loki_result = await asyncio.to_thread(fetch_loki_logs, 500)
-
     loki_logs: list[dict[str, Any]] = []
     if isinstance(loki_result, dict) and loki_result.get("ok"):
         lines = loki_result.get("lines")
         if isinstance(lines, list):
-            loki_logs = lines
+            loki_logs = [line for line in lines if isinstance(line, dict)]
 
     result = analyze_threats(loki_logs)
     result["log_lines_scanned"] = len(loki_logs)
     result["loki_configured"] = loki_result is not None
-    return JSONResponse(result)
+    return result
+
+@app.get("/api/threats")
+async def get_threats() -> JSONResponse:
+    """Scan recent Loki logs for brute-force / port-scan patterns."""
+    return JSONResponse(await _scan_current_threats())
 
 
 @app.post("/api/threats/apply")
 async def apply_threat_decision(request: Request) -> JSONResponse:
     """Build a CrowdSec ban decision from a detected threat and apply it.
 
-    The decision payload is generated server-side from the threat fields, so the
-    client never submits a raw CrowdSec decision. Without CROWDSEC_API_URL this
-    runs in dry-run mode (logged, not applied).
+    The client selects a type/IP pair, but current Loki evidence is re-fetched
+    and re-detected before a server-produced match can become a decision.
+    Without CROWDSEC_API_URL this runs in dry-run mode (logged, not applied).
     """
-    from agent.tools.threat_response import apply_crowdsec_decision, suggest_crowdsec_decision
+    from agent.tools.threat_response import (
+        apply_crowdsec_decision,
+        suggest_crowdsec_decision,
+        validate_crowdsec_threat,
+    )
 
-    body = await request.json()
-    threat = body.get("threat") or {}
-    if not isinstance(threat, dict) or not str(threat.get("source_ip", "")).strip():
+    body, error = await _read_json_object(request)
+    if error is not None:
+        return error
+    assert body is not None
+    threat = body.get("threat")
+    if threat is None:
         return JSONResponse({"ok": False, "error": "missing_threat"}, status_code=400)
+    if not isinstance(threat, dict):
+        return JSONResponse({"ok": False, "error": "invalid_threat"}, status_code=400)
 
-    decision = suggest_crowdsec_decision(threat)
+    try:
+        requested_type, requested_ip = validate_crowdsec_threat(threat)
+    except ValueError as exc:
+        return JSONResponse(
+            {"ok": False, "error": "invalid_threat", "message": str(exc)},
+            status_code=400,
+        )
+
+    current = await _scan_current_threats()
+    matched = next(
+        (
+            item
+            for item in current.get("threats", [])
+            if isinstance(item, dict)
+            and item.get("threat_type") == requested_type
+            and item.get("source_ip") == requested_ip
+        ),
+        None,
+    )
+    if matched is None:
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "stale_or_unverified_threat",
+                "message": "The selected threat was not present in a fresh server-side detection",
+            },
+            status_code=409,
+        )
+
+    decision = suggest_crowdsec_decision(matched)
     result = await asyncio.to_thread(apply_crowdsec_decision, decision)
     return JSONResponse(result, status_code=200 if result.get("ok") else 502)
 
@@ -388,13 +526,23 @@ async def query_runbooks_api(request: Request) -> JSONResponse:
 @app.post("/api/runbooks/index")
 async def index_runbooks() -> JSONResponse:
     from agent.rag.local_runbooks_loader import load_local_runbooks
-    from agent.rag.vector_store import build_index
+    from agent.rag.vector_store import VectorIndexBuildError, build_index
 
     def _do_index() -> int:
         docs = load_local_runbooks()
         return build_index(docs)
 
-    count = await asyncio.to_thread(_do_index)
+    try:
+        count = await asyncio.to_thread(_do_index)
+    except VectorIndexBuildError:
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "index_failed",
+                "message": "The local runbook index could not be refreshed.",
+            },
+            status_code=500,
+        )
     return JSONResponse({"ok": True, "documents_indexed": count})
 
 

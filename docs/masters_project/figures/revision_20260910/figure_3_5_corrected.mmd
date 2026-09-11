@@ -1,0 +1,29 @@
+%% Corrected from figures/mermaid/fig_3_5_sequence.mmd.
+%% One normally completed heartbeat; failure boundary is stated explicitly below.
+sequenceDiagram
+  participant Agent as Agent
+  participant Store as SQLite store
+  participant Sources as Telemetry sources
+  participant Model as Configured LLM
+  participant Ntfy as ntfy
+  Note over Agent,Sources: Prepare optional Docker log seed
+  Agent->>Store: Read current-ruleset acknowledgements
+  Store-->>Agent: Eligible known conditions
+  Agent->>Sources: Collect configured telemetry
+  Sources-->>Agent: Evidence and collection status
+  Agent->>Model: Request bounded analysis
+  Model-->>Agent: Response or provider error
+  Note over Agent,Model: Validate response. Reported provider/parser failure becomes a high pipeline-failure verdict
+  opt High or critical and Docker monitoring enabled
+    Agent->>Sources: Collect extra Docker diagnostics
+    Sources-->>Agent: Diagnostic result
+  end
+  opt High or critical
+    Agent->>Ntfy: Attempt notification when configured
+    Ntfy-->>Agent: Success or structured error result
+  end
+  Agent->>Agent: Graph returns to scheduler
+  Agent->>Store: Compute fingerprint and persist verdict with results
+  Store-->>Agent: Commit and return row ID
+  Note over Agent,Store: Cycle completes. Scheduler waits before next cycle
+  Note over Agent,Ntfy: Unhandled exception: log cycle failure and wait. Persistence is not guaranteed. No service remediation runs in this heartbeat.

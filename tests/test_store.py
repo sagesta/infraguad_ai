@@ -8,6 +8,7 @@ from pathlib import Path
 import aiosqlite
 import pytest
 
+from agent.llm.schema import is_canonical_signature
 from agent.memory import compute_fingerprint
 from api import store
 
@@ -75,6 +76,8 @@ async def test_fetch_latest_verdict_round_trip(
     latest = await store.fetch_latest_verdict()
     assert latest is not None
     assert latest["severity"] == "high"
+    assert latest["signature"].startswith("fallback:high-")
+    assert is_canonical_signature(latest["signature"])
     assert latest["payload"]["verdict"]["summary"] == "Disk almost full"
     assert latest["payload"]["extras"]["llm_mode"] == "gemini_direct"
 
@@ -86,25 +89,57 @@ async def test_insert_verdict_stores_signature_and_fingerprint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "verdicts.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "model-current")
+    monkeypatch.setattr(store, "PROMPT_VERSION", "prompt-current")
     await store.init_db()
+    signature = "prometheus:disk-low:/"
     await store.insert_verdict(
-        {"severity": "warning", "summary": "Disk low", "root_cause": "x", "signature": "prometheus:disk-low:/"}
+        {"severity": "warning", "summary": "Disk low", "root_cause": "x", "signature": signature}
     )
     latest = await store.fetch_latest_verdict()
-    assert latest["signature"] == "prometheus:disk-low:/"
-    assert latest["fingerprint"] == compute_fingerprint("prometheus:disk-low:/")
+    assert latest["signature"] == signature
+    assert latest["fingerprint"] == compute_fingerprint(
+        signature,
+        model="model-current",
+        prompt_version="prompt-current",
+    )
     assert latest["acknowledged"] is False
     assert latest["suppressed"] is False
+
+    fingerprint = latest["fingerprint"]
+    await store.insert_ack(fingerprint, signature=signature)
+    assert [ack["fingerprint"] for ack in await store.fetch_current_ruleset_acks()] == [
+        fingerprint
+    ]
+
+    monkeypatch.setattr(store, "active_model", lambda: "model-new")
+    assert await store.fetch_current_ruleset_acks() == []
+    assert [ack["fingerprint"] for ack in await store.fetch_active_acks()] == [fingerprint]
+
+    monkeypatch.setattr(store, "active_model", lambda: "model-current")
+    monkeypatch.setattr(store, "PROMPT_VERSION", "prompt-new")
+    assert await store.fetch_current_ruleset_acks() == []
+    assert [ack["fingerprint"] for ack in await store.fetch_active_acks()] == [fingerprint]
 
 
 async def test_acknowledge_suppresses_warning_only(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "verdicts.db"))
+    monkeypatch.setenv("ACK_TTL_DAYS", "12")
     await store.init_db()
     await store.insert_verdict({"severity": "warning", "summary": "Disk low", "signature": "prometheus:disk-low:/"})
     fp = compute_fingerprint("prometheus:disk-low:/")
-    await store.insert_ack(fp, signature="prometheus:disk-low:/", severity="warning", summary="Disk low")
+    ack = await store.insert_ack(
+        fp,
+        signature="prometheus:disk-low:/",
+        severity="warning",
+        summary="Disk low",
+    )
+
+    created = datetime.fromisoformat(ack["created_at"])
+    expires = datetime.fromisoformat(ack["expires_at"])
+    assert expires - created == timedelta(days=12)
 
     latest = await store.fetch_latest_verdict()
     assert latest["acknowledged"] is True
@@ -148,7 +183,15 @@ async def test_delete_ack_reopens_condition(
     await store.init_db()
     await store.insert_verdict({"severity": "warning", "summary": "S", "signature": "a:b:c"})
     fp = compute_fingerprint("a:b:c")
-    await store.insert_ack(fp)
+    ack = await store.insert_ack(fp, ttl_days=3)
+    created = datetime.fromisoformat(ack["created_at"])
+    expires = datetime.fromisoformat(ack["expires_at"])
+    assert expires - created == timedelta(days=3)
+
+    for invalid_ttl in (-1, True, 1.5, "7"):
+        with pytest.raises(ValueError, match="ttl_days"):
+            await store.insert_ack("invalid-ttl", ttl_days=invalid_ttl)  # type: ignore[arg-type]
+
     assert (await store.fetch_latest_verdict())["acknowledged"] is True
     await store.delete_ack(fp)
     assert (await store.fetch_latest_verdict())["acknowledged"] is False

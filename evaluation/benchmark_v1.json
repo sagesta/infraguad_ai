@@ -1,0 +1,306 @@
+{
+  "benchmark_version": "1.0.0",
+  "prompt_version": "1",
+  "frozen_at": "2026-08-18",
+  "runs_per_case": 3,
+  "temperature": 0.0,
+  "incident_scenarios": [
+    {
+      "id": "C01",
+      "category": "Healthy",
+      "controlled_evidence": "Normal CPU, memory and disk; HTTP 200; informational logs; Docker monitoring disabled.",
+      "gold_severity": "ok",
+      "root_cause_reference": "No incident is present in the supplied telemetry.",
+      "action_reference": "Continue routine monitoring; do not invent remediation.",
+      "expected_signature": "none:healthy:all",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 32, "memory_utilization_percent": 51, "disk_utilization_percent": 42, "http_5xx_rate_percent": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 43}]},
+        "loki": {"ok": true, "count": 2, "lines": [{"line": "INFO request completed status=200"}, {"line": "INFO background task completed"}]},
+        "docker": {"ok": true, "events": [], "count": 0, "note": "Local Docker monitoring disabled."}
+      }
+    },
+    {
+      "id": "C02",
+      "category": "Healthy",
+      "controlled_evidence": "Only a healthy HTTP probe is present; Loki, Prometheus and Docker sections are absent.",
+      "gold_severity": "ok",
+      "root_cause_reference": "No incident is present; absent optional integrations are not faults.",
+      "action_reference": "Continue routine monitoring without requesting installation of absent integrations.",
+      "expected_signature": "none:healthy:all",
+      "collected": {"http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 38}]}}
+    },
+    {
+      "id": "C03",
+      "category": "Healthy",
+      "controlled_evidence": "Normal metrics with sparse informational logs and no error pattern.",
+      "gold_severity": "ok",
+      "root_cause_reference": "No abnormal condition is evidenced.",
+      "action_reference": "Continue routine monitoring.",
+      "expected_signature": "none:healthy:all",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 27, "memory_utilization_percent": 46, "disk_utilization_percent": 39, "http_5xx_rate_percent": 0}},
+        "loki": {"ok": true, "count": 1, "lines": [{"line": "INFO health check completed status=200"}]}
+      }
+    },
+    {
+      "id": "C04",
+      "category": "Degraded",
+      "controlled_evidence": "CPU above 90% for 15 minutes; endpoint remains HTTP 200 with rising latency.",
+      "gold_severity": "warning",
+      "root_cause_reference": "Sustained CPU saturation is degrading response latency without an outage.",
+      "action_reference": "Inspect workload and process utilisation, capacity, and recent changes.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 94, "cpu_duration_minutes": 15, "memory_utilization_percent": 63, "http_5xx_rate_percent": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 920, "previous_latency_ms": 110}]}
+      }
+    },
+    {
+      "id": "C05",
+      "category": "Degraded",
+      "controlled_evidence": "Memory above 88% with growing swap; no OOM event and endpoint remains available.",
+      "gold_severity": "warning",
+      "root_cause_reference": "Memory pressure and swap growth exist without an OOM failure.",
+      "action_reference": "Inspect top memory consumers, leaks, working-set growth, and capacity.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"memory_utilization_percent": 91, "swap_used_mb": 2048, "swap_growth_mb_15m": 410, "oom_events": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 170}]}
+      }
+    },
+    {
+      "id": "C06",
+      "category": "Degraded",
+      "controlled_evidence": "Disk utilisation at 86% and increasing; no write failure.",
+      "gold_severity": "warning",
+      "root_cause_reference": "Free disk space is becoming constrained but writes still succeed.",
+      "action_reference": "Identify growth, rotate or remove safe data, and expand storage if needed.",
+      "collected": {"prometheus": {"ok": true, "metrics": {"disk_mount": "/", "disk_utilization_percent": 86, "disk_growth_percent_24h": 4, "write_failures": 0}}}
+    },
+    {
+      "id": "C07",
+      "category": "Degraded",
+      "controlled_evidence": "HTTP latency is elevated while status remains 200 and error rate is normal.",
+      "gold_severity": "warning",
+      "root_cause_reference": "The service is available but response latency has degraded.",
+      "action_reference": "Inspect dependency latency, resource saturation, traces, and recent changes.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 49, "memory_utilization_percent": 58, "http_5xx_rate_percent": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/api", "status_code": 200, "latency_ms": 1850, "baseline_latency_ms": 120}]}
+      }
+    },
+    {
+      "id": "C08",
+      "category": "Degraded",
+      "controlled_evidence": "Prometheus data is stale while the application probe and logs remain healthy.",
+      "gold_severity": "warning",
+      "root_cause_reference": "Monitoring data freshness is impaired; the application itself is not shown to be down.",
+      "action_reference": "Inspect Prometheus scraping and ingestion while continuing application checks.",
+      "collected": {
+        "prometheus": {"ok": false, "error": "stale_data", "last_sample_age_seconds": 920},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 47}]},
+        "loki": {"ok": true, "count": 1, "lines": [{"line": "INFO request completed status=200"}]}
+      }
+    },
+    {
+      "id": "C09",
+      "category": "Failure",
+      "controlled_evidence": "Application probe returns 503 and Loki shows a matching HTTP 5xx spike.",
+      "gold_severity": "high",
+      "root_cause_reference": "An active API failure is corroborated by 503 probes and application 5xx logs.",
+      "action_reference": "Inspect application logs, dependency health, recent deployments, and restore service.",
+      "collected": {
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 503, "latency_ms": 81}]},
+        "prometheus": {"ok": true, "metrics": {"http_5xx_rate_percent": 37}},
+        "loki": {"ok": true, "count": 3, "lines": [{"line": "ERROR request failed status=503 path=/api"}, {"line": "ERROR upstream dependency unavailable"}, {"line": "ERROR request failed status=503 path=/health"}]}
+      }
+    },
+    {
+      "id": "C10",
+      "category": "Failure",
+      "controlled_evidence": "Endpoint connection is refused across repeated probes.",
+      "gold_severity": "high",
+      "root_cause_reference": "The service is unavailable because no listener accepts the repeated connection attempts.",
+      "action_reference": "Verify the process, listener, bind address, firewall, and network path.",
+      "collected": {"http_probe": {"ok": false, "probes": [{"url": "https://app.test/health", "error": "connection refused", "attempt": 1}, {"url": "https://app.test/health", "error": "connection refused", "attempt": 2}, {"url": "https://app.test/health", "error": "connection refused", "attempt": 3}]}}
+    },
+    {
+      "id": "C11",
+      "category": "Failure",
+      "controlled_evidence": "Redis connection errors coincide with failed dependent requests.",
+      "gold_severity": "high",
+      "root_cause_reference": "The Redis dependency is unavailable and dependent application requests are failing.",
+      "action_reference": "Restore Redis connectivity, verify Redis health and network membership, then validate clients.",
+      "collected": {
+        "loki": {"ok": true, "count": 3, "lines": [{"line": "ERROR redis connection refused host=redis:6379"}, {"line": "ERROR cache-dependent request failed status=503"}, {"line": "ERROR redis retry exhausted"}]},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/cache-health", "status_code": 503, "latency_ms": 76}]}
+      }
+    },
+    {
+      "id": "C12",
+      "category": "Failure",
+      "controlled_evidence": "Database pool-exhaustion messages coincide with request timeouts.",
+      "gold_severity": "high",
+      "root_cause_reference": "The database connection pool is exhausted and requests are timing out.",
+      "action_reference": "Inspect connection leaks, pool utilisation and limits, long queries, and database health before raising limits.",
+      "collected": {
+        "loki": {"ok": true, "count": 3, "lines": [{"line": "ERROR database pool exhausted active=20 max=20"}, {"line": "ERROR timeout acquiring database connection"}, {"line": "ERROR request timed out path=/orders"}]},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/orders", "status_code": 504, "latency_ms": 10000}]}
+      }
+    },
+    {
+      "id": "C13",
+      "category": "Failure",
+      "controlled_evidence": "Container restart loop and unhealthy state coincide with probe failure.",
+      "gold_severity": "high",
+      "root_cause_reference": "The application container is repeatedly restarting and unhealthy, causing probe failure.",
+      "action_reference": "Inspect exit code, container logs, health-check failure, resource limits, and the deployment change.",
+      "collected": {
+        "docker": {"ok": true, "count": 5, "events": [{"container": "api", "status": "die", "exit_code": 1}, {"container": "api", "status": "restart"}], "flags": {"restarts": ["api"], "unhealthy": ["api"]}},
+        "docker_logs": [{"container": "api", "line": "FATAL configuration parse failed"}],
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 503, "latency_ms": 52}]}
+      }
+    },
+    {
+      "id": "C14",
+      "category": "Failure",
+      "controlled_evidence": "Disk reaches 98% and logs show write failures.",
+      "gold_severity": "critical",
+      "root_cause_reference": "Near-total disk exhaustion is already causing write failures and immediate service or data risk.",
+      "action_reference": "Stop nonessential growth, preserve evidence, reclaim safe space, and expand storage urgently.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"disk_mount": "/", "disk_utilization_percent": 98, "free_space_gb": 0.8}},
+        "loki": {"ok": true, "count": 2, "lines": [{"line": "CRITICAL write failed: no space left on device"}, {"line": "ERROR database checkpoint could not be written"}]}
+      }
+    },
+    {
+      "id": "C15",
+      "category": "Security",
+      "controlled_evidence": "Repeated HTTP 401/403 responses from one IP cross the deterministic threshold.",
+      "gold_severity": "high",
+      "root_cause_reference": "A probable HTTP brute-force pattern from one source crossed the configured threshold.",
+      "action_reference": "Validate the source and pattern, preserve evidence, and use operator-approved containment if warranted.",
+      "collected": {"loki": {"ok": true, "count": 25, "detector_summary": {"pattern": "http_brute_force", "source_ip": "203.0.113.10", "count": 25, "threshold": 20, "threshold_crossed": true}, "lines": [{"line": "WARN status=401 source_ip=203.0.113.10 path=/login repeated=25"}]}}
+    },
+    {
+      "id": "C16",
+      "category": "Security",
+      "controlled_evidence": "Repeated SSH authentication failures from one IP cross the threshold.",
+      "gold_severity": "high",
+      "root_cause_reference": "A probable SSH brute-force pattern from one source crossed the configured threshold.",
+      "action_reference": "Validate the source, review authentication logs, preserve evidence, and apply an approved response.",
+      "collected": {"loki": {"ok": true, "count": 18, "detector_summary": {"pattern": "ssh_brute_force", "source_ip": "203.0.113.21", "count": 18, "threshold": 10, "threshold_crossed": true}, "lines": [{"line": "WARN sshd Failed password source_ip=203.0.113.21 repeated=18"}]}}
+    },
+    {
+      "id": "C17",
+      "category": "Security",
+      "controlled_evidence": "Rapid connection attempts across ports from one IP cross the scan threshold.",
+      "gold_severity": "high",
+      "root_cause_reference": "A probable port-scan pattern from one source crossed the configured threshold.",
+      "action_reference": "Validate the event, preserve evidence, review exposure, and consider an operator-approved ban.",
+      "collected": {"loki": {"ok": true, "count": 40, "detector_summary": {"pattern": "port_scan", "source_ip": "203.0.113.44", "distinct_ports": 22, "threshold": 15, "threshold_crossed": true}, "lines": [{"line": "WARN rapid connection attempts source_ip=203.0.113.44 ports=22"}]}}
+    },
+    {
+      "id": "C18",
+      "category": "Ambiguous",
+      "controlled_evidence": "CPU is high during a labelled batch job; probes and error rates remain healthy.",
+      "gold_severity": "warning",
+      "root_cause_reference": "High load is associated with a scheduled batch job; no outage is evidenced.",
+      "action_reference": "Monitor the constrained workload and confirm capacity or scheduling without declaring failure.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 93, "http_5xx_rate_percent": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 95}]},
+        "loki": {"ok": true, "count": 2, "lines": [{"line": "INFO scheduled batch job started job=monthly-report"}, {"line": "INFO requests healthy status=200"}]}
+      }
+    },
+    {
+      "id": "C19",
+      "category": "Ambiguous",
+      "controlled_evidence": "Latency is high with normal server metrics and intermittent network errors.",
+      "gold_severity": "warning",
+      "root_cause_reference": "Latency degradation is present, but the evidence only narrows the cause to a network or dependency path.",
+      "action_reference": "Compare network path and dependency timings, packet loss, DNS, and traces before assigning a root cause.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 41, "memory_utilization_percent": 52, "http_5xx_rate_percent": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/api", "status_code": 200, "latency_ms": 2100}]},
+        "loki": {"ok": true, "count": 2, "lines": [{"line": "WARN intermittent upstream network timeout"}, {"line": "INFO retry succeeded"}]}
+      }
+    },
+    {
+      "id": "C20",
+      "category": "Ambiguous",
+      "controlled_evidence": "One transient HTTP 500 occurs while subsequent probes, logs and metrics are normal.",
+      "gold_severity": "warning",
+      "root_cause_reference": "A transient error occurred, but no persistent failure or confirmed cause is evidenced.",
+      "action_reference": "Continue monitoring and correlate recurrence; do not claim a persistent outage.",
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 38, "memory_utilization_percent": 49, "http_5xx_rate_percent": 0.1}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 500, "attempt": 1}, {"url": "https://app.test/health", "status_code": 200, "attempt": 2}, {"url": "https://app.test/health", "status_code": 200, "attempt": 3}]},
+        "loki": {"ok": true, "count": 2, "lines": [{"line": "WARN transient internal error request_id=x1"}, {"line": "INFO subsequent requests completed status=200"}]}
+      }
+    },
+    {
+      "id": "C21",
+      "category": "Missing telemetry",
+      "controlled_evidence": "Docker collector returns the disabled or missing-configuration sentinel.",
+      "gold_severity": "ok",
+      "root_cause_reference": "No application incident is evidenced; Docker monitoring is intentionally disabled.",
+      "action_reference": "Continue routine monitoring and do not treat the optional collector state as a fault.",
+      "expected_signature": "none:healthy:all",
+      "collected": {
+        "docker": {"ok": true, "events": [], "count": 0, "note": "Local Docker monitoring disabled (set ENABLE_DOCKER_MONITORING=1 to enable)."},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 44}]}
+      }
+    },
+    {
+      "id": "C22",
+      "category": "Missing telemetry",
+      "controlled_evidence": "Configured Loki query returns a connection error while application metrics and probes are healthy.",
+      "gold_severity": "warning",
+      "root_cause_reference": "The Loki telemetry source is unavailable, but the application is not shown to be down.",
+      "action_reference": "Restore Loki connectivity and verify ingestion without declaring an application outage.",
+      "collected": {
+        "loki": {"ok": false, "error": "network_error", "message": "connection refused to configured Loki endpoint"},
+        "prometheus": {"ok": true, "metrics": {"cpu_utilization_percent": 35, "memory_utilization_percent": 50, "http_5xx_rate_percent": 0}},
+        "http_probe": {"ok": true, "probes": [{"url": "https://app.test/health", "status_code": 200, "latency_ms": 41}]}
+      }
+    },
+    {
+      "id": "C23",
+      "category": "Recurring",
+      "controlled_evidence": "An acknowledged disk warning recurs unchanged with the same prompt version and model.",
+      "gold_severity": "ok",
+      "root_cause_reference": "The unchanged disk warning matches an operator-acknowledged condition.",
+      "action_reference": "Reuse the acknowledged signature and do not re-escalate the unchanged condition.",
+      "expected_signature": "prometheus:disk-low:/",
+      "known_conditions": [{"signature": "prometheus:disk-low:/", "note": "Reviewed capacity plan; recheck if utilisation reaches 95% or writes fail."}],
+      "collected": {"prometheus": {"ok": true, "metrics": {"disk_mount": "/", "disk_utilization_percent": 86, "disk_growth_percent_24h": 0, "write_failures": 0}}}
+    },
+    {
+      "id": "C24",
+      "category": "Recurring",
+      "controlled_evidence": "The acknowledged disk condition worsens to 98% with write failures.",
+      "gold_severity": "critical",
+      "root_cause_reference": "The previously acknowledged condition materially worsened to near-total disk exhaustion with write failures.",
+      "action_reference": "Override acknowledgement, keep the condition visible, stop growth, recover space, and protect data urgently.",
+      "known_conditions": [{"signature": "prometheus:disk-low:/", "note": "Reviewed capacity plan; recheck if utilisation reaches 95% or writes fail."}],
+      "collected": {
+        "prometheus": {"ok": true, "metrics": {"disk_mount": "/", "disk_utilization_percent": 98, "free_space_gb": 0.7, "write_failures": 4}},
+        "loki": {"ok": true, "count": 2, "lines": [{"line": "CRITICAL write failed: no space left on device"}, {"line": "ERROR database checkpoint could not be written"}]}
+      }
+    }
+  ],
+  "rag_questions": [
+    {"id": "R01", "question": "Disk usage is above 90%. What should be checked first?", "relevant_runbook": "infrastructure/disk-space-high.md"},
+    {"id": "R02", "question": "The host is swapping and memory is nearly exhausted. What are the safe first steps?", "relevant_runbook": "infrastructure/memory-pressure.md"},
+    {"id": "R03", "question": "Loki has stopped receiving logs. How should ingestion be isolated?", "relevant_runbook": "observability/loki-ingestion-gap.md"},
+    {"id": "R04", "question": "HTTP 5xx responses spiked after normal operation. What evidence should be correlated?", "relevant_runbook": "application/http-5xx-spike.md"},
+    {"id": "R05", "question": "A container repeatedly exits and restarts. What should the operator inspect?", "relevant_runbook": "containers/container-restart-loop.md"},
+    {"id": "R06", "question": "A Prometheus scrape target is down. What checks distinguish target failure from network failure?", "relevant_runbook": "observability/prometheus-target-down.md"},
+    {"id": "R07", "question": "API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?", "relevant_runbook": "application/api-latency-high.md"},
+    {"id": "R08", "question": "Redis is unavailable to the application. What containment and recovery checks are required?", "relevant_runbook": "application/redis-unavailable.md"},
+    {"id": "R09", "question": "The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?", "relevant_runbook": "application/database-connection-exhaustion.md"},
+    {"id": "R10", "question": "Internal DNS resolution is failing. How should the operator isolate the fault?", "relevant_runbook": "infrastructure/dns-resolution-failure.md"},
+    {"id": "R11", "question": "One IP is producing repeated SSH authentication failures. What review and response steps apply?", "relevant_runbook": "security/ssh-brute-force.md"},
+    {"id": "R12", "question": "A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?", "relevant_runbook": "containers/deployment-regression.md"}
+  ]
+}

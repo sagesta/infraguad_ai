@@ -15,7 +15,7 @@ import re
 
 # Bump when the verdict prompt changes materially. Acknowledgements keyed on a
 # previous PROMPT_VERSION stop matching, forcing re-evaluation under new rules.
-PROMPT_VERSION = "1"
+PROMPT_VERSION = "2"
 
 # Mirrors the default in agent.llm.providers without importing provider SDKs.
 DEFAULT_MODEL = "gemini-3.6-flash"
@@ -58,12 +58,15 @@ def _normalize(text: str) -> str:
 def derive_signature_fallback(severity: str, root_cause: str = "", summary: str = "") -> str:
     """Deterministic signature for when the model does not supply one.
 
-    Coarser than a model-supplied signature, but stable: the same severity and
-    the same normalised root cause always yield the same slug.
+    Coarser than a model-supplied signature, but stable and compatible with the
+    v2 ``<source>:<condition>:<resource>`` contract. Historical two-part values
+    already stored in SQLite remain readable; only newly derived fallbacks use
+    the canonical form.
     """
     sev = (severity or "warning").strip().lower()
     if sev == "ok":
         return OK_SIGNATURE
+    severity_slug = _NONWORD.sub("-", sev).strip("-")[:15] or "warning"
     basis = _normalize(root_cause) or _normalize(summary)
     slug = _NONWORD.sub("-", basis).strip("-")[:48] or "unspecified"
-    return f"{sev}:{slug}"
+    return f"fallback:{severity_slug}-{slug}:all"

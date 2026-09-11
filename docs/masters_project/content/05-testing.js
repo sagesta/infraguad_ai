@@ -1,3 +1,5 @@
+// HISTORICAL 13 AUGUST 2026 SNAPSHOT. Counts, coverage, and study status below
+// are superseded and must not be used for the defence. See content/README.md.
 const {
   p, chapterLabel, h2, h3, blank, buildTable, image,
   figureCaption, tableCaption,

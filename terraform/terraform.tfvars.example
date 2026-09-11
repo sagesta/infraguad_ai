@@ -12,3 +12,19 @@ vm_name = "infraguard-vm"
 
 # Application name used for naming resources like Firewall and Artifact Registry (default is "infraguard-ai")
 app_name = "infraguard-ai"
+
+# Safe default: no public ingress is created until a TLS terminator or reverse
+# proxy is configured. Add only the CIDRs that should reach HTTPS, for example
+# your load-balancer ranges. Use ["0.0.0.0/0"] only when public HTTPS is an
+# intentional requirement and TLS is already enforced at the ingress.
+https_source_ranges = []
+
+# Port 80 is disabled by default. Enable it only when the listener performs an
+# immediate HTTP-to-HTTPS redirect, and set the intended source ranges.
+enable_http_ingress = false
+http_source_ranges  = []
+
+# Ports 8080 (dashboard/API), 3100 (Loki), and 9090 (Prometheus) are not exposed
+# unless trusted management networks are supplied. Never use 0.0.0.0/0 or ::/0.
+# Example private/VPN range: ["10.20.0.0/16"]
+management_source_ranges = []

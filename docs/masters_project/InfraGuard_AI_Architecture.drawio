@@ -1,0 +1,187 @@
+<mxfile host="app.diagrams.net" modified="2026-09-11T13:23:00.000Z" agent="InfraGuard AI" version="24.0.0">
+  <diagram id="infraguard-architecture" name="InfraGuard AI System Architecture">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="1" background="#1a1a2e">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- LAYER 1: Infrastructure & Telemetry Sources -->
+        <mxCell id="layer1" value="Infrastructure &amp; Telemetry Sources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#e94560;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1520" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="prometheus" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;CPU · RAM · Disk · HTTP 5xx&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="50" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="loki" value="&lt;b&gt;Loki / Promtail&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Log Aggregation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="50" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="docker" value="&lt;b&gt;Docker Engine&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Events · Logs · Stats (opt-in)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="50" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="httpprobe" value="&lt;b&gt;HTTP Probes&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Status · Latency&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="50" width="300" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- LAYER 2: InfraGuard AI Agent -->
+        <mxCell id="layer2" value="InfraGuard AI Agent (Python 3.11+)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#e94560;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="160" width="700" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="mainloop" value="&lt;b&gt;Main Loop&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;asyncio heartbeat&lt;br&gt;every 120s&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#533483;strokeColor=#e94560;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="200" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestrator" value="&lt;b&gt;LangGraph Orchestrator&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;collect → analyze → decide → notify&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e94560;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="190" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="memory" value="&lt;b&gt;Verdict Memory&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Fingerprint + TTL&lt;br&gt;Acknowledgements&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#533483;strokeColor=#e94560;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="200" width="170" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- LAYER 3: Intelligence Layer -->
+        <mxCell id="layer3" value="Intelligence Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#e94560;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="780" y="160" width="780" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" value="&lt;b&gt;LLM Provider&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Gemini │ Anthropic │&lt;br&gt;OpenAI │ Ollama&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e94560;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="810" y="195" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="langchain" value="&lt;b&gt;LangChain Agent&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Multi-tool reasoning&lt;br&gt;(optional mode)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#533483;strokeColor=#e94560;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="195" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="chromadb" value="&lt;b&gt;ChromaDB + ONNX&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Embeddings&lt;br&gt;all-MiniLM-L6-v2&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#533483;strokeColor=#e94560;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="195" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="runbooks" value="&lt;b&gt;Local Markdown&lt;br&gt;Runbooks&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="205" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- LAYER 4: InfraGuard API -->
+        <mxCell id="layer4" value="InfraGuard API (FastAPI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#e94560;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="1100" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="&lt;b&gt;FastAPI REST Server&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Port 8080&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="420" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sqlite" value="&lt;b&gt;SQLite Database&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Verdicts · Acknowledgements&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#533483;strokeColor=#e94560;fontColor=#ffffff;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="410" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" value="&lt;b&gt;Auth &amp; Security&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Sessions · Rate Limiting&lt;br&gt;Audit · CSP&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="415" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="threatdet" value="&lt;b&gt;Threat Detector&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Deterministic regex&lt;br&gt;+ thresholds (no LLM)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e94560;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="810" y="415" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- LAYER 5: External Integrations -->
+        <mxCell id="layer5" value="External Integrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#e94560;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="380" width="380" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ntfy" value="&lt;b&gt;ntfy.sh&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Push Notifications&lt;br&gt;(high/critical)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="420" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="crowdsec" value="&lt;b&gt;CrowdSec Local API&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Operator-approved&lt;br&gt;IP bans&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f3460;strokeColor=#533483;fontColor=#ffffff;fontSize=12;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="420" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- LAYER 6: Presentation Layer -->
+        <mxCell id="layer6" value="Presentation Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#e94560;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=5;arcSize=8;dashed=1;dashPattern=5 5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="570" width="1520" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="dashboard" value="&lt;b&gt;InfraGuard Dashboard&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Dark-mode SPA — Status · History · Threats · Runbook Chat · Integration Status&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e94560;strokeColor=#533483;fontColor=#ffffff;fontSize=13;arcSize=15;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="595" width="800" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- ARROWS -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="prometheus" target="orchestrator" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Metrics" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow1" as="label" />
+        </mxCell>
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="loki" target="orchestrator" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Logs" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow2" as="label" />
+        </mxCell>
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="docker" target="orchestrator" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Events" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow3" as="label" />
+        </mxCell>
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="httpprobe" target="orchestrator" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Probes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow4" as="label" />
+        </mxCell>
+        <mxCell id="arrow5" style="rounded=1;html=1;strokeColor=#ffd700;strokeWidth=2;fontColor=#ffd700;fontSize=10;" edge="1" source="mainloop" target="orchestrator" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Triggers cycle" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ffd700;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow5" as="label" />
+        </mxCell>
+        <mxCell id="arrow6" style="rounded=1;html=1;strokeColor=#ff6b6b;strokeWidth=2;fontColor=#ff6b6b;fontSize=10;" edge="1" source="orchestrator" target="llm" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Bounded prompt + JSON verdict" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ff6b6b;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow6" as="label" />
+        </mxCell>
+        <mxCell id="arrow7" style="rounded=1;html=1;strokeColor=#ff6b6b;strokeWidth=2;fontColor=#ff6b6b;fontSize=10;" edge="1" source="langchain" target="llm" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Model calls" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ff6b6b;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow7" as="label" />
+        </mxCell>
+        <mxCell id="arrow7b" style="rounded=1;html=1;strokeColor=#ff6b6b;strokeWidth=2;fontColor=#ff6b6b;fontSize=10;dashed=1;" edge="1" source="orchestrator" target="langchain" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Tool-calling agent mode" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ff6b6b;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow7b" as="label" />
+        </mxCell>
+        <mxCell id="arrow8" style="rounded=1;html=1;strokeColor=#ffd700;strokeWidth=2;fontColor=#ffd700;fontSize=10;" edge="1" source="orchestrator" target="memory" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Known conditions" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ffd700;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow8" as="label" />
+        </mxCell>
+        <mxCell id="arrow9" style="rounded=1;html=1;strokeColor=#ffd700;strokeWidth=2;fontColor=#ffd700;fontSize=10;" edge="1" source="memory" target="sqlite" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Store/query acks" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ffd700;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow9" as="label" />
+        </mxCell>
+        <mxCell id="arrow10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="orchestrator" target="sqlite" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Save verdict" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow10" as="label" />
+        </mxCell>
+        <mxCell id="arrow11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#ff6b6b;strokeWidth=2;fontColor=#ff6b6b;fontSize=10;" edge="1" source="orchestrator" target="ntfy" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="high/critical alerts" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ff6b6b;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow11" as="label" />
+        </mxCell>
+        <mxCell id="arrow12" style="rounded=1;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="runbooks" target="chromadb" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Index" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow12" as="label" />
+        </mxCell>
+        <mxCell id="arrow13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="api" target="chromadb" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Similarity search + RAG answer" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow13" as="label" />
+        </mxCell>
+        <mxCell id="arrow14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#ff6b6b;strokeWidth=2;fontColor=#ff6b6b;fontSize=10;" edge="1" source="loki" target="threatdet" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Recent log lines" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ff6b6b;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow14" as="label" />
+        </mxCell>
+        <mxCell id="arrow15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#ff6b6b;strokeWidth=2;fontColor=#ff6b6b;fontSize=10;" edge="1" source="threatdet" target="crowdsec" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Operator-approved ban" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ff6b6b;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow15" as="label" />
+        </mxCell>
+        <mxCell id="arrow16" style="rounded=1;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="dashboard" target="api" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="REST / JSON" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow16" as="label" />
+        </mxCell>
+        <mxCell id="arrow17" style="rounded=1;html=1;strokeColor=#4ecca3;strokeWidth=2;fontColor=#4ecca3;fontSize=10;" edge="1" source="api" target="sqlite" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Read verdicts" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#4ecca3;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow17" as="label" />
+        </mxCell>
+        <mxCell id="arrow18" style="rounded=1;html=1;strokeColor=#ffd700;strokeWidth=1;fontColor=#ffd700;fontSize=10;dashed=1;" edge="1" source="auth" target="api" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+          <mxCell value="Protects all routes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#ffd700;fontSize=10;labelBackgroundColor=#1a1a2e;" vertex="1" connectable="0" parent="arrow18" as="label" />
+        </mxCell>
+
+        <!-- LEGEND -->
+        <mxCell id="legend" value="&lt;b&gt;Arrow Legend&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#16213e;strokeColor=#0f3460;fontColor=#ffffff;fontSize=11;verticalAlign=top;spacingTop=3;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="690" width="350" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="&lt;font color=&quot;#4ecca3&quot;&gt;━━ Data / telemetry flow&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#4ecca3;" vertex="1" parent="1">
+          <mxGeometry x="60" y="715" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="&lt;font color=&quot;#ff6b6b&quot;&gt;━━ AI reasoning / threat response&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#ff6b6b;" vertex="1" parent="1">
+          <mxGeometry x="60" y="735" width="250" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="&lt;font color=&quot;#ffd700&quot;&gt;━━ Control / memory / auth&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#ffd700;" vertex="1" parent="1">
+          <mxGeometry x="60" y="755" width="200" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

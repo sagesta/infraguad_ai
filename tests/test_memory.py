@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agent.llm.schema import is_canonical_signature
 from agent.memory import OK_SIGNATURE, compute_fingerprint, derive_signature_fallback
 
 
@@ -44,7 +45,14 @@ def test_signature_fallback_is_stable_across_volatile_tokens() -> None:
     s1 = derive_signature_fallback("warning", "Disk at 91% on / at 2026-06-15T10:00:00 host a1b2c3d4e5")
     s2 = derive_signature_fallback("warning", "Disk at 73% on / at 2026-06-15T11:30:00 host f6e5d4c3b2")
     assert s1 == s2
-    assert s1.startswith("warning:")
+    assert s1.startswith("fallback:warning-")
+    assert is_canonical_signature(s1)
+
+
+def test_signature_fallback_canonicalizes_untrusted_severity_and_empty_evidence() -> None:
+    signature = derive_signature_fallback("  HIGH\nUNSAFE:VALUE  ", "", "")
+    assert signature == "fallback:high-unsafe-val-unspecified:all"
+    assert is_canonical_signature(signature)
 
 
 def test_signature_fallback_distinguishes_conditions() -> None:

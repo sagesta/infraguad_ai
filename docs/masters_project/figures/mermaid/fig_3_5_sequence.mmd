@@ -1,19 +1,28 @@
-%% Figure 3.5 — Sequence Diagram (One Heartbeat Cycle)
-%% Appears in: Chapter 3, Section 3.4.3 (Sequence Diagram)
+%% Figure 3.5 — One Heartbeat Cycle
+%% Appears in: Chapter 3, Sequence Diagram
 %% Render to: ../fig_3_5_sequence.png
 sequenceDiagram
+  actor Scheduler
   participant Agent
   participant Store
-  participant Telemetry
-  participant LLM as LLM Provider
-  participant Ntfy as ntfy.sh
+  participant Sources as Loki / Prometheus / Probes / Docker
+  participant Model as Configured LLM
+  participant Ntfy as ntfy
+
+  Scheduler->>Agent: start heartbeat
   Agent->>Store: fetch active acknowledgements
   Store-->>Agent: known conditions
-  Agent->>Telemetry: collect logs / metrics / probes
-  Telemetry-->>Agent: telemetry snapshot
-  Agent->>LLM: reason(telemetry + known conditions)
-  LLM-->>Agent: structured verdict + signature
-  Agent->>Store: persist verdict (fingerprint)
-  opt severity high or critical
-    Agent->>Ntfy: notify
+  Agent->>Sources: collect bounded telemetry
+  Sources-->>Agent: snapshot and collection status
+  Agent->>Model: analyse telemetry plus known conditions
+  Model-->>Agent: structured verdict and signature
+  opt high or critical and Docker monitoring enabled
+    Agent->>Sources: collect container diagnostics
+    Sources-->>Agent: diagnostic context
   end
+  Agent->>Store: persist verdict and fingerprint
+  opt high or critical
+    Agent->>Ntfy: send alert with recommendation
+    Ntfy-->>Agent: delivery result
+  end
+  Note over Agent,Store: No service change is executed by the heartbeat

@@ -1,12 +1,12 @@
-"""Figure generator for the InfraGuard AI master's project.
+"""Historical figure generator for the 13 August manuscript snapshot.
 
-Produces fourteen PNG figures suitable for embedding in the docx. All figures
-depict the system as actually implemented. The Chapter 5 figures report measured
-outcomes (coverage, duplicate-verdict reduction); the usability figures are
-templates populated from the participant sessions described in Appendix D.
+The current manuscript contains later embedded figures and must not be rebuilt
+wholesale from this script. The current Figure 5.1 data is retained here so its
+standalone PNG can be regenerated without reviving the rest of the snapshot.
 """
 
 from __future__ import annotations
+import os
 from pathlib import Path
 
 import matplotlib
@@ -336,19 +336,37 @@ def fig_4_3():
 
 # Fig 5.1 - Test Coverage by Module (measured)
 def fig_5_1():
-    fig, ax = plt.subplots(figsize=(10, 5.5))
-    mods = ['memory', 'orchestrator', 'store', 'schema', 'providers', 'api/main', 'api/auth',
-            'loki', 'prometheus', 'threat_resp', 'notify', 'vector_store', 'OVERALL']
-    cov = [100, 94, 94, 95, 93, 79, 82, 85, 80, 67, 32, 31, 66]
-    colors = ['#16a34a' if c >= 80 else '#ca8a04' if c >= 60 else '#dc2626' for c in cov[:-1]] + ['#1f3a68']
-    ax.bar(mods, cov, color=colors)
+    fig, ax = plt.subplots(figsize=(10, 5.5), facecolor='white')
+    mods = ['Memory', 'Orchestrator', 'Store', 'LangChain', 'Scheduled',
+            'Docker API', 'Docker events', 'Vector store', 'Overall']
+    cov = [100, 95, 94, 100, 100, 100, 100, 100, 89]
+    colors = ['#ef312f'] * (len(cov) - 1) + ['#c7a27a']
+    ax.bar(mods, cov, color=colors, width=0.58)
     for i, c in enumerate(cov):
-        ax.text(i, c + 1.5, f'{c}%', ha='center', fontsize=8)
-    ax.set_ylabel('Line Coverage (%)'); ax.set_ylim(0, 110)
-    ax.set_title('Figure 5.1  Test Coverage by Selected Modules (measured, 80 tests)')
-    plt.setp(ax.get_xticklabels(), rotation=30, ha='right', fontsize=8)
-    ax.grid(axis='y', linestyle=':', alpha=0.4)
-    plt.tight_layout(); plt.savefig(OUT / 'fig_5_1_acceptance.png'); plt.close()
+        ax.text(i, c + 1.6, f'{c}%', ha='center', va='bottom', fontsize=9,
+                color='#003b6f', weight='bold')
+    ax.set_ylim(0, 110)
+    ax.set_yticks(np.arange(0, 101, 20))
+    ax.set_yticklabels([f'{v}%' for v in range(0, 101, 20)], color='#003b6f')
+    ax.set_title('Figure 5.1  Test Coverage by Selected Modules (180 tests, 29 August 2026)',
+                 color='#003b6f', fontsize=15, weight='bold', pad=20)
+    ax.tick_params(axis='x', colors='#003b6f', labelsize=8, length=0, pad=8)
+    ax.tick_params(axis='y', colors='#003b6f', labelsize=9, length=0, pad=6)
+    ax.grid(axis='y', color='#cbd5df', linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.spines['left'].set_color('#003b6f')
+    ax.spines['left'].set_linewidth(1.1)
+    ax.spines['bottom'].set_color('#003b6f')
+    ax.spines['bottom'].set_linewidth(1.1)
+    fig.text(
+        0.5, 0.035,
+        'Six selected modules are at 100%; overall coverage rose from the 66% dated baseline to 89%.',
+        ha='center', va='center', fontsize=9.5, color='#003b6f'
+    )
+    fig.subplots_adjust(left=0.085, right=0.965, top=0.82, bottom=0.18)
+    plt.savefig(OUT / 'fig_5_1_acceptance.png', dpi=200, bbox_inches=None,
+                facecolor='white')
+    plt.close()
 
 
 # Fig 5.2 - Duplicate-Verdict Reduction (controlled demonstration)
@@ -363,7 +381,7 @@ def fig_5_2():
     ax.axvline(ack_at, color='#475569', ls='--', lw=1)
     ax.text(ack_at + 0.3, 24, 'operator acknowledges', fontsize=8, color='#475569')
     ax.set_xlabel('Heartbeat cycle'); ax.set_ylabel('Cumulative surfaced duplicate warnings')
-    ax.set_title('Figure 5.2  Visible Duplicate Warnings: Stateless vs Memory-Enabled Demonstration')
+    ax.set_title('Visible Duplicate Warnings: Stateless vs Memory-Enabled Demonstration')
     ax.text(15, 5.5, 'The model is still called on every heartbeat.', ha='center', fontsize=8,
             color='#475569', bbox=dict(boxstyle='round,pad=0.25', fc='white', ec='#cbd5e1'))
     ax.legend(frameon=False, fontsize=9); ax.grid(linestyle=':', alpha=0.4)
@@ -402,6 +420,11 @@ def fig_5_4():
 
 
 def main():
+    if os.environ.get('INFRAGUARD_ALLOW_HISTORICAL_FIGURE_REBUILD') != '1':
+        raise SystemExit(
+            'Historical full-figure rebuild blocked. Use the embedded figures in '
+            'InfraGuard_AI_Masters_Project_FINAL_REVISED_AFTER_29_AUGUST_REVIEW.docx.'
+        )
     for fn in [fig_3_1, fig_3_2, fig_3_3, fig_3_4, fig_3_5, fig_3_6, fig_3_7,
                fig_4_1, fig_4_2, fig_4_3, fig_5_1, fig_5_2, fig_5_3, fig_5_4]:
         fn(); print('OK', fn.__name__)

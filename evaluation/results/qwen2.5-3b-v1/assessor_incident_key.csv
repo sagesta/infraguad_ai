@@ -1,0 +1,73 @@
+﻿assessment_id,scenario_id,repeat,gold_severity,root_cause_reference,action_reference
+23F01D7FFDCD,C01,1,ok,No incident is present in the supplied telemetry.,Continue routine monitoring; do not invent remediation.
+35D4F306057E,C01,2,ok,No incident is present in the supplied telemetry.,Continue routine monitoring; do not invent remediation.
+8AA2B880ECD8,C01,3,ok,No incident is present in the supplied telemetry.,Continue routine monitoring; do not invent remediation.
+39E2F2A742B6,C02,1,ok,No incident is present; absent optional integrations are not faults.,Continue routine monitoring without requesting installation of absent integrations.
+AB080B1CC6B9,C02,2,ok,No incident is present; absent optional integrations are not faults.,Continue routine monitoring without requesting installation of absent integrations.
+D5A5D8F5A5E0,C02,3,ok,No incident is present; absent optional integrations are not faults.,Continue routine monitoring without requesting installation of absent integrations.
+83A3A2C4C2F6,C03,1,ok,No abnormal condition is evidenced.,Continue routine monitoring.
+82F5F72F97D7,C03,2,ok,No abnormal condition is evidenced.,Continue routine monitoring.
+984851DBBE91,C03,3,ok,No abnormal condition is evidenced.,Continue routine monitoring.
+51428584C221,C04,1,warning,Sustained CPU saturation is degrading response latency without an outage.,"Inspect workload and process utilisation, capacity, and recent changes."
+AD94D2A49E95,C04,2,warning,Sustained CPU saturation is degrading response latency without an outage.,"Inspect workload and process utilisation, capacity, and recent changes."
+B34FB3784882,C04,3,warning,Sustained CPU saturation is degrading response latency without an outage.,"Inspect workload and process utilisation, capacity, and recent changes."
+E135D7314BF8,C05,1,warning,Memory pressure and swap growth exist without an OOM failure.,"Inspect top memory consumers, leaks, working-set growth, and capacity."
+E64D87F3AF05,C05,2,warning,Memory pressure and swap growth exist without an OOM failure.,"Inspect top memory consumers, leaks, working-set growth, and capacity."
+2FA523CB2AE1,C05,3,warning,Memory pressure and swap growth exist without an OOM failure.,"Inspect top memory consumers, leaks, working-set growth, and capacity."
+B70427A50F37,C06,1,warning,Free disk space is becoming constrained but writes still succeed.,"Identify growth, rotate or remove safe data, and expand storage if needed."
+FF884B4A27C7,C06,2,warning,Free disk space is becoming constrained but writes still succeed.,"Identify growth, rotate or remove safe data, and expand storage if needed."
+8A061370B2C5,C06,3,warning,Free disk space is becoming constrained but writes still succeed.,"Identify growth, rotate or remove safe data, and expand storage if needed."
+3F1E1C8FB82A,C07,1,warning,The service is available but response latency has degraded.,"Inspect dependency latency, resource saturation, traces, and recent changes."
+9E97167CCE80,C07,2,warning,The service is available but response latency has degraded.,"Inspect dependency latency, resource saturation, traces, and recent changes."
+D7985224102E,C07,3,warning,The service is available but response latency has degraded.,"Inspect dependency latency, resource saturation, traces, and recent changes."
+ADD3B2949725,C08,1,warning,Monitoring data freshness is impaired; the application itself is not shown to be down.,Inspect Prometheus scraping and ingestion while continuing application checks.
+4CBC1A64CB97,C08,2,warning,Monitoring data freshness is impaired; the application itself is not shown to be down.,Inspect Prometheus scraping and ingestion while continuing application checks.
+A0EAB3461B48,C08,3,warning,Monitoring data freshness is impaired; the application itself is not shown to be down.,Inspect Prometheus scraping and ingestion while continuing application checks.
+8CC37551A27A,C09,1,high,An active API failure is corroborated by 503 probes and application 5xx logs.,"Inspect application logs, dependency health, recent deployments, and restore service."
+D2484DBCCAFA,C09,2,high,An active API failure is corroborated by 503 probes and application 5xx logs.,"Inspect application logs, dependency health, recent deployments, and restore service."
+CAB9D0A4A223,C09,3,high,An active API failure is corroborated by 503 probes and application 5xx logs.,"Inspect application logs, dependency health, recent deployments, and restore service."
+AE6D613F57C6,C10,1,high,The service is unavailable because no listener accepts the repeated connection attempts.,"Verify the process, listener, bind address, firewall, and network path."
+8C1E06FA80CE,C10,2,high,The service is unavailable because no listener accepts the repeated connection attempts.,"Verify the process, listener, bind address, firewall, and network path."
+E9D800F7676D,C10,3,high,The service is unavailable because no listener accepts the repeated connection attempts.,"Verify the process, listener, bind address, firewall, and network path."
+E079343D14A8,C11,1,high,The Redis dependency is unavailable and dependent application requests are failing.,"Restore Redis connectivity, verify Redis health and network membership, then validate clients."
+F5A29D183D04,C11,2,high,The Redis dependency is unavailable and dependent application requests are failing.,"Restore Redis connectivity, verify Redis health and network membership, then validate clients."
+A0D777CA5D7C,C11,3,high,The Redis dependency is unavailable and dependent application requests are failing.,"Restore Redis connectivity, verify Redis health and network membership, then validate clients."
+ACCE822E543A,C12,1,high,The database connection pool is exhausted and requests are timing out.,"Inspect connection leaks, pool utilisation and limits, long queries, and database health before raising limits."
+E69841D2E8E9,C12,2,high,The database connection pool is exhausted and requests are timing out.,"Inspect connection leaks, pool utilisation and limits, long queries, and database health before raising limits."
+3924553BCBDB,C12,3,high,The database connection pool is exhausted and requests are timing out.,"Inspect connection leaks, pool utilisation and limits, long queries, and database health before raising limits."
+E0A8437D6133,C13,1,high,"The application container is repeatedly restarting and unhealthy, causing probe failure.","Inspect exit code, container logs, health-check failure, resource limits, and the deployment change."
+9ABCD02F49F2,C13,2,high,"The application container is repeatedly restarting and unhealthy, causing probe failure.","Inspect exit code, container logs, health-check failure, resource limits, and the deployment change."
+6A2280094685,C13,3,high,"The application container is repeatedly restarting and unhealthy, causing probe failure.","Inspect exit code, container logs, health-check failure, resource limits, and the deployment change."
+64C75B11347B,C14,1,critical,Near-total disk exhaustion is already causing write failures and immediate service or data risk.,"Stop nonessential growth, preserve evidence, reclaim safe space, and expand storage urgently."
+AB0A79DD951C,C14,2,critical,Near-total disk exhaustion is already causing write failures and immediate service or data risk.,"Stop nonessential growth, preserve evidence, reclaim safe space, and expand storage urgently."
+2BB5796B5F85,C14,3,critical,Near-total disk exhaustion is already causing write failures and immediate service or data risk.,"Stop nonessential growth, preserve evidence, reclaim safe space, and expand storage urgently."
+D07A2C6D0C57,C15,1,high,A probable HTTP brute-force pattern from one source crossed the configured threshold.,"Validate the source and pattern, preserve evidence, and use operator-approved containment if warranted."
+F83CE32EBB11,C15,2,high,A probable HTTP brute-force pattern from one source crossed the configured threshold.,"Validate the source and pattern, preserve evidence, and use operator-approved containment if warranted."
+5335F551868E,C15,3,high,A probable HTTP brute-force pattern from one source crossed the configured threshold.,"Validate the source and pattern, preserve evidence, and use operator-approved containment if warranted."
+38C48FE3A8B1,C16,1,high,A probable SSH brute-force pattern from one source crossed the configured threshold.,"Validate the source, review authentication logs, preserve evidence, and apply an approved response."
+A7B7F03ED6E8,C16,2,high,A probable SSH brute-force pattern from one source crossed the configured threshold.,"Validate the source, review authentication logs, preserve evidence, and apply an approved response."
+64B8131FCA26,C16,3,high,A probable SSH brute-force pattern from one source crossed the configured threshold.,"Validate the source, review authentication logs, preserve evidence, and apply an approved response."
+140853F94DA0,C17,1,high,A probable port-scan pattern from one source crossed the configured threshold.,"Validate the event, preserve evidence, review exposure, and consider an operator-approved ban."
+2F45A4461676,C17,2,high,A probable port-scan pattern from one source crossed the configured threshold.,"Validate the event, preserve evidence, review exposure, and consider an operator-approved ban."
+B3A4DB9BAB02,C17,3,high,A probable port-scan pattern from one source crossed the configured threshold.,"Validate the event, preserve evidence, review exposure, and consider an operator-approved ban."
+C7826949C1E9,C18,1,warning,High load is associated with a scheduled batch job; no outage is evidenced.,Monitor the constrained workload and confirm capacity or scheduling without declaring failure.
+1847502534B6,C18,2,warning,High load is associated with a scheduled batch job; no outage is evidenced.,Monitor the constrained workload and confirm capacity or scheduling without declaring failure.
+0C99ECEF480E,C18,3,warning,High load is associated with a scheduled batch job; no outage is evidenced.,Monitor the constrained workload and confirm capacity or scheduling without declaring failure.
+A63E278960B0,C19,1,warning,"Latency degradation is present, but the evidence only narrows the cause to a network or dependency path.","Compare network path and dependency timings, packet loss, DNS, and traces before assigning a root cause."
+70EE49726DBC,C19,2,warning,"Latency degradation is present, but the evidence only narrows the cause to a network or dependency path.","Compare network path and dependency timings, packet loss, DNS, and traces before assigning a root cause."
+8382E1536FA8,C19,3,warning,"Latency degradation is present, but the evidence only narrows the cause to a network or dependency path.","Compare network path and dependency timings, packet loss, DNS, and traces before assigning a root cause."
+48BE9F64D666,C20,1,warning,"A transient error occurred, but no persistent failure or confirmed cause is evidenced.",Continue monitoring and correlate recurrence; do not claim a persistent outage.
+BD08A3D57588,C20,2,warning,"A transient error occurred, but no persistent failure or confirmed cause is evidenced.",Continue monitoring and correlate recurrence; do not claim a persistent outage.
+4A6F8C72AEBD,C20,3,warning,"A transient error occurred, but no persistent failure or confirmed cause is evidenced.",Continue monitoring and correlate recurrence; do not claim a persistent outage.
+BA268E91F776,C21,1,ok,No application incident is evidenced; Docker monitoring is intentionally disabled.,Continue routine monitoring and do not treat the optional collector state as a fault.
+4CBEBAB3EFBF,C21,2,ok,No application incident is evidenced; Docker monitoring is intentionally disabled.,Continue routine monitoring and do not treat the optional collector state as a fault.
+BD03FE78B2DB,C21,3,ok,No application incident is evidenced; Docker monitoring is intentionally disabled.,Continue routine monitoring and do not treat the optional collector state as a fault.
+760624EC8903,C22,1,warning,"The Loki telemetry source is unavailable, but the application is not shown to be down.",Restore Loki connectivity and verify ingestion without declaring an application outage.
+C3F1DC794851,C22,2,warning,"The Loki telemetry source is unavailable, but the application is not shown to be down.",Restore Loki connectivity and verify ingestion without declaring an application outage.
+D4870150BD0C,C22,3,warning,"The Loki telemetry source is unavailable, but the application is not shown to be down.",Restore Loki connectivity and verify ingestion without declaring an application outage.
+366232ECB970,C23,1,ok,The unchanged disk warning matches an operator-acknowledged condition.,Reuse the acknowledged signature and do not re-escalate the unchanged condition.
+BB56928F6110,C23,2,ok,The unchanged disk warning matches an operator-acknowledged condition.,Reuse the acknowledged signature and do not re-escalate the unchanged condition.
+3FFC86044C75,C23,3,ok,The unchanged disk warning matches an operator-acknowledged condition.,Reuse the acknowledged signature and do not re-escalate the unchanged condition.
+29783E7112A5,C24,1,critical,The previously acknowledged condition materially worsened to near-total disk exhaustion with write failures.,"Override acknowledgement, keep the condition visible, stop growth, recover space, and protect data urgently."
+FBF21ED9123D,C24,2,critical,The previously acknowledged condition materially worsened to near-total disk exhaustion with write failures.,"Override acknowledgement, keep the condition visible, stop growth, recover space, and protect data urgently."
+053FBBB98FB1,C24,3,critical,The previously acknowledged condition materially worsened to near-total disk exhaustion with write failures.,"Override acknowledgement, keep the condition visible, stop growth, recover space, and protect data urgently."

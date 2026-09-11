@@ -1,0 +1,35 @@
+%% Figure 4.4 — Local Runbook Indexing and Retrieval
+%% Suggested placement: Chapter 4, Runbook Implementation
+%% Render to: ../fig_4_4_runbook_retrieval.png
+flowchart TB
+  subgraph FILES["Read-only local corpus"]
+    INFRA["6 infrastructure cases"]
+    OBS["4 observability cases"]
+    APP["4 application cases"]
+    CONT["3 container cases"]
+    SEC["3 security cases"]
+  end
+
+  LOAD["Recursive Markdown loader<br/>title, source and category metadata"]
+  WHOLE["One whole Markdown file<br/>one retrievable document"]
+  EMBED["Local ONNX embeddings<br/>all-MiniLM-L6-v2"]
+  DB[("ChromaDB vector index")]
+  QUESTION["Operator question"]
+  SEARCH["Similarity search<br/>top four documents"]
+  PROMPT["Bounded prompt context<br/>retrieved documents as untrusted data"]
+  MODEL["Configured LLM"]
+  ANSWER["Concise answer<br/>plus source titles"]
+  REVIEW["Operator reviews evidence"]
+  ACTION["Operator carries out<br/>the selected runbook steps"]
+
+  INFRA --> LOAD
+  OBS --> LOAD
+  APP --> LOAD
+  CONT --> LOAD
+  SEC --> LOAD
+  LOAD --> WHOLE --> EMBED --> DB
+  QUESTION --> SEARCH
+  DB --> SEARCH --> PROMPT --> MODEL --> ANSWER --> REVIEW --> ACTION
+
+  BOUNDARY["Retrieval assists remediation;<br/>it does not execute runbook commands"]
+  BOUNDARY -.-> REVIEW

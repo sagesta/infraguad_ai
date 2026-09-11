@@ -34,3 +34,4 @@ skill.md.txt
 submission/create_source_archive.ps1
 submission/source-files.txt
 submission/*.zip
+tmp/

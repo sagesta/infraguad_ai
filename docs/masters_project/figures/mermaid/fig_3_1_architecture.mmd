@@ -1,40 +1,51 @@
+%%{init: {"flowchart": {"defaultRenderer": "dagre", "nodeSpacing": 30, "rankSpacing": 45}, "themeVariables": {"fontSize": "18px"}}}%%
 %% Figure 3.1 — High-Level System Architecture
-%% Appears in: Chapter 3, Section 3.3.4 (High-Level Architecture)
+%% Appears in: Chapter 3, High-Level Architecture
 %% Render to: ../fig_3_1_architecture.png
 flowchart TB
-  OP(["Operator (browser)"])
-  subgraph HOST["Single Host — Docker Compose"]
-    AGENT["Agent (heartbeat)<br/>LangGraph loop"]
-    API["FastAPI Service<br/>dashboard + REST API"]
-    MEM["Verdict-Memory<br/>fingerprint + acks"]
-    SQLITE[("SQLite<br/>verdicts + acks")]
-    RAG["RAG Service"]
-    CHROMA[("ChromaDB<br/>runbook vectors")]
-    THREAT["Threat detection<br/>+ CrowdSec adapter"]
+  OP(["Operator browser"])
+
+  subgraph HOST["Single VPS — Docker Compose"]
+    direction TB
+    API["FastAPI service<br/>dashboard and REST API"]
+    AGENT["Scheduled agent<br/>LangGraph heartbeat"]
+    STORE[("SQLite<br/>verdicts and acknowledgements")]
+    RAG["Runbook assistant<br/>retrieve then answer"]
+    BOOKS[("20 local Markdown runbooks<br/>read-only mount")]
+    VECTORS[("ChromaDB<br/>local ONNX embeddings")]
+    THREAT["Deterministic threat scanner<br/>operator-approved response"]
+    OLLAMA["Ollama<br/>optional local model"]
   end
-  subgraph TELE["Telemetry sources"]
-    LOKI["Loki (logs)"]
-    PROM["Prometheus (metrics)"]
-    PROBE["HTTP probes"]
-    DOCKER["Docker (optional)"]
+
+  subgraph TELEMETRY["Telemetry and runtime sources"]
+    direction TB
+    SIGNALS["Loki logs<br/>Prometheus metrics<br/>HTTP probes"]
+    DOCKER["Docker events and diagnostics<br/>optional read-only socket"]
   end
-  subgraph EXT["External services"]
-    MODEL["Direct model API"]
-    NTFY["ntfy.sh"]
-    CROWDSEC["CrowdSec LAPI"]
+
+  subgraph EXTERNAL["Optional external services"]
+    direction TB
+    CLOUDMODEL["Gemini, Anthropic or OpenAI"]
+    NTFY["ntfy alerts"]
+    CROWDSEC["CrowdSec Local API"]
   end
-  AGENT -->|writes verdicts| SQLITE
-  API -->|reads verdicts / acks| SQLITE
-  AGENT -.->|reads acks each cycle| SQLITE
-  MEM --- SQLITE
-  API --- RAG
-  RAG --- CHROMA
-  API --- THREAT
-  LOKI --> AGENT
-  PROM --> AGENT
-  PROBE --> AGENT
+
+  OP <-->|"HTTPS through Cloudflare Tunnel"| API
+  AGENT <-->|"write verdicts<br/>read known conditions"| STORE
+  API -->|"read history and acknowledgements"| STORE
+  API --> RAG
+  BOOKS --> RAG
+  RAG --> VECTORS
+  API --> THREAT
+  SIGNALS --> AGENT
   DOCKER -.-> AGENT
-  AGENT -->|reason| MODEL
-  AGENT -->|high/critical| NTFY
-  THREAT -->|operator-approved ban| CROWDSEC
-  OP <-->|HTTPS / JSON| API
+  AGENT -->|"configured provider"| CLOUDMODEL
+  AGENT -.->|"self-hosted option"| OLLAMA
+  RAG -->|"retrieved documents and question"| CLOUDMODEL
+  RAG -.-> OLLAMA
+  AGENT -->|"high or critical"| NTFY
+  THREAT -->|"approved IP ban only"| CROWDSEC
+
+  %% Constrain the three zones to a portrait-friendly top-to-bottom sequence.
+  SIGNALS ~~~ API
+  OLLAMA ~~~ CLOUDMODEL

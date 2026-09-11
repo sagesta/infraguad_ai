@@ -1,0 +1,338 @@
+{
+  "projectTitle": "Design and Development of an LLM-Based Autonomous Security Remediation System for Cloud-Native CI/CD Pipelines",
+  "projectSubtitle": "InfraGuard Pro: A Multi-Server Agentic DevSecOps Platform",
+  "studentName": "[Name of Student]",
+  "matricNumber": "[Matriculation Number]",
+  "department": "Department of Information Technology",
+  "school": "School of Computing",
+  "university": "Miva Open University, Abuja, Nigeria",
+  "programme": "Professional Master of Information Technology (MIT)",
+  "proposalDate": "June 2026",
+  "supervisor": "[Name of Supervisor]",
+  "chapterOne": [
+    {
+      "heading": "1.1 Background to the Study",
+      "paragraphs": [
+        "Modern organisations increasingly rely on cloud-native applications, container platforms, and continuous integration/continuous delivery (CI/CD) pipelines to deliver software rapidly. This delivery model will continue to support business agility, but it also introduces a wider and faster-moving security surface. Source code, dependencies, container images, infrastructure-as-code manifests, deployment scripts, secrets, and runtime telemetry will all need to be monitored continuously if software teams are to prevent vulnerable changes from reaching production.",
+        "Security scanners such as Semgrep, Bandit, Trivy, Checkov, Gitleaks, OSV-Scanner, Dependabot, and OWASP ZAP already provide strong detection support across different layers of the pipeline. Many of these tools emit structured findings through the Static Analysis Results Interchange Format (SARIF), which makes scanner results machine-readable. However, most scanner workflows will still stop at detection. The output will tell a development or security team what is wrong, but it will not reliably prioritise the issue in organisational context, generate a safe fix, open a pull request, validate the fix, and maintain an audit trail.",
+        "The emergence of large language models (LLMs), retrieval-augmented generation (RAG), and agentic software workflows creates an opportunity to reduce this gap between detection and remediation. LLMs can read code, configuration, vulnerability advisories, and operational runbooks; RAG can ground their responses in trusted knowledge sources; and CI/CD automation can verify proposed patches. When these capabilities are combined with policy controls, a security remediation system can be designed to recommend, request approval for, or autonomously apply low-risk fixes while still preserving human oversight.",
+        "Existing academic and commercial solutions have begun to explore LLM-assisted code repair, but they remain limited in four major ways. First, many operate on a single scanner or finding type rather than heterogeneous SAST, SCA, container, infrastructure-as-code, and secret-scanning outputs. Second, many are tied to one LLM provider or one platform vendor. Third, most do not provide a clear policy model that distinguishes recommend-only, human-approved, and autonomous remediation modes. Fourth, few close the feedback loop by re-running scanners and observing runtime telemetry after a patch is applied.",
+        "This study will address these gaps by proposing, designing, implementing, and evaluating InfraGuard Pro, an LLM-based autonomous security remediation system for cloud-native CI/CD pipelines. The proposed system will ingest SARIF scanner findings, enrich them with retrieved evidence, generate patch proposals through configurable LLM providers, route proposed actions through a policy engine, create pull requests through Git provider integrations, and validate remediation outcomes through scanner re-runs and multi-server observability."
+      ]
+    },
+    {
+      "heading": "1.2 Statement of the Problem",
+      "paragraphs": [
+        "Although automated security scanners are widely used in modern DevSecOps workflows, vulnerability remediation remains slow, fragmented, and heavily manual. Security and platform engineering teams will often receive more findings than they can triage, and each finding must be understood, prioritised, fixed, tested, reviewed, merged, and monitored. This manual bottleneck increases mean time to remediate, contributes to alert fatigue, and leaves exploitable vulnerabilities unresolved for longer than necessary.",
+        "Existing remediation features also tend to be constrained by platform lock-in, single-scanner scope, weak organisational context, limited provider choice, and insufficient post-deployment validation. These limitations are especially significant for small and medium-sized organisations in Nigeria and other resource-constrained environments, where dedicated application security headcount may be limited. The problem this project will address is therefore the absence of a vendor-neutral, policy-controlled, multi-scanner, LLM-assisted remediation system that can safely reduce the time and effort required to convert security findings into verified fixes."
+      ]
+    },
+    {
+      "heading": "1.3 Aim and Objectives of the Study",
+      "paragraphs": [
+        "The objectives below will govern the entire study. The requirements, design, implementation, testing, evaluation, and result discussion will be aligned with these objectives so that every major project activity contributes directly to answering the research questions."
+      ],
+      "aim": "The aim of this study is to design, implement, and evaluate InfraGuard Pro, an LLM-based autonomous security remediation system that will consume heterogeneous CI/CD security scanner findings, generate policy-controlled patch proposals, and validate remediation outcomes through closed-loop observability.",
+      "objectives": [
+        {
+          "area": "Requirement elicitation",
+          "statement": "To gather and analyse the functional, non-functional, security, operational, and user requirements for an autonomous security remediation system suitable for cloud-native CI/CD pipelines.",
+          "evidence": "Requirements catalogue, user stories, functional and non-functional requirements, and acceptance criteria."
+        },
+        {
+          "area": "System design",
+          "statement": "To design the architecture, data flow, database model, policy model, and interaction workflow of the proposed InfraGuard Pro system.",
+          "evidence": "Architecture diagram, remediation workflow, use-case model, sequence diagram, ER model, and policy-mode specification."
+        },
+        {
+          "area": "System implementation",
+          "statement": "To develop the proposed system using SARIF ingestion, RAG-based evidence retrieval, LLM provider abstraction, policy-controlled patch generation, Git pull-request integration, audit logging, and a web-based operations dashboard.",
+          "evidence": "Working source code, API endpoints, dashboard screens, integrations, and deployment configuration."
+        },
+        {
+          "area": "System evaluation",
+          "statement": "To evaluate the effectiveness, safety, performance, cost, and usability of the developed system against real-world and synthetic vulnerability findings.",
+          "evidence": "Test reports, benchmark results, MTTR comparison, patch acceptance rate, false-positive rate, regression rate, and operator feedback."
+        }
+      ]
+    },
+    {
+      "heading": "1.4 Research Questions",
+      "questions": [
+        "What functional and non-functional requirements will be necessary for a safe LLM-based autonomous security remediation system in cloud-native CI/CD environments?",
+        "How can a vendor-neutral architecture be designed to ingest heterogeneous SARIF findings, retrieve relevant evidence, generate patch proposals, and route remediation actions through policy controls?",
+        "How can InfraGuard Pro be implemented using appropriate programming languages, frameworks, databases, LLM providers, observability tools, and CI/CD integrations?",
+        "To what extent will the developed system improve remediation effectiveness, reduce mean time to remediate, control LLM cost, prevent regressions, and support operator trust when compared with manual triage?"
+      ]
+    },
+    {
+      "heading": "1.5 Significance of the Study",
+      "paragraphs": [
+        "The study will be significant to software organisations because it will propose a practical way to reduce the gap between vulnerability detection and remediation. By automating evidence retrieval, patch proposal, pull-request creation, and validation, the project will support faster and more consistent DevSecOps practice.",
+        "The study will be significant to Nigerian and African digital organisations because many operate with limited security engineering staff while facing increasing regulatory and operational pressure. A self-hostable and provider-neutral remediation platform will offer a lower-cost route to mature vulnerability management.",
+        "The study will contribute to professional IT practice by demonstrating how LLMs, RAG, CI/CD automation, policy controls, and observability can be combined in a structured software engineering project. It will also provide a reference architecture and evaluation framework that future students and practitioners can extend."
+      ]
+    },
+    {
+      "heading": "1.6 Expected Outcome",
+      "paragraphs": [
+        "At the end of the project, the expected outcome will be a working prototype of InfraGuard Pro and an accompanying academic project report. The prototype will ingest SARIF scanner findings, generate remediation proposals with evidence and confidence scores, route actions through policy modes, create pull requests for approved patches, record actions in an audit trail, and validate fixes through scanner re-runs and telemetry checks."
+      ]
+    },
+    {
+      "heading": "1.7 Scope of the Study",
+      "withinScope": [
+        "SARIF v2.1.0 ingestion from representative scanners such as Semgrep, Bandit, Trivy, Checkov, Gitleaks, and OSV-Scanner.",
+        "RAG-based retrieval from vulnerability advisories, local runbooks, uploaded artefacts, and historical remediation outcomes.",
+        "LLM provider abstraction for managed and self-hosted model endpoints.",
+        "Policy routing across recommend-only, human-approval-required, and autonomous-low-risk remediation modes.",
+        "Pull-request creation through Git provider APIs.",
+        "Audit logging, basic authentication, dashboard views, and multi-server telemetry collection.",
+        "Evaluation using real-world and synthetic findings across measurable quality, cost, speed, safety, and trust criteria."
+      ],
+      "outOfScope": [
+        "Fine-tuning or training a new LLM from scratch.",
+        "Formal commercial certification such as SOC 2 or ISO 27001.",
+        "Full mobile or native desktop client development.",
+        "Network intrusion prevention beyond integration with available threat-response tools.",
+        "Replacing human review for high-risk changes."
+      ]
+    },
+    {
+      "heading": "1.8 Delimitation of the Study",
+      "items": [
+        "The study will focus on cloud-native CI/CD security findings rather than all possible cybersecurity incident types.",
+        "The prototype will prioritise representative scanner outputs and remediation categories that can be evaluated within the project period.",
+        "The evaluation will use a controlled benchmark of real-world and synthetic findings rather than unrestricted production traffic.",
+        "The system will support policy-controlled autonomy, but high-risk remediation will intentionally remain under human approval.",
+        "The project will use available LLM APIs or local model endpoints rather than developing a proprietary foundation model."
+      ]
+    },
+    {
+      "heading": "1.9 Definition of Terms",
+      "terms": [
+        ["DevSecOps", "An approach that integrates security practices into DevOps workflows and CI/CD pipelines."],
+        ["CI/CD", "Continuous integration and continuous delivery, the automated process of building, testing, packaging, and deploying software changes."],
+        ["SARIF", "Static Analysis Results Interchange Format, a standard JSON-based format for representing static analysis and scanner findings."],
+        ["LLM", "Large language model, a model capable of processing and generating natural language, code, and structured reasoning outputs."],
+        ["RAG", "Retrieval-augmented generation, a technique that grounds LLM outputs in retrieved documents or knowledge sources."],
+        ["Autonomous remediation", "The ability of a system to propose or apply a fix to a detected issue with a defined level of human oversight."],
+        ["MTTR", "Mean time to remediate, the average time between detecting a vulnerability and applying a verified fix."],
+        ["Policy engine", "A component that determines whether a proposed remediation should be recommended, sent for approval, or executed autonomously."],
+        ["Closed-loop validation", "A verification process in which the system checks whether a patch resolves the finding and does not introduce runtime regressions."]
+      ]
+    }
+  ],
+  "chapterTwo": [
+    {
+      "heading": "2.1 Preliminary Literature Review and Technology Context",
+      "paragraphs": [
+        "The literature and technology context for this study will cover DevSecOps, CI/CD security automation, SARIF-based scanner integration, LLM-assisted code repair, retrieval-augmented generation, agentic software engineering, cloud-native observability, and secure software development frameworks. These areas are relevant because the proposed system will sit at the intersection of software engineering, cybersecurity, artificial intelligence, and site reliability engineering.",
+        "Prior work on LLM-based vulnerability repair shows that LLMs can generate useful patches for selected vulnerability categories, but the quality of the patches depends on context, prompt design, retrieval grounding, and validation. Studies such as Pearce et al. (2023), Fu et al. (2023), Wu et al. (2023), Jin et al. (2023), Yao et al. (2023), and Shinn et al. (2023) indicate that LLMs can support code repair and agentic workflows, but they also identify persistent risks such as hallucinated fixes, incomplete validation, and limited integration with real engineering environments.",
+        "Commercial tools such as GitHub Copilot Autofix, Snyk DeepCode AI Fix, Mend.io AppSec AI, and Dependabot provide useful remediation support, but they are often tied to specific platforms, scanner types, or subscription ecosystems. This study will therefore position InfraGuard Pro as a vendor-neutral and policy-controlled reference implementation that will combine multi-scanner SARIF ingestion, multi-provider LLM selection, RAG grounding, pull-request workflow integration, and post-deployment validation."
+      ]
+    },
+    {
+      "heading": "2.2 Gap Identification",
+      "gaps": [
+        "Most existing solutions will not orchestrate findings across multiple scanner categories through a single SARIF-based remediation pipeline.",
+        "Many solutions will remain tied to one LLM provider, one scanner vendor, or one repository platform.",
+        "Few solutions will clearly distinguish recommend-only, human-approved, and autonomous-low-risk execution modes.",
+        "Many LLM-generated patches will not be validated through both scanner re-runs and runtime telemetry observation.",
+        "There is limited published evidence on the cost, latency, accuracy, regression rate, and operator trust of autonomous remediation in resource-constrained environments."
+      ]
+    },
+    {
+      "heading": "2.3 Theoretical Framework",
+      "paragraphs": [
+        "The study will be guided primarily by Design Science Research (DSR). DSR is appropriate because the project will create and evaluate an IT artefact that is intended to solve an identified practical problem. The DSR cycle will connect problem identification, objective definition, artefact design, system development, demonstration, evaluation, and communication.",
+        "The study will also draw on DevSecOps and shift-left security principles, which argue that security activities should be integrated early and continuously into the software delivery lifecycle. During result discussion, the evaluation will refer back to these frameworks by assessing whether the artefact improves vulnerability remediation speed, safety, auditability, and operational usefulness."
+      ]
+    }
+  ],
+  "chapterThree": [
+    {
+      "heading": "3.1 Proposed Methodology",
+      "paragraphs": [
+        "The project will adopt a hybrid Agile-DevSecOps methodology supported by Design Science Research. Agile will support iterative development of the software artefact, DevSecOps will ensure that security, testing, automation, and deployment practices are integrated into the development process, and Design Science Research will provide the academic structure for building and evaluating the artefact."
+      ]
+    },
+    {
+      "heading": "3.2 Requirements Gathering Methodology",
+      "paragraphs": [
+        "Requirements will be gathered through review of related literature, analysis of existing DevSecOps workflows, inspection of current scanner outputs, review of the existing InfraGuard codebase, and informal consultation with software, platform, and security practitioners. The gathered requirements will be organised as user stories and prioritised using the MoSCoW method."
+      ]
+    },
+    {
+      "heading": "3.3 System Design Methodology",
+      "paragraphs": [
+        "The proposed system will be designed using object-oriented and architecture-driven modelling. The design will include a high-level architecture diagram, use-case model, sequence diagram, entity-relationship model, data-flow diagram, and remediation policy model. The architecture will follow a hub-and-spoke control-plane and satellite-agent pattern, with ports-and-adapters boundaries around scanners, LLM providers, Git providers, storage, and observability services."
+      ]
+    },
+    {
+      "heading": "3.4 Implementation Methodology and Tools",
+      "paragraphs": [
+        "Implementation will proceed iteratively in planned increments. The backend will use Python, FastAPI, LangGraph, LangChain, SQLAlchemy, ChromaDB, and asynchronous service integrations. The frontend dashboard will use a web-based interface. The deployment layer will use Docker Compose and supporting infrastructure-as-code where required. GitHub Actions or GitLab CI will be used for CI/CD automation, while Trivy, Semgrep, Bandit, Checkov, Gitleaks, and OSV-Scanner will provide representative security findings."
+      ]
+    },
+    {
+      "heading": "3.5 Evaluation Methodology and Tools",
+      "paragraphs": [
+        "The system will be evaluated using a benchmark of real-world and synthetic vulnerability findings. Evaluation criteria will include patch acceptance rate, finding closure rate, mean time to remediate, false-positive handling, regression rate, LLM cost per finding, latency, audit completeness, and operator trust. Results will be compared with a manual triage baseline where feasible."
+      ]
+    },
+    {
+      "heading": "3.6 Software Testing Methodology",
+      "paragraphs": [
+        "Testing will include unit testing, integration testing, API testing, scanner self-testing, security testing, and user acceptance testing. Pytest will be used for backend tests, HTTP client mocks will be used for external service boundaries, and CI checks will validate repeatability. The system will also re-run originating scanners against generated patches as part of the closed-loop validation process."
+      ]
+    }
+  ],
+  "methodologyMatrix": [
+    ["Supervisor Requirement", "Proposed Method", "Expected Output"],
+    ["Requirement gathering", "Literature review, workflow analysis, scanner-output inspection, stakeholder consultation, MoSCoW prioritisation", "Prioritised requirements and acceptance criteria"],
+    ["System design", "Architecture modelling, use-case modelling, sequence modelling, ER modelling, policy-mode design", "Design diagrams and system specification"],
+    ["Implementation", "Agile increments using FastAPI, LangGraph, ChromaDB, Docker, Git APIs, scanners, and dashboard components", "Working InfraGuard Pro prototype"],
+    ["Evaluation", "Benchmark against real-world and synthetic findings with speed, quality, cost, safety, and trust metrics", "Evaluation report and objective mapping"],
+    ["Software testing", "Unit, integration, API, security, scanner re-run, and user acceptance testing", "Test reports and validation evidence"]
+  ],
+  "solutionOverview": {
+    "heading": "3.7 Proposed System Overview",
+    "paragraphs": [
+      "InfraGuard Pro will consist of a central control plane, a reasoning and remediation engine, a retrieval service, a policy engine, a Git integration layer, a database and audit log, a web dashboard, and optional satellite agents for remote telemetry. A CI/CD pipeline will upload SARIF findings to the control plane. The remediation engine will normalise the findings, retrieve supporting evidence, invoke the active LLM provider, generate a patch proposal, classify the risk through the policy engine, and route the action to recommendation, approval, or autonomous execution. Approved changes will be opened as pull requests, then validated through scanner re-runs and runtime observation."
+    ],
+    "components": [
+      "SARIF ingestion and normalisation API",
+      "RAG runbook and vulnerability evidence service",
+      "LLM provider abstraction layer",
+      "Policy-controlled remediation engine",
+      "Git provider pull-request integration",
+      "Tamper-evident audit logging service",
+      "Operations dashboard and remediation queue",
+      "Satellite telemetry agents for multi-server environments"
+    ]
+  },
+  "tools": [
+    ["Layer", "Tools and Technologies"],
+    ["Backend", "Python 3.11+, FastAPI, Uvicorn, SQLAlchemy, async database clients"],
+    ["Agent and AI", "LangGraph, LangChain, configurable LLM provider APIs, local model endpoint option"],
+    ["Retrieval", "ChromaDB, vulnerability advisories, local Markdown runbooks, uploaded artefacts, historical outcomes"],
+    ["Security scanners", "Semgrep, Bandit, Trivy, Checkov, Gitleaks, OSV-Scanner"],
+    ["Storage and audit", "PostgreSQL or SQLite for prototype storage, hash-chained audit log"],
+    ["Frontend", "Web dashboard using HTML/CSS/JavaScript or a modern web framework"],
+    ["Observability", "Prometheus, Loki, OpenTelemetry-compatible telemetry, satellite heartbeats"],
+    ["Deployment and CI/CD", "Docker, Docker Compose, GitHub Actions or GitLab CI, Git provider APIs"],
+    ["Testing", "Pytest, API tests, mocked provider tests, scanner re-runs, user acceptance testing"]
+  ],
+  "feasibility": [
+    {
+      "heading": "Technical Feasibility",
+      "text": "The project is technically feasible because the core technologies are available as open-source tools or accessible APIs. The existing InfraGuard repository already contains backend, agent, dashboard, scanner, and observability foundations that can be extended into the proposed prototype."
+    },
+    {
+      "heading": "Resource Feasibility",
+      "text": "The project will use available development hardware, public scanner tools, local test repositories, synthetic vulnerability cases, and selected public vulnerability datasets. Managed LLM APIs may be used where keys are available, while local model endpoints can reduce dependency on paid providers."
+    },
+    {
+      "heading": "Operational Feasibility",
+      "text": "The proposed system is aligned with existing DevSecOps workflows because it will use pull requests, scanner re-runs, audit logs, and approval gates rather than bypassing established software delivery controls."
+    },
+    {
+      "heading": "Constraints and Assumptions",
+      "text": "The study assumes access to representative scanner findings, a test repository, and at least one working LLM provider. The evaluation will be limited to the project period and will prioritise representative vulnerability classes rather than every possible scanner rule."
+    }
+  ],
+  "timeline": [
+    ["Period", "Major Activity", "Expected Milestone"],
+    ["Week 1", "Proposal refinement and defence preparation", "Approved proposal direction"],
+    ["Weeks 2-3", "Requirements gathering and analysis", "Requirements catalogue and user stories"],
+    ["Weeks 4-5", "System design and modelling", "Architecture, data-flow, use-case, ER, and sequence diagrams"],
+    ["Weeks 6-9", "Core implementation", "SARIF ingestion, RAG service, LLM abstraction, policy engine"],
+    ["Weeks 10-11", "Workflow integration", "Git pull-request flow, audit log, dashboard, telemetry hooks"],
+    ["Weeks 12-13", "Testing and evaluation", "Benchmark results, test reports, objective evaluation"],
+    ["Week 14", "Report completion and final presentation", "Final project report and defence slides"]
+  ],
+  "expectedDeliverables": [
+    "Approved project proposal in PDF format.",
+    "Proposal defence PowerPoint presentation.",
+    "Working InfraGuard Pro prototype.",
+    "Source code repository and deployment configuration.",
+    "System design diagrams and technical documentation.",
+    "Testing and evaluation report.",
+    "Final project report covering Chapters One to Six."
+  ],
+  "references": [
+    "Beyer, B., Jones, C., Petoff, J. and Murphy, N. R. (2016). Site Reliability Engineering: How Google Runs Production Systems. O'Reilly Media.",
+    "Fu, M., Tantithamthavorn, C., Nguyen, V. and Le, T. (2023). ChatGPT for Vulnerability Detection, Classification, and Repair: How Far Are We? Proceedings of APSEC.",
+    "Hevner, A. R., March, S. T., Park, J. and Ram, S. (2004). Design Science in Information Systems Research. MIS Quarterly, 28(1), 75-105.",
+    "Jin, M., Shahriar, S., Tufano, M., Shi, X., Lou, S., Sundaresan, N. and Le, A. C. (2023). InferFix: End-to-End Program Repair with LLMs. Proceedings of ESEC/FSE.",
+    "Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N. et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. NeurIPS.",
+    "OASIS (2020). Static Analysis Results Interchange Format (SARIF) Version 2.1.0. OASIS Standard.",
+    "Pearce, H., Tan, B., Ahmad, B., Karri, R. and Dolan-Gavitt, B. (2023). Examining Zero-Shot Vulnerability Repair with Large Language Models. IEEE Symposium on Security and Privacy.",
+    "Rajapakse, R. N., Zahedi, M., Babar, M. A. and Shen, H. (2022). Challenges and Solutions When Adopting DevSecOps: A Systematic Review. Information and Software Technology, 141.",
+    "Shinn, N., Cassano, F., Berman, E., Gopinath, N., Narasimhan, K. and Yao, S. (2023). Reflexion: Language Agents with Verbal Reinforcement Learning. NeurIPS.",
+    "Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K. and Cao, Y. (2023). ReAct: Synergizing Reasoning and Acting in Language Models. ICLR."
+  ],
+  "slides": [
+    {
+      "kicker": "Proposal Defence",
+      "title": "InfraGuard Pro will close the scanner-to-fix gap in cloud-native CI/CD.",
+      "body": "An LLM-based, policy-controlled, multi-scanner remediation platform for DevSecOps teams.",
+      "proof": "Project title, programme, student placeholders, and defence context."
+    },
+    {
+      "kicker": "Problem",
+      "title": "Scanners detect vulnerabilities faster than teams can remediate them.",
+      "body": "The operational gap is not finding detection; it is safe, prioritised, auditable, and verified fixing.",
+      "proof": "Detection volume, manual triage, platform lock-in, and missing validation."
+    },
+    {
+      "kicker": "Research Direction",
+      "title": "The study will be governed by four software-engineering objectives.",
+      "body": "Requirements, design, implementation, and evaluation will direct the proposal, methodology, testing, and result discussion.",
+      "proof": "Objective-to-evidence matrix."
+    },
+    {
+      "kicker": "Literature Gap",
+      "title": "Existing LLM repair work rarely covers the full DevSecOps loop.",
+      "body": "The proposal focuses on multi-scanner SARIF ingestion, RAG grounding, provider choice, policy control, and closed-loop validation.",
+      "proof": "Five-gap comparison."
+    },
+    {
+      "kicker": "Solution",
+      "title": "InfraGuard Pro will convert SARIF findings into validated pull requests.",
+      "body": "The remediation engine will retrieve evidence, call an LLM provider, classify risk, open a pull request, and verify the outcome.",
+      "proof": "System workflow and architecture map."
+    },
+    {
+      "kicker": "Methodology",
+      "title": "Hybrid Agile-DevSecOps plus Design Science will keep the work practical and academic.",
+      "body": "The methodology will define how requirements, design, implementation, evaluation, and testing will be executed.",
+      "proof": "Methodology ladder."
+    },
+    {
+      "kicker": "Technology Stack",
+      "title": "The stack is feasible because it uses available open-source tools and standard APIs.",
+      "body": "FastAPI, LangGraph, ChromaDB, Docker, Git APIs, SARIF scanners, and observability tools provide the foundation.",
+      "proof": "Layered tool map."
+    },
+    {
+      "kicker": "Scope",
+      "title": "The study will focus on CI/CD remediation, not every cybersecurity incident class.",
+      "body": "The project will include representative scanner findings, policy-controlled remediation, dashboard workflows, and benchmark evaluation.",
+      "proof": "Scope and delimitation boundaries."
+    },
+    {
+      "kicker": "Expected Value",
+      "title": "The outcome will be a working prototype plus measurable remediation evidence.",
+      "body": "Expected contributions include faster MTTR, auditable decisions, provider-neutral architecture, and a reusable evaluation framework.",
+      "proof": "Deliverables and evaluation metrics."
+    },
+    {
+      "kicker": "Project Plan",
+      "title": "The defence asks for a proposal now; the project plan carries the build to final report.",
+      "body": "A fourteen-week plan will move from proposal approval through requirements, design, implementation, testing, evaluation, and final presentation.",
+      "proof": "Milestone timeline and submission checklist."
+    }
+  ]
+}

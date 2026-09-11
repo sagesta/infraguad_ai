@@ -1,14 +1,36 @@
-%% Figure 3.3 — Heartbeat Verdict Pipeline (Collect, Analyse, Decide, Notify)
-%% Appears in: Chapter 3, Section 3.3.6 (Heartbeat Verdict Pipeline)
+%% Figure 3.3 — Heartbeat Pipeline and Remediation Boundary
+%% Appears in: Chapter 3, Heartbeat Verdict Pipeline
 %% Render to: ../fig_3_3_remediation_flow.png
-flowchart LR
-  A["Fetch active<br/>acknowledgements"] --> B["Collect telemetry<br/>Loki / Prometheus / probes"]
-  B --> C["Assemble prompt<br/>+ known conditions"]
-  C --> D["LLM reason<br/>(Gemini)"]
-  D --> E["Verdict<br/>+ signature"]
-  E --> F["Fingerprint<br/>+ persist"]
-  F --> G{"severity<br/>high / critical?"}
-  G -->|yes| H["Notify (ntfy.sh)"]
-  G -->|no| I["End cycle"]
-  H --> I
-  A -. acknowledged conditions .-> C
+flowchart TB
+  START(["Scheduled heartbeat"])
+  ACKS["Load active acknowledgements"]
+  COLLECT["Collect Loki, Prometheus,<br/>HTTP probe and optional Docker data"]
+  ANALYSE["Configured LLM analyses<br/>bounded telemetry context"]
+  VERDICT["Structured verdict<br/>severity, cause, recommendation, signature"]
+  STORE["Compute fingerprint<br/>and store verdict"]
+  SEV{"High or critical?"}
+  LOW["Show in dashboard<br/>optional Mark known"]
+  DIAG["Collect Docker diagnostics<br/>when enabled"]
+  ALERT["Send ntfy alert<br/>when configured"]
+  REVIEW["Operator reviews evidence<br/>and local runbook"]
+  MANUAL["Operator performs manual action<br/>restart, rollback, cleanup or configuration"]
+  END(["End cycle"])
+
+  START --> ACKS --> COLLECT --> ANALYSE --> VERDICT --> STORE --> SEV
+  ACKS -.->|"known conditions inform the prompt"| ANALYSE
+  SEV -->|"no"| LOW --> END
+  SEV -->|"yes"| DIAG --> ALERT --> REVIEW --> MANUAL
+  REVIEW -.->|"no safe action yet"| END
+  MANUAL --> END
+
+  LOKISCAN["Recent Loki logs"] --> RULES["Deterministic threat rules"]
+  RULES --> FOUND{"Threshold met?"}
+  FOUND -->|"no"| NOTHREAT["No threat action"]
+  FOUND -->|"yes"| APPROVE{"Operator approves IP ban?"}
+  APPROVE -->|"no"| NOTHREAT
+  APPROVE -->|"yes"| CS{"CrowdSec configured?"}
+  CS -->|"no"| DRY["Record dry-run decision"]
+  CS -->|"yes"| BAN["Submit CrowdSec ban"]
+
+  NOTE["The LLM never restarts services,<br/>deletes data or changes the firewall"]
+  NOTE -.-> REVIEW

@@ -1,0 +1,43 @@
+%% Figure 5.3 — Five-Case Practice Evaluation Workflow
+%% Suggested placement: Chapter 5, Live-Model Diagnostic Evaluation
+%% Render to: ../fig_5_3_practice_evaluation.png
+flowchart TB
+  LABEL["Record pre-defined case facts<br/>condition, independently adjudicated severity and cause"]
+
+  subgraph CASES["Five controlled practice cases"]
+    C1["1. Bounded disk investigation"]
+    C2["2. Intentionally failed HTTP probe"]
+    C3["3. Synthetic HTTP 500 logs"]
+    C4["4. Disposable restart loop"]
+    C5["5. Synthetic HTTP 401 pattern"]
+  end
+
+  INJECT["Introduce one reversible condition"]
+  OBSERVE["Capture Loki, Prometheus,<br/>probe or Docker evidence"]
+  VERDICT["Record model verdict<br/>schema, severity, cause, action"]
+  RAG["Ask the Runbook Assistant<br/>and record cited source"]
+  RECOVER["Apply documented cleanup<br/>and verify recovery"]
+  SCORE["Score the case"]
+
+  subgraph METRICS["Recorded measures"]
+    M1["Schema validity"]
+    M2["Severity agreement"]
+    M3["Root-cause agreement"]
+    M4["Evidence support"]
+    M5["Latency and token use"]
+    M6["Recovery success"]
+  end
+
+  LABEL --> CASES
+  C1 --> INJECT
+  C2 --> INJECT
+  C3 --> INJECT
+  C4 --> INJECT
+  C5 --> INJECT
+  INJECT --> OBSERVE --> VERDICT --> RAG --> RECOVER --> SCORE
+  SCORE --> M1
+  SCORE --> M2
+  SCORE --> M3
+  SCORE --> M4
+  SCORE --> M5
+  SCORE --> M6

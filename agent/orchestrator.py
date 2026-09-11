@@ -77,11 +77,11 @@ def _collect_data(state: GraphState) -> dict[str, Any]:
 
 def _fallback_verdict(message: str) -> dict[str, Any]:
     return {
-        "severity": "warning",
-        "summary": "Analysis pipeline degraded; operator review required.",
+        "severity": "high",
+        "summary": "Analysis pipeline failed; operator review required.",
         "root_cause": message,
         "recommended_action": "Verify the configured LLM API key, model access, quotas, and network egress.",
-        "signature": "pipeline:degraded:agent",
+        "signature": "pipeline:analysis-failed:agent",
     }
 
 

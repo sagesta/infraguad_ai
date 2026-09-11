@@ -1,0 +1,43 @@
+[
+  {
+    "name": "figure_3_3_heartbeat_panel",
+    "x": 0,
+    "y": 0,
+    "width": 431.390625,
+    "height": 1153.609375,
+    "source": "figure_3_3_heartbeat_panel.mmd",
+    "svg": "figure_3_3_heartbeat_panel.svg",
+    "png": "figure_3_3_heartbeat_panel.png"
+  },
+  {
+    "name": "figure_3_3_threat_panel",
+    "x": 0,
+    "y": 0,
+    "width": 382,
+    "height": 442,
+    "source": "figure_3_3_threat_panel.mmd",
+    "svg": "figure_3_3_threat_panel.svg",
+    "png": "figure_3_3_threat_panel.png"
+  },
+  {
+    "name": "figure_3_5_corrected",
+    "x": 0,
+    "y": 0,
+    "width": 931,
+    "height": 1082,
+    "source": "figure_3_5_corrected.mmd",
+    "svg": "figure_3_5_corrected.svg",
+    "png": "figure_3_5_corrected.png"
+  },
+  {
+    "name": "figure_3_3_corrected",
+    "width": 874,
+    "height": 1224,
+    "sources": [
+      "figure_3_3_heartbeat_panel.mmd",
+      "figure_3_3_threat_panel.mmd"
+    ],
+    "svg": "figure_3_3_corrected.svg",
+    "png": "figure_3_3_corrected.png"
+  }
+]

@@ -1,0 +1,222 @@
+{
+  "benchmark_version": "1.0.0",
+  "spec_sha256": "7936721040238a95c57d51ec6fa86b9ee104b6b4021df83efdf903604ab58fee",
+  "generated_at_utc": "2026-08-18T17:12:04.813531+00:00",
+  "temperature": 0.0,
+  "model_metadata": {
+    "requested_model": "qwen2.5:3b",
+    "base_url_kind": "local_ollama",
+    "ollama_version": "0.30.11",
+    "resolved_model": "qwen2.5:3b",
+    "digest": "357c53fb659c5076de1d65ccb0b397446227b71a42be9d1603d46168015c9e4b",
+    "size_bytes": 1929912432,
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "3.1B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 2048
+    },
+    "modified_at": "2026-08-18T16:37:18.866301713Z"
+  },
+  "evidence_boundary": {
+    "automated_objective_metrics_only": false,
+    "independent_human_incident_scores_complete": true,
+    "independent_human_rag_scores_complete": true,
+    "practitioner_usability_study_complete": true,
+    "human_scoring_scope": "Two human operations practitioners completed separate exploratory DevOps and SRE role-lens scoring of all incident and RAG/no-RAG responses.",
+    "human_scoring_claim_boundary": "The two-assessor findings are exploratory and do not establish population-level diagnostic reliability or production effectiveness.",
+    "usability_scope": "The separate SUS study received 11 consented submissions and analysed 10 complete responses; it did not retain task-level timing, error, assistance, or free-text records.",
+    "public_completed_item_level_human_score_sheets_present": false,
+    "public_recomputation_boundary": "The role reports retain aggregate human results, but the public A/B worksheets are uncompleted templates with zero populated score cells. The aggregate scores and agreement statistics cannot be independently recomputed from the public package alone."
+  },
+  "incident": {
+    "run_count": 72,
+    "scenario_count": 24,
+    "schema_valid_count": 72,
+    "schema_valid_rate": 1.0,
+    "severity_exact_count": 29,
+    "severity_accuracy": 0.402778,
+    "false_positive_count": 0,
+    "false_negative_count": 6,
+    "signature_format_rate": 1.0,
+    "signature_stable_scenario_count": 10,
+    "signature_stability_rate": 0.416667,
+    "expected_signature_exact_count": 6,
+    "expected_signature_exact_rate": 0.4,
+    "p50_latency_seconds": 9.933219,
+    "p95_latency_seconds": 14.53215,
+    "mean_latency_seconds": 10.277545,
+    "mean_prompt_tokens": 823.916667,
+    "mean_completion_tokens": 136.222222,
+    "metered_api_cost_usd": 0.0,
+    "cost_boundary": "Local Ollama has no metered provider charge; energy and hardware cost were not measured.",
+    "confusion_matrix": {
+      "ok": {
+        "ok": 15,
+        "warning": 0,
+        "high": 0,
+        "critical": 0,
+        "invalid": 0
+      },
+      "warning": {
+        "ok": 12,
+        "warning": 0,
+        "high": 9,
+        "critical": 6,
+        "invalid": 0
+      },
+      "high": {
+        "ok": 0,
+        "warning": 6,
+        "high": 8,
+        "critical": 10,
+        "invalid": 0
+      },
+      "critical": {
+        "ok": 0,
+        "warning": 0,
+        "high": 0,
+        "critical": 6,
+        "invalid": 0
+      }
+    },
+    "per_class": {
+      "ok": {
+        "precision": 0.555556,
+        "recall": 1.0,
+        "f1": 0.714286,
+        "support": 15
+      },
+      "warning": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 27
+      },
+      "high": {
+        "precision": 0.470588,
+        "recall": 0.333333,
+        "f1": 0.390244,
+        "support": 24
+      },
+      "critical": {
+        "precision": 0.272727,
+        "recall": 1.0,
+        "f1": 0.428571,
+        "support": 6
+      }
+    },
+    "macro_precision": 0.324718,
+    "macro_recall": 0.583333,
+    "macro_f1": 0.383275,
+    "qualitative_scoring_status": "Completed by two human operations practitioners as an exploratory small-sample assessment.",
+    "human_practitioner_scoring": {
+      "assessor_count": 2,
+      "score_scale": "0-2",
+      "pooled_root_cause_mean": 1.236,
+      "pooled_recommended_action_mean": 1.049,
+      "pooled_grounding_mean": 0.833,
+      "weighted_kappa_root_cause": 0.755,
+      "weighted_kappa_recommended_action": 0.977,
+      "weighted_kappa_grounding": 0.755,
+      "claim_boundary": "Exploratory two-assessor evidence; not population-level diagnostic reliability or production effectiveness."
+    }
+  },
+  "rag": {
+    "run_count": 72,
+    "successful_request_count": 72,
+    "question_count": 12,
+    "retrieval_success_count": 12,
+    "retrieval_success_rate": 1.0,
+    "retrieval_depth": 4,
+    "by_condition": {
+      "rag": {
+        "run_count": 36,
+        "successful_request_count": 36,
+        "p50_latency_seconds": 10.070817,
+        "p95_latency_seconds": 35.652615,
+        "mean_latency_seconds": 17.634154,
+        "mean_prompt_tokens": 1510.0,
+        "mean_completion_tokens": 130.361111
+      },
+      "no_rag": {
+        "run_count": 36,
+        "successful_request_count": 36,
+        "p50_latency_seconds": 9.906291,
+        "p95_latency_seconds": 24.494734,
+        "mean_latency_seconds": 11.47954,
+        "mean_prompt_tokens": 66.25,
+        "mean_completion_tokens": 180.5
+      }
+    },
+    "metered_api_cost_usd": 0.0,
+    "cost_boundary": "Local Ollama has no metered provider charge; energy and hardware cost were not measured.",
+    "qualitative_comparison_status": "Completed by two human operations practitioners as an exploratory small-sample comparison.",
+    "human_practitioner_scoring": {
+      "assessor_count": 2,
+      "score_scale": "0-2",
+      "rag_correctness_mean": 1.625,
+      "no_rag_correctness_mean": 0.736,
+      "rag_grounding_mean": 1.667,
+      "no_rag_grounding_mean": 0.0,
+      "no_rag_grounding_boundary": "No source documents were supplied in the no-RAG condition, so the zero grounding score indicates absent traceability rather than independently proving factual incorrectness.",
+      "claim_boundary": "Exploratory two-assessor evidence; not population-level answer quality or production effectiveness."
+    }
+  },
+  "separate_human_sus_study": {
+    "consented_submission_count": 11,
+    "complete_response_count": 10,
+    "incomplete_response_count": 1,
+    "incomplete_response_handling": "Excluded without imputation.",
+    "mean_sus_score": 79.25,
+    "median_sus_score": 83.75,
+    "sample_standard_deviation": 18.18,
+    "minimum_sus_score": 40.0,
+    "maximum_sus_score": 97.5,
+    "claim_boundary": "Descriptive perceived-usability evidence within the evaluated group; not population-level usability, reduced workload, task performance, diagnostic correctness, or production effectiveness."
+  },
+  "human_score_provenance": {
+    "authoritative_public_reports": [
+      {
+        "path": "evaluation/practitioner_confirmation/InfraGuard_DevOps_Assessment_Report.docx",
+        "public_assessor_code": "A1",
+        "role": "DevOps",
+        "canonical_role_package_seed": 2026082405,
+        "sha256": "741b5446c8dffaabfeac20823aa7a4427a4a61c058b1b9e9c619000c641d6720"
+      },
+      {
+        "path": "evaluation/practitioner_confirmation/InfraGuard_SRE_Assessment_Report.docx",
+        "public_assessor_code": "A2",
+        "role": "SRE",
+        "canonical_role_package_seed": 2026082412,
+        "sha256": "7c91dfd735a4a070ce4e6053c5addcfb70cec2d67002b199b43f22f21133efdb",
+        "seed_correction": "The report opening record and executive summary state 2026082412. The method-table value 2026081902 matches excluded historical assessment material and is not the human SRE role-package seed."
+      }
+    ],
+    "confidential_provenance_boundary": "Original email submissions, full names, and the identity mapping are researcher-reported as retained outside the public repository for supervisor verification.",
+    "public_item_level_human_scoring": {
+      "retained": false,
+      "template_row_count_each": 72,
+      "populated_score_cells_each": 0,
+      "limitation": "The published aggregate scores and agreement statistics cannot be independently recomputed from the public package alone. Item-level values must not be reconstructed or fabricated."
+    },
+    "excluded_historical_artifacts": [
+      {
+        "path": "evaluation/results/qwen2.5-3b-v1/InfraGuard_AI_AI_Simulated_DevOps_SRE_Assessment_Report.docx",
+        "sha256": "501fc887b47ea135e922b18828b901243336d0a5dd06e3723adfbfebce16bb8b",
+        "evidence_status": "Non-evidential historical development artefact; excluded from the defence/submission package."
+      },
+      {
+        "path": "evaluation/results/qwen2.5-3b-v1/InfraGuard_AI_AI_Simulated_DevOps_SRE_Assessment.xlsx",
+        "sha256": "786988ab39789fdaf3ceb5a06bcfcbb9ee50eea68e20986fc6e4ba34f0f5ca80",
+        "evidence_status": "Non-evidential historical development artefact; excluded from the defence/submission package."
+      }
+    ]
+  }
+}

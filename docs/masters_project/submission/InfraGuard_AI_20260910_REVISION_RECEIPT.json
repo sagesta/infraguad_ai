@@ -1,0 +1,39 @@
+{
+  "thesis": "C:\\Users\\adebo\\PROJECTS\\infraguad_ai\\docs\\masters_project\\InfraGuard_AI_Masters_Project_FINAL_REVISED_AFTER_10_SEPTEMBER_AUDIT.docx",
+  "thesis_sha256": "381f12d727bfc3e131dd39a8f7104dfa11751f5d8beb68da3651611b3d7c5be6",
+  "source_sha256": "270fdbe0f4ce91dafc78ba50e3431e361fa57c6cd9bb0e478eec4e3c1c429391",
+  "pages": 109,
+  "references": 51,
+  "navigation_entries": 202,
+  "visual_pages_reviewed": 109,
+  "closed_audit_items": [
+    "B1",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8",
+    "C9"
+  ],
+  "open_audit_items": [
+    "B2"
+  ],
+  "examiner_supplement": {
+    "path": "C:\\Users\\adebo\\PROJECTS\\infraguad_ai\\docs\\masters_project\\submission\\InfraGuard_AI_Frozen_V1_Source_and_Objective_Evidence_20260910.zip",
+    "sha256": "fa4e550dedaaca53d9ac0d6fe295a64f1895f30055ebb0baf4e7541f68d0a51e",
+    "bytes": 126891,
+    "file_count": 35,
+    "source_files_verified": 26,
+    "combined_source_sha256": "5f3f1460b9441e39e4f5780df542e1f445768fc8428f5ed3e8cbdc27d4b3769c",
+    "credential_pattern_hits": 0,
+    "zip_integrity": "PASS",
+    "objective_recomputation": "PASS",
+    "frozen_records_modified": false,
+    "published": false,
+    "source_archive_sha256": "eebad78ba788ed7d155739ad47b671b5f8972400843512a47dfdbce5f00ff77d"
+  },
+  "published": false
+}

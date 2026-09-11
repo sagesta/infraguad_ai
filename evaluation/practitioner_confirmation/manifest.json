@@ -1,0 +1,54 @@
+{
+  "evidence_type": "exploratory_practitioner_confirmation",
+  "public_identity_labels": {
+    "devops": "A1",
+    "sre": "A2"
+  },
+  "privacy_boundary": "Original email submissions, full names, and the confidential assessor identity mapping are researcher-reported as retained outside the public repository for supervisor verification. The A-series assessor codes are distinct from the P-series participant codes used for the separate SUS study.",
+  "assessment_scope": "Two human operations practitioners completed separate DevOps and SRE role-lens scoring of all 72 incident responses and all 72 RAG/no-RAG responses.",
+  "claim_boundary": "The reports provide exploratory evidence from two human assessors. They do not establish population-level diagnostic reliability, production effectiveness, or generalisable findings.",
+  "separate_sus_study": "The separate System Usability Scale study received 11 consented submissions and analysed 10 complete responses. Its findings are descriptive and do not establish population-level usability or task performance.",
+  "authoritative_evidence_rule": "The unchanged role reports and their hashes are the public human-assessment records. Original email submissions and the confidential identity mapping are researcher-reported as retained outside the public repository.",
+  "public_item_level_scoring": {
+    "completed_item_level_human_score_sheets_present": false,
+    "template_paths": [
+      "evaluation/results/qwen2.5-3b-v1/assessor_incident_worksheet_A.csv",
+      "evaluation/results/qwen2.5-3b-v1/assessor_incident_worksheet_B.csv",
+      "evaluation/results/qwen2.5-3b-v1/assessor_rag_worksheet_A.csv",
+      "evaluation/results/qwen2.5-3b-v1/assessor_rag_worksheet_B.csv"
+    ],
+    "verified_template_state": "Each template contains 72 evidence rows and zero populated human score cells.",
+    "limitation": "The aggregate scores and agreement statistics cannot be independently recomputed from the public package alone. Item-level scores must not be reconstructed or fabricated."
+  },
+  "excluded_historical_artifacts": [
+    {
+      "path": "evaluation/results/qwen2.5-3b-v1/InfraGuard_AI_AI_Simulated_DevOps_SRE_Assessment_Report.docx",
+      "sha256": "501fc887b47ea135e922b18828b901243336d0a5dd06e3723adfbfebce16bb8b",
+      "evidence_status": "Historical development artefact; non-evidential and excluded from the defence/submission package."
+    },
+    {
+      "path": "evaluation/results/qwen2.5-3b-v1/InfraGuard_AI_AI_Simulated_DevOps_SRE_Assessment.xlsx",
+      "sha256": "786988ab39789fdaf3ceb5a06bcfcbb9ee50eea68e20986fc6e4ba34f0f5ca80",
+      "evidence_status": "Historical development artefact; non-evidential and excluded from the defence/submission package."
+    }
+  ],
+  "files": [
+    {
+      "path": "evaluation/practitioner_confirmation/InfraGuard_DevOps_Assessment_Report.docx",
+      "role": "devops",
+      "public_assessor_code": "A1",
+      "assessment_date_in_report": "2026-08-24",
+      "canonical_role_package_seed": 2026082405,
+      "sha256": "741b5446c8dffaabfeac20823aa7a4427a4a61c058b1b9e9c619000c641d6720"
+    },
+    {
+      "path": "evaluation/practitioner_confirmation/InfraGuard_SRE_Assessment_Report.docx",
+      "role": "sre",
+      "public_assessor_code": "A2",
+      "assessment_date_in_report": "2026-08-24",
+      "canonical_role_package_seed": 2026082412,
+      "sha256": "7c91dfd735a4a070ce4e6053c5addcfb70cec2d67002b199b43f22f21133efdb",
+      "source_correction": "The opening record and executive summary both state 2026082412. The method-table value 2026081902 belongs to excluded historical assessment material and is not the human SRE role-package seed. The unchanged binary is preserved for hash integrity; CORRECTION_NOTICE.md is authoritative for this field."
+    }
+  ]
+}

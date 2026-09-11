@@ -1,6 +1,6 @@
 # InfraGuard AI
 
-**InfraGuard AI** is an intelligent, self-hosted DevSecOps observability agent. It continuously monitors your infrastructure (web apps, containers, and VMs) and acts as an automated Site Reliability Engineer (SRE). Instead of just showing you dashboards, InfraGuard uses AI to read logs, analyze metrics, and automatically determine if your system is healthy, under attack, or failing.
+**InfraGuard AI** is a self-hosted, LLM-assisted DevSecOps observability reference implementation. It collects selected telemetry from web applications, containers, and VMs and produces advisory health and incident-triage verdicts for operator review. It is designed for supervised triage and controlled evaluation; it is not an autonomous SRE or a production-validated incident-response system.
 
 ---
 
@@ -79,22 +79,31 @@ Configure these in your `.env` file (see `.env.example` for a complete annotated
 
 ## Setup & Deployment
 
-### Local Development
+> [!WARNING]
+> **The included Terraform, Docker Compose, and GitHub Actions files are a safer demonstration baseline, not a complete production security implementation.** Before operational use, terminate and enforce HTTPS at a reviewed ingress or reverse proxy; expose only port 443 to approved source ranges; keep the dashboard/API (8080), Loki (3100), and Prometheus (9090) on loopback or trusted private/VPN networks; set `SESSION_COOKIE_SECURE=1`; place credentials and API keys in a managed secret store rather than a repository or long-lived plaintext `.env` file; grant service identities only the permissions they require; and independently verify firewall rules, TLS configuration, secret delivery, authentication, backup/recovery, monitoring, and incident-response controls. Port 80 must remain disabled unless it performs an immediate redirect to HTTPS. The repository does **not** provision a TLS certificate, reverse proxy, or managed secret integration for you.
+
+### Local Demo / Development
+For a same-server demonstration, no public ingress, VPN, or TLS endpoint is required: run the browser on the server and use the loopback-bound dashboard.
+
 1. Copy the example env file: `cp .env.example .env`.
 2. Set `GEMINI_API_KEY` for the default provider, or switch `LLM_PROVIDER` and add the matching provider key.
 3. Start the app: `docker compose up -d --build api agent`.
-4. Open **`http://localhost:8080`** and log in.
+4. On that server, open **`http://127.0.0.1:8080`** and log in.
+
+The Compose file does not start Loki or Prometheus. For a same-server demo, set `LOKI_URL` and `PROMETHEUS_URL` only when those services are reachable by hostname from the app containers—for example, after attaching them to a shared Docker network. `localhost` and `127.0.0.1` inside a container refer to that container, not the server. Leave either variable blank to skip that optional collector. Notifications are also disabled until `NTFY_TOPIC` is explicitly configured.
 
 ### Production Deployment (GitHub Actions → GCE)
-The `.github/workflows/deploy.yml` pipeline runs on every push to `main`:
+The `.github/workflows/deploy.yml` pipeline runs on every push to `main`. It assumes a separately configured HTTPS reverse proxy or load balancer on the VM because Docker Compose binds the dashboard/API to `127.0.0.1:8080`:
 1. Runs the test suite (`pytest`).
 2. Builds the `agent` and `api` images and pushes them to Google Artifact Registry.
-3. SSHs into your VM, regenerates `.env` from GitHub Secrets (including `NTFY_TOPIC` and `PROBE_URLS`), and restarts Docker Compose.
+3. SSHs into your VM, regenerates a mode-`0600` `.env` from GitHub Secrets (including `NTFY_TOPIC` and `PROBE_URLS`), enables secure cookies, and restarts Docker Compose.
+
+This workflow still materialises secrets in a VM-local `.env` file and therefore does not meet the managed-secret requirement on its own. For production, replace that step with a managed secret service and short-lived workload identity, then verify secret rotation and least-privilege access. Do not make port 8080 public to compensate for a missing HTTPS proxy.
 
 Pull requests run tests via `.github/workflows/test.yml`.
 
 ### Indexing Local Runbooks
-Add Markdown files under `./runbooks`, then click **⟳ Re-index** on the dashboard's Runbook Assistant card or call the endpoint directly:
+Add, change, or remove Markdown files under `./runbooks`, then click **⟳ Re-index** on the dashboard's Runbook Assistant card or call the endpoint directly. Re-indexing uses stable document identities: changed files are updated, deleted files are removed, and repeated refreshes do not create duplicates. A failed refresh returns an error instead of reporting a false success.
 ```bash
 curl -X POST http://localhost:8080/api/runbooks/index -b "session=<your_session_cookie>"
 ```
@@ -112,9 +121,12 @@ curl -X POST http://localhost:8080/api/runbooks/index -b "session=<your_session_
 | GET | `/alerts` | Recent check history (last 20 verdicts) |
 | GET | `/api/config` | Which integrations are configured (booleans only) |
 | GET | `/api/agent/mode` | Active reasoning mode + model |
+| POST | `/api/verdicts/ack` | Mark an existing `ok`/`warning` condition as known for 1–365 days |
+| POST | `/api/verdicts/unack` | Remove an acknowledgement |
+| GET | `/api/acks` | List active acknowledgements |
 | GET | `/api/threats` | Scan recent Loki logs for attack patterns |
 | POST | `/api/threats/apply` | Apply a CrowdSec ban for a detected threat (dry-run without CrowdSec) |
 | POST | `/api/runbooks/query` | Ask the runbook RAG assistant a question |
-| POST | `/api/runbooks/index` | (Re)load local Markdown runbooks into ChromaDB |
+| POST | `/api/runbooks/index` | Synchronise local Markdown runbooks with ChromaDB |
 
 All routes except `/health` and `/login` require an authenticated session.

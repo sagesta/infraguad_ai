@@ -1,0 +1,17 @@
+%% Editable panel derived from fig_3_3_remediation_flow.mmd.
+flowchart TB
+  START([Start cycle]) --> PREP[Prepare optional Docker log seed<br/>and current-ruleset acknowledgements]
+  PREP --> COLLECT[Collect configured telemetry]
+  COLLECT --> ANALYSE[Analyse and validate verdict<br/>Reported provider/parser failure:<br/>high pipeline-failure verdict]
+  ANALYSE --> SEV{High or critical?}
+  SEV -->|Yes| DIAG[Extra Docker diagnostics<br/>when monitoring is enabled]
+  DIAG --> ALERT[Attempt ntfy notification<br/>Retain success or error result]
+  ALERT --> RETURN[Graph returns to scheduler]
+  SEV -->|No| RETURN
+  RETURN --> STORE[(Compute fingerprint and persist verdict<br/>with diagnostic and notification results)]
+  STORE --> END([Cycle completes and waits])
+  classDef default fill:#f5f7fa,stroke:#41566d,color:#15283b,stroke-width:1.2px;
+  classDef decision fill:#e6eef6,stroke:#41566d,color:#15283b;
+  classDef store fill:#e8f2ec,stroke:#46715b,color:#15283b;
+  class SEV decision;
+  class STORE store;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import os
 import re
@@ -14,11 +15,43 @@ logger = logging.getLogger(__name__)
 # Patterns for threat detection
 _BRUTE_FORCE_THRESHOLD = 10
 _PORT_SCAN_THRESHOLD = 20
+ALLOWED_CROWDSEC_THREAT_TYPES = frozenset(
+    {"http_brute_force", "ssh_brute_force", "port_scan"}
+)
 
 
 def _extract_ips(text: str) -> list[str]:
     """Extract IPv4 addresses from text."""
-    return re.findall(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", text)
+    valid: list[str] = []
+    for candidate in re.findall(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", text):
+        try:
+            valid.append(str(ipaddress.IPv4Address(candidate)))
+        except ipaddress.AddressValueError:
+            continue
+    return valid
+
+
+def _validated_crowdsec_ip(value: Any) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("source_ip must be a valid IP address string")
+    try:
+        address = ipaddress.ip_address(value.strip())
+    except ValueError as exc:
+        raise ValueError("source_ip must be a valid IP address string") from exc
+
+    # Apply the same policy to IPv4-mapped IPv6 addresses so ::ffff:127.0.0.1
+    # cannot bypass the loopback check. Private addresses remain valid because
+    # InfraGuard may monitor private or VPN infrastructure.
+    policy_address = getattr(address, "ipv4_mapped", None) or address
+    if policy_address.is_loopback:
+        raise ValueError("source_ip must not be a loopback address")
+    if policy_address.is_link_local:
+        raise ValueError("source_ip must not be a link-local address")
+    if policy_address.is_multicast:
+        raise ValueError("source_ip must not be a multicast address")
+    if policy_address.is_unspecified:
+        raise ValueError("source_ip must not be an unspecified address")
+    return str(address)
 
 
 def analyze_threats(loki_logs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -102,8 +135,19 @@ def analyze_threats(loki_logs: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def validate_crowdsec_threat(threat: dict[str, Any]) -> tuple[str, str]:
+    """Return the canonical ``(threat_type, source_ip)`` selection."""
+    threat_type_value = threat.get("threat_type")
+    if not isinstance(threat_type_value, str):
+        raise ValueError("threat_type must be a supported string value")
+    threat_type = threat_type_value.strip().lower()
+    if threat_type not in ALLOWED_CROWDSEC_THREAT_TYPES:
+        raise ValueError("threat_type is not supported for a CrowdSec decision")
+    return threat_type, _validated_crowdsec_ip(threat.get("source_ip"))
+
+
 def suggest_crowdsec_decision(threat: dict[str, Any]) -> dict[str, Any]:
-    """Generate a CrowdSec-compatible decision payload for a detected threat.
+    """Generate a CrowdSec-compatible decision payload for a server-detected threat.
 
     Args:
         threat: A single threat dict from analyze_threats().
@@ -111,8 +155,7 @@ def suggest_crowdsec_decision(threat: dict[str, Any]) -> dict[str, Any]:
     Returns:
         CrowdSec decision payload.
     """
-    threat_type = str(threat.get("threat_type", "unknown"))
-    source_ip = str(threat.get("source_ip", ""))
+    threat_type, source_ip = validate_crowdsec_threat(threat)
     description = str(threat.get("description", ""))
 
     duration = "24h"

@@ -48,18 +48,20 @@ def test_parse_valid_json() -> None:
     assert out["signature"] == "prometheus:disk-low:/"
 
 
-def test_parse_fenced_json() -> None:
+def test_parse_rejects_fenced_json() -> None:
     out = parse_verdict_text(f"```json\n{VERDICT_JSON}\n```")
-    assert out["ok"] is True and out["severity"] == "warning"
+    assert out["ok"] is False and out["error"] == "json_decode"
 
 
-def test_parse_json_embedded_in_prose() -> None:
+def test_parse_rejects_json_embedded_in_prose() -> None:
     out = parse_verdict_text(f"Here is my verdict:\n{VERDICT_JSON}\nHope that helps!")
-    assert out["ok"] is True and out["summary"] == "Disk is filling up"
+    assert out["ok"] is False and out["error"] == "json_decode"
 
 
 def test_parse_rejects_invalid_severity() -> None:
-    out = parse_verdict_text(json.dumps({"severity": "catastrophic", "summary": "x"}))
+    payload = json.loads(VERDICT_JSON)
+    payload["severity"] = "catastrophic"
+    out = parse_verdict_text(json.dumps(payload))
     assert out["ok"] is False and out["error"] == "invalid_severity"
 
 

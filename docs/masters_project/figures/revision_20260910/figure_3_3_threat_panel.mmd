@@ -1,0 +1,7 @@
+%% Separate operator path derived from fig_3_3_remediation_flow.mmd.
+flowchart TB
+  SCAN[Scan recent Loki logs<br/>using deterministic threat rules]
+  SCAN --> SELECT[Operator selects a detected threat<br/>and approves an IP ban]
+  SELECT --> CHECK[API re-fetches evidence and<br/>validates the exact type / IP match]
+  CHECK --> RESULT[Reject a stale or invalid selection<br/>For a valid match, submit to CrowdSec<br/>or return dry run if unconfigured]
+  classDef default fill:#f5f7fa,stroke:#41566d,color:#15283b,stroke-width:1.2px;

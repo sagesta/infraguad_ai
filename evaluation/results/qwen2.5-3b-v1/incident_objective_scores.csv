@@ -1,0 +1,73 @@
+﻿scenario_id,category,repeat,gold_severity,predicted_severity,schema_valid,severity_exact,signature_format,signature_stable_across_repeats,expected_signature_exact,latency_seconds,prompt_tokens,completion_tokens
+C01,Healthy,1,ok,ok,True,True,True,True,True,26.305491,872,87
+C01,Healthy,2,ok,ok,True,True,True,True,True,6.362516,872,90
+C01,Healthy,3,ok,ok,True,True,True,True,True,6.119963,872,90
+C02,Healthy,1,ok,ok,True,True,True,False,False,8.372707,734,108
+C02,Healthy,2,ok,ok,True,True,True,False,False,7.222872,734,100
+C02,Healthy,3,ok,ok,True,True,True,False,False,6.778189,734,100
+C03,Healthy,1,ok,ok,True,True,True,True,True,8.300297,800,89
+C03,Healthy,2,ok,ok,True,True,True,True,True,6.500103,800,95
+C03,Healthy,3,ok,ok,True,True,True,True,True,6.361869,800,95
+C04,Degraded,1,warning,ok,True,False,True,False,,10.754644,817,118
+C04,Degraded,2,warning,ok,True,False,True,False,,8.234871,817,122
+C04,Degraded,3,warning,ok,True,False,True,False,,8.840991,817,122
+C05,Degraded,1,warning,high,True,False,True,True,,11.839182,808,173
+C05,Degraded,2,warning,high,True,False,True,True,,9.933219,808,170
+C05,Degraded,3,warning,high,True,False,True,True,,10.019998,808,170
+C06,Degraded,1,warning,ok,True,False,True,False,,7.615288,742,99
+C06,Degraded,2,warning,ok,True,False,True,False,,6.364278,742,99
+C06,Degraded,3,warning,ok,True,False,True,False,,6.288622,742,99
+C07,Degraded,1,warning,ok,True,False,True,True,,10.373041,807,146
+C07,Degraded,2,warning,ok,True,False,True,True,,8.758075,807,152
+C07,Degraded,3,warning,ok,True,False,True,True,,8.797987,807,152
+C08,Degraded,1,warning,high,True,False,True,False,,10.721875,827,147
+C08,Degraded,2,warning,high,True,False,True,False,,8.888684,827,149
+C08,Degraded,3,warning,high,True,False,True,False,,9.211292,827,149
+C09,Failure,1,high,high,True,True,True,False,,14.077198,864,187
+C09,Failure,2,high,high,True,True,True,False,,10.412671,864,181
+C09,Failure,3,high,high,True,True,True,False,,10.421412,864,181
+C10,Failure,1,high,critical,True,False,True,False,,10.703969,791,155
+C10,Failure,2,high,critical,True,False,True,False,,10.334742,791,179
+C10,Failure,3,high,critical,True,False,True,False,,10.339118,791,179
+C11,Failure,1,high,high,True,True,True,True,,11.7307,824,157
+C11,Failure,2,high,high,True,True,True,True,,9.746431,824,169
+C11,Failure,3,high,high,True,True,True,True,,9.840816,824,169
+C12,Failure,1,high,critical,True,False,True,True,,11.617426,824,162
+C12,Failure,2,high,critical,True,False,True,True,,10.223393,824,175
+C12,Failure,3,high,critical,True,False,True,True,,10.22901,824,175
+C13,Failure,1,high,critical,True,False,True,False,,12.109568,877,153
+C13,Failure,2,high,critical,True,False,True,False,,13.926519,877,169
+C13,Failure,3,high,critical,True,False,True,False,,13.214655,877,169
+C14,Failure,1,critical,critical,True,True,True,False,,10.130271,802,113
+C14,Failure,2,critical,critical,True,True,True,False,,9.866347,802,136
+C14,Failure,3,critical,critical,True,True,True,False,,9.46597,802,136
+C15,Security,1,high,warning,True,False,True,False,,11.723973,809,131
+C15,Security,2,high,warning,True,False,True,False,,11.777171,809,161
+C15,Security,3,high,warning,True,False,True,False,,12.203648,809,161
+C16,Security,1,high,critical,True,False,True,False,,12.70423,805,145
+C16,Security,2,high,high,True,True,True,False,,9.284529,805,117
+C16,Security,3,high,high,True,True,True,False,,7.857842,805,117
+C17,Security,1,high,warning,True,False,True,False,,14.53215,803,165
+C17,Security,2,high,warning,True,False,True,False,,12.687815,803,161
+C17,Security,3,high,warning,True,False,True,False,,12.387656,803,161
+C18,Ambiguous,1,warning,ok,True,False,True,True,,9.738295,855,91
+C18,Ambiguous,2,warning,ok,True,False,True,True,,8.199172,855,98
+C18,Ambiguous,3,warning,ok,True,False,True,True,,7.69925,855,98
+C19,Ambiguous,1,warning,high,True,False,True,False,,13.171672,858,139
+C19,Ambiguous,2,warning,high,True,False,True,False,,9.975362,858,134
+C19,Ambiguous,3,warning,high,True,False,True,False,,10.266251,858,134
+C20,Ambiguous,1,warning,critical,True,False,True,True,,18.198165,931,170
+C20,Ambiguous,2,warning,critical,True,False,True,True,,14.498467,931,161
+C20,Ambiguous,3,warning,critical,True,False,True,True,,12.579611,931,161
+C21,Missing telemetry,1,ok,ok,True,True,True,False,False,9.113679,734,110
+C21,Missing telemetry,2,ok,ok,True,True,True,False,False,7.773169,734,109
+C21,Missing telemetry,3,ok,ok,True,True,True,False,False,8.33812,734,109
+C22,Missing telemetry,1,warning,critical,True,False,True,False,,14.577056,835,139
+C22,Missing telemetry,2,warning,critical,True,False,True,False,,9.03933,835,130
+C22,Missing telemetry,3,warning,critical,True,False,True,False,,8.801541,835,130
+C23,Recurring,1,ok,ok,True,True,True,True,False,11.048294,843,114
+C23,Recurring,2,ok,ok,True,True,True,True,False,8.511848,843,111
+C23,Recurring,3,ok,ok,True,True,True,True,False,7.709476,843,111
+C24,Recurring,1,critical,critical,True,True,True,True,,10.178789,912,112
+C24,Recurring,2,critical,critical,True,True,True,True,,9.000923,912,131
+C24,Recurring,3,critical,critical,True,True,True,True,,9.049507,912,131

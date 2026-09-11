@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraGuard Pro - Proposal Defence</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --bg-base: #050b14;
+            --bg-card: rgba(10, 15, 28, 0.85);
+            --accent-primary: #00ffcc;
+            --accent-secondary: #00bfff;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --danger: #ff4757;
+            --border-glow: rgba(0, 255, 204, 0.3);
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: 16px;
+        }
+
+        /* Particle Canvas */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Ambient Background Glow */
+        .ambient-glow {
+            position: absolute;
+            width: 80vw;
+            height: 80vh;
+            top: 10vh;
+            left: 10vw;
+            background: radial-gradient(circle, rgba(0, 255, 204, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Layout Container */
+        .presentation-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        /* Slide Styles */
+        .slide {
+            position: absolute;
+            width: 90vw;
+            max-width: 1300px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95) translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+
+        /* Content Card */
+        .slide-content {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 255, 204, 0.15);
+            border-radius: 16px;
+            padding: 2.5rem 4rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 255, 204, 0.02);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slide-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0.8;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 { margin: 0; font-weight: 700; line-height: 1.2; }
+        
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #ffffff, var(--accent-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+        
+        h2 {
+            font-size: 2.2rem;
+            color: var(--accent-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h2::before {
+            content: '>';
+            font-family: var(--font-mono);
+            color: var(--accent-secondary);
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            color: var(--accent-secondary);
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+        }
+
+        p, li {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            color: var(--text-main);
+        }
+
+        ul { padding-left: 1.5rem; margin-top: 0.5rem; }
+        li::marker { color: var(--accent-primary); }
+
+        .subtitle {
+            font-size: 1.6rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+
+        /* Title Slide Specials */
+        .title-slide .slide-content {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 4rem;
+        }
+        
+        .shield-icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 15px var(--border-glow));
+            animation: pulse-glow 3s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { filter: drop-shadow(0 0 15px rgba(0, 255, 204, 0.2)); }
+            100% { filter: drop-shadow(0 0 25px rgba(0, 255, 204, 0.8)); }
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 3rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent-primary);
+            text-align: left;
+        }
+
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 0.85rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 0.4rem; font-family: var(--font-mono); }
+        .meta-val { font-size: 1.2rem; font-weight: 500; }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            flex-grow: 1;
+        }
+
+        /* Specific Components */
+        .highlight-box {
+            background: rgba(0, 255, 204, 0.05);
+            border-left: 4px solid var(--accent-primary);
+            padding: 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .danger-box {
+            background: rgba(255, 71, 87, 0.05);
+            border-left: 4px solid var(--danger);
+            padding: 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .danger-box p { color: #ffa4ac; margin: 0; font-weight: 500; }
+        .highlight-box p { margin: 0; }
+
+        .tech-table {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 12px;
+            align-items: center;
+        }
+
+        .tech-category {
+            font-family: var(--font-mono);
+            color: var(--accent-secondary);
+            font-size: 1rem;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .tech-value { font-size: 1.1rem; }
+
+        /* Architecture Flow Diagram */
+        .arch-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.4);
+            padding: 2rem 1.5rem;
+            border-radius: 12px;
+            border: 1px dashed rgba(0, 255, 204, 0.3);
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .diagram-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 15, 28, 0.9);
+            border: 1px solid var(--accent-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            width: 120px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .diagram-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 255, 204, 0.2);
+        }
+
+        .diagram-step.highlight { border-color: var(--accent-secondary); box-shadow: 0 0 15px rgba(0, 191, 255, 0.2); }
+        .diagram-step.warning { border-color: orange; box-shadow: 0 0 15px rgba(255, 165, 0, 0.2); }
+        .diagram-step.success { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 255, 204, 0.2); }
+
+        .step-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .step-label { font-family: var(--font-mono); font-size: 0.85rem; font-weight: bold; color: var(--text-main); line-height: 1.2; }
+        .step-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+        .diagram-arrow {
+            color: var(--accent-secondary);
+            font-size: 1.5rem;
+            animation: pulse-arrow 2s infinite;
+        }
+
+        @keyframes pulse-arrow {
+            0% { opacity: 0.5; transform: translateX(-3px); }
+            50% { opacity: 1; transform: translateX(3px); }
+            100% { opacity: 0.5; transform: translateX(-3px); }
+        }
+
+        /* Timeline Box */
+        .timeline {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            align-items: center;
+        }
+        
+        .timeline-week {
+            font-family: var(--font-mono);
+            color: var(--accent-primary);
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 100px;
+        }
+
+        /* Reveal Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .slide.active .reveal { opacity: 1; transform: translateY(0); }
+        
+        .delay-1 { transition-delay: 0.2s; }
+        .delay-2 { transition-delay: 0.4s; }
+        .delay-3 { transition-delay: 0.6s; }
+        .delay-4 { transition-delay: 0.8s; }
+        .delay-5 { transition-delay: 1.0s; }
+        .delay-6 { transition-delay: 1.2s; }
+
+        /* Navigation Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 10;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        
+        .dot:hover { background: rgba(0, 255, 204, 0.5); }
+        
+        .dot.active {
+            background: var(--accent-primary);
+            transform: scale(1.4);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 2rem;
+            right: 2.5rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            font-size: 1rem;
+            z-index: 10;
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: 2rem;
+            left: 2.5rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            z-index: 10;
+            opacity: 0.6;
+        }
+
+        /* Container styling to ensure no inner scrolling */
+        .inner-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-evenly;
+        }
+
+        /* Objective Badges */
+        .objective-card { position: relative; padding: 1.5rem; background: rgba(0,0,0,0.2); border-radius: 8px; border-top: 2px solid var(--accent-primary); margin-top: 1rem; }
+        .obj-badge { position: absolute; top: -15px; right: 15px; background: var(--bg-card); border: 2px solid var(--accent-secondary); color: var(--accent-secondary); width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-family: var(--font-mono); font-weight: bold; font-size: 0.9rem; box-shadow: 0 0 10px rgba(0, 191, 255, 0.3); }
+
+        /* Hub Architecture Diagram */
+        .arch-complex { display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; width: 100%; font-family: var(--font-mono); font-size: 0.85rem; }
+        .arch-tier-top { display: flex; align-items: flex-start; justify-content: center; gap: 1rem; position: relative; }
+        .arch-col { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; position: relative; }
+        .arch-row { display: flex; align-items: center; gap: 0.8rem; position: relative; }
+        .arch-node-box { background: rgba(10, 15, 28, 0.9); border: 1px solid var(--accent-primary); border-radius: 6px; padding: 0.6rem; text-align: center; width: 130px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; min-height: 60px; }
+        .arch-node-box.highlight { border-color: var(--accent-secondary); box-shadow: 0 0 15px rgba(0, 191, 255, 0.2); }
+        .arch-node-box.warning { border-color: orange; }
+        .arch-node-box.success { border-color: #00ffcc; }
+        .arch-node-box.wide { width: 220px; }
+        .arch-node-box.auto { width: auto; padding: 0.6rem 1rem; }
+        .arch-arr { color: var(--accent-secondary); font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .arch-arr.down { transform: rotate(90deg); height: 20px; }
+        .arch-arr.up { transform: rotate(-90deg); height: 20px; }
+        .arch-arr.left { transform: rotate(180deg); }
+        .arch-tier-bottom { display: flex; justify-content: center; align-items: center; gap: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; border: 1px dashed var(--text-muted); }
+
+        /* Tech Dividers */
+        .tech-divider { grid-column: 1 / -1; border-bottom: 1px solid rgba(0, 255, 204, 0.2); margin-top: 0.5rem; color: var(--accent-primary); font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; padding-bottom: 0.3rem; }
+
+        /* Horizontal Timeline */
+        .gantt-container { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; margin-top: 1rem; }
+        .gantt-row { display: flex; align-items: center; gap: 1rem; }
+        .gantt-label { width: 90px; font-family: var(--font-mono); color: var(--accent-primary); font-size: 0.85rem; font-weight: bold; text-align: right; flex-shrink: 0; }
+        .gantt-track { flex-grow: 1; background: rgba(0,0,0,0.3); border-radius: 4px; height: 1.8rem; position: relative; overflow: hidden; }
+        .gantt-bar { position: absolute; top: 0; height: 100%; background: linear-gradient(90deg, rgba(0,255,204,0.3), var(--accent-secondary)); border-radius: 4px; display: flex; align-items: center; padding-left: 0.8rem; font-size: 0.85rem; color: #fff; font-weight: 500; text-shadow: 0 1px 2px #000; box-shadow: inset 0 0 5px rgba(255,255,255,0.2); white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient background and particles -->
+    <div class="ambient-glow"></div>
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="presentation-container">
+        
+        <!-- SLIDE 1: TITLE -->
+        <div class="slide title-slide active" id="slide-1">
+            <div class="slide-content">
+                <svg class="shield-icon reveal" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 8v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                </svg>
+                <h1 class="reveal delay-1">Design and Development of an LLM-Based Autonomous Security Remediation System for Cloud-Native CI/CD Pipelines</h1>
+                <div class="subtitle reveal delay-2">System: InfraGuard Pro (A Multi-Server Agentic DevSecOps Platform)</div>
+                
+                <div class="meta-grid reveal delay-3">
+                    <div class="meta-item">
+                        <span class="meta-label">Student</span>
+                        <span class="meta-val">Adebodun Samuel Tomola</span>
+                        <span class="meta-val" style="font-size: 0.9rem; color: var(--text-muted);">2025/A/MIT/1011</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Institution</span>
+                        <span class="meta-val">Miva Open University</span>
+                        <span class="meta-val" style="font-size: 0.9rem; color: var(--text-muted);">Abuja, Nigeria</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Supervisor</span>
+                        <span class="meta-val">Emmanuel Mkpojiogu</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date</span>
+                        <span class="meta-val">June 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: BACKGROUND & PROBLEM CONTEXT -->
+        <div class="slide" id="slide-2">
+            <div class="slide-content">
+                <h2>Background & Problem Context</h2>
+                <div class="inner-content">
+                    <p class="reveal">Modern organisations will increasingly rely on CI/CD pipelines and cloud-native delivery mechanisms for rapid software deployment.</p>
+                    
+                    <ul class="reveal delay-1">
+                        <li>Security scanners (Semgrep, Bandit, Trivy, Checkov, Gitleaks, OSV-Scanner) routinely emit findings in standard formats (SARIF).</li>
+                        <li>However, these tools <strong>STOP</strong> at detection.</li>
+                        <li>Currently, there is no reliable system for prioritisation, patch generation, pull request creation, or post-fix validation.</li>
+                        <li>The integration of Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and agentic workflows will create an unprecedented opportunity to close this gap.</li>
+                    </ul>
+
+                    <div class="danger-box reveal delay-2">
+                        <p>Key Statistic: Vulnerability remediation will remain slow, fragmented, and heavily manual, creating significant windows of exposure.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: STATEMENT OF THE PROBLEM -->
+        <div class="slide" id="slide-3">
+            <div class="slide-content">
+                <h2>Statement of the Problem</h2>
+                <div class="inner-content grid-2">
+                    <div class="reveal">
+                        <h3>The Remediation Bottleneck</h3>
+                        <ul>
+                            <li>Automated scanners will continue to be widely used, but remediation will remain a manual bottleneck.</li>
+                            <li>Development teams will receive more findings than they can triage, leading to:
+                                <ul>
+                                    <li>Increased Mean Time To Remediate (MTTR)</li>
+                                    <li>Developer alert fatigue</li>
+                                    <li>Unresolved exploitable vulnerabilities</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="reveal delay-1">
+                        <h3>Limitations of Existing Tools</h3>
+                        <ul>
+                            <li>Constrained by platform lock-in and single-scanner scope.</li>
+                            <li>Provide weak contextual awareness and limited LLM provider choice.</li>
+                            <li>Lack post-deployment validation of applied patches.</li>
+                        </ul>
+                        <div class="highlight-box reveal delay-2" style="margin-top: 1.5rem;">
+                            <p><strong>Core Problem:</strong> The study will address the absence of a vendor-neutral, policy-controlled, multi-scanner, LLM-assisted remediation system, which is especially critical for Nigerian/African SMEs with limited security headcount.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: AIM & FOUR RESEARCH OBJECTIVES -->
+        <div class="slide" id="slide-4">
+            <div class="slide-content">
+                <h2>Aim & Research Objectives</h2>
+                <div class="inner-content">
+                    <div class="highlight-box reveal">
+                        <p><strong>AIM:</strong> The study will design, implement, and evaluate InfraGuard Pro — an LLM-based autonomous security remediation system that will consume heterogeneous CI/CD scanner findings, generate policy-controlled patch proposals, and validate outcomes through closed-loop observability.</p>
+                    </div>
+
+                    <div class="grid-2" style="margin-top: 1rem;">
+                        <div class="reveal delay-1 objective-card">
+                            <div class="obj-badge">O1</div>
+                            <h3 style="margin-top:0;">Objective 1: Requirements</h3>
+                            <p>The system will gather and analyse functional, non-functional, security, operational, and user requirements.</p>
+                        </div>
+                        <div class="reveal delay-2 objective-card">
+                            <div class="obj-badge">O2</div>
+                            <h3 style="margin-top:0;">Objective 2: Design</h3>
+                            <p>The study will design the architecture, data flow, database model, policy model, and interaction workflow.</p>
+                        </div>
+                        <div class="reveal delay-3 objective-card">
+                            <div class="obj-badge">O3</div>
+                            <h3 style="margin-top:0;">Objective 3: Implementation</h3>
+                            <p>The study will develop the system using SARIF ingestion, RAG-based evidence retrieval, LLM provider abstraction, policy-controlled patch generation, Git PR integration, and audit logging.</p>
+                        </div>
+                        <div class="reveal delay-4 objective-card">
+                            <div class="obj-badge">O4</div>
+                            <h3 style="margin-top:0;">Objective 4: Evaluation</h3>
+                            <p>The study will evaluate effectiveness, safety, performance, cost, and usability against real-world and synthetic findings.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: RESEARCH QUESTIONS -->
+        <div class="slide" id="slide-5">
+            <div class="slide-content">
+                <h2>Research Questions</h2>
+                <div class="inner-content">
+                    <p class="reveal subtitle" style="text-align: left; margin-bottom: 1.5rem;">The proposed research will answer the following key questions:</p>
+                    
+                    <ol class="reveal delay-1" style="font-size: 1.2rem; line-height: 1.8;">
+                        <li style="margin-bottom: 1.2rem;">What functional and non-functional requirements will be necessary for a safe LLM-based autonomous security remediation system in cloud-native CI/CD environments?</li>
+                        <li class="reveal delay-2" style="margin-bottom: 1.2rem;">How can a vendor-neutral architecture be designed to ingest heterogeneous SARIF findings, retrieve evidence, generate patch proposals, and route actions through policy controls?</li>
+                        <li class="reveal delay-3" style="margin-bottom: 1.2rem;">How can InfraGuard Pro be implemented using appropriate programming languages, frameworks, databases, LLM providers, observability tools, and CI/CD integrations?</li>
+                        <li class="reveal delay-4">To what extent will the developed system improve remediation effectiveness, reduce MTTR, control LLM cost, prevent regressions, and support operator trust vs. manual triage?</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: LITERATURE GAP & THEORETICAL FRAMEWORK -->
+        <div class="slide" id="slide-6">
+            <div class="slide-content">
+                <h2>Literature Gap & Theoretical Framework</h2>
+                <div class="inner-content grid-2">
+                    <div class="reveal">
+                        <h3>Identified Gaps</h3>
+                        <ul style="font-size: 1.05rem;">
+                            <li>Most solutions will not orchestrate findings across multiple scanner categories through a single SARIF-based pipeline.</li>
+                            <li>Many will remain tied to one LLM provider, scanner vendor, or repository platform.</li>
+                            <li>Few will clearly distinguish recommend-only, human-approved, and autonomous-low-risk modes.</li>
+                            <li>LLM-generated patches will rarely be validated through both scanner re-runs AND telemetry.</li>
+                            <li>Limited published evidence will exist on cost, latency, accuracy, regression rate, and operator trust for autonomous remediation in resource-constrained environments.</li>
+                        </ul>
+                    </div>
+                    <div class="reveal delay-2">
+                        <h3>Theoretical Frameworks</h3>
+                        <div class="highlight-box" style="margin-bottom: 1rem;">
+                            <strong>Primary: Design Science Research (DSR)</strong><br>
+                            <span style="font-size: 0.95rem;">Problem Identification &rarr; Artefact Design &rarr; Development &rarr; Demonstration &rarr; Evaluation</span>
+                        </div>
+                        <div class="highlight-box">
+                            <strong>Secondary: DevSecOps Principles</strong><br>
+                            <span style="font-size: 0.95rem;">Focuses on shift-left security, continuous integration, and rapid automated response.</span>
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 1rem; color: var(--text-muted);">The study's results discussion will refer back to both frameworks to validate outcomes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: PROPOSED SOLUTION -->
+        <div class="slide" id="slide-7">
+            <div class="slide-content">
+                <h2>Proposed Solution (Architecture)</h2>
+                <div class="inner-content">
+                    <div class="arch-complex reveal">
+                        <div class="arch-tier-top">
+                            <div class="arch-row" style="align-items: flex-start;">
+                                <div class="arch-node-box">
+                                    <div style="font-size: 1.5rem;">⚙️</div>
+                                    <strong>Scanners</strong>
+                                </div>
+                                <div class="arch-arr" style="margin-top: 1.5rem;">➔</div>
+                                <div class="arch-node-box">
+                                    <div style="font-size: 1.5rem;">📥</div>
+                                    <strong>SARIF Ingestion</strong>
+                                </div>
+                                <div class="arch-arr" style="margin-top: 1.5rem;">➔</div>
+                                
+                                <div class="arch-col">
+                                    <div class="arch-node-box highlight" style="border-width: 2px;">
+                                        <div style="font-size: 1.5rem;">🧠</div>
+                                        <strong>Central Control Plane</strong>
+                                        <span style="font-size:0.75rem; color: var(--text-muted);">+ Policy Engine</span>
+                                    </div>
+                                    <div class="arch-row">
+                                        <div class="arch-col">
+                                            <div class="arch-arr up">➔</div>
+                                            <div class="arch-node-box">
+                                                <div style="font-size: 1.2rem;">🤖</div>
+                                                <strong>LLM Providers</strong>
+                                                <span style="font-size:0.7rem; color: var(--text-muted);">(OpenAI, Ollama, etc.)</span>
+                                            </div>
+                                        </div>
+                                        <div style="width: 20px;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="arch-arr" style="margin-top: 1.5rem;">➔</div>
+                                
+                                <div class="arch-col">
+                                    <div class="arch-node-box warning wide">
+                                        <strong>Routing Decisions (3 Modes)</strong>
+                                        <span style="font-size:0.75rem; color: var(--text-muted);">[Recommend | Approval | Auto]</span>
+                                    </div>
+                                    <div class="arch-arr down">➔</div>
+                                    <div class="arch-node-box success wide">
+                                        <div style="font-size: 1.2rem;">✅</div>
+                                        <strong>Git PR Creation</strong>
+                                    </div>
+                                    <div class="arch-arr down">➔</div>
+                                    <div class="arch-node-box wide" style="border-color: #00bfff;">
+                                        <div style="font-size: 1.2rem;">🔄</div>
+                                        <strong>Closed-Loop Validation</strong>
+                                        <span style="font-size:0.7rem; color: var(--text-muted);">(Scanner re-run + Telemetry)</span>
+                                    </div>
+                                    <div class="arch-arr down">➔</div>
+                                    <div class="arch-node-box wide" style="border-style: dashed;">
+                                        <div style="font-size: 1.2rem;">🔒</div>
+                                        <strong>Audit Log</strong>
+                                        <span style="font-size:0.7rem; color: var(--text-muted);">(hash-chained)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-tier-bottom reveal delay-2">
+                            <div class="arch-node-box auto">
+                                <strong>Operations Dashboard</strong>
+                            </div>
+                            <div class="arch-arr left">➔</div>
+                            <div class="arch-node-box auto" style="border-color: var(--accent-secondary);">
+                                <strong>Telemetry Queue</strong>
+                            </div>
+                            <div class="arch-arr left">➔</div>
+                            <div class="arch-node-box auto">
+                                <div style="font-size: 1.2rem;">📡</div>
+                                <strong>Satellite Agents</strong>
+                                <span style="font-size:0.7rem; color: var(--text-muted);">(multi-server environments)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: METHODOLOGY -->
+        <div class="slide" id="slide-8">
+            <div class="slide-content">
+                <h2>Methodology</h2>
+                <div class="inner-content">
+                    <p class="reveal subtitle" style="text-align: left; font-size: 1.3rem;">Hybrid Agile-DevSecOps + Design Science Research</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                        <div class="reveal delay-1" style="background: rgba(0,0,0,0.2); padding: 1.2rem; border-radius: 8px;">
+                            <h3 style="margin-top: 0;">1. Requirements</h3>
+                            <p style="font-size: 1rem; margin: 0;">Literature review, DevSecOps workflow analysis, scanner output inspection, and MoSCoW prioritisation will produce a requirements catalogue.</p>
+                        </div>
+                        <div class="reveal delay-2" style="background: rgba(0,0,0,0.2); padding: 1.2rem; border-radius: 8px;">
+                            <h3 style="margin-top: 0;">2. Design</h3>
+                            <p style="font-size: 1rem; margin: 0;">Architecture-driven, OO modelling will map architecture, use-case, sequence, ER, data-flow, and policy models.</p>
+                        </div>
+                        <div class="reveal delay-3" style="background: rgba(0,0,0,0.2); padding: 1.2rem; border-radius: 8px;">
+                            <h3 style="margin-top: 0;">3. Implementation & Testing</h3>
+                            <p style="font-size: 1rem; margin: 0;">Iterative sprints will be executed using FastAPI, LangGraph, ChromaDB, and Docker. Testing will include Unit, Integration, API, Security, Scanner re-runs, and UAT.</p>
+                        </div>
+                        <div class="reveal delay-4" style="background: rgba(0,0,0,0.2); padding: 1.2rem; border-radius: 8px;">
+                            <h3 style="margin-top: 0;">4. Evaluation</h3>
+                            <p style="font-size: 1rem; margin: 0;">The system will benchmark against real-world and synthetic findings, measuring patch acceptance, MTTR, regression rate, and LLM cost.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: TECHNOLOGY STACK -->
+        <div class="slide" id="slide-9">
+            <div class="slide-content">
+                <h2>Technology Stack</h2>
+                <div class="inner-content">
+                    <div class="tech-table reveal">
+                        <div class="tech-divider">Core & Infrastructure Layer</div>
+                        <div class="tech-category">Backend</div>
+                        <div class="tech-value">Python 3.11+, FastAPI, Uvicorn, SQLAlchemy</div>
+                        <div class="tech-category">Storage / Audit</div>
+                        <div class="tech-value">PostgreSQL / SQLite, Hash-chained audit log</div>
+                        
+                        <div class="tech-divider">Intelligence & Analytics Layer</div>
+                        <div class="tech-category">Agent & AI</div>
+                        <div class="tech-value">LangGraph, LangChain, Configurable LLM APIs, Local Endpoints</div>
+                        <div class="tech-category">Retrieval (RAG)</div>
+                        <div class="tech-value">ChromaDB, Vulnerability Advisories, Markdown Runbooks</div>
+                        
+                        <div class="tech-divider">Security & Telemetry Layer</div>
+                        <div class="tech-category">Scanners</div>
+                        <div class="tech-value">Semgrep, Bandit, Trivy, Checkov, Gitleaks, OSV-Scanner</div>
+                        <div class="tech-category">Observability</div>
+                        <div class="tech-value">Prometheus, Loki, OpenTelemetry, Satellite heartbeats</div>
+                        
+                        <div class="tech-divider">Operations Layer</div>
+                        <div class="tech-category">Frontend</div>
+                        <div class="tech-value">Web dashboard (SvelteKit 5, dark-mode)</div>
+                        <div class="tech-category">Deployment</div>
+                        <div class="tech-value">Docker, Compose, GitHub Actions, GitLab CI, Git APIs</div>
+                    </div>
+
+                    <div class="highlight-box reveal delay-2" style="margin-top: 1.5rem;">
+                        <p><strong>Feasibility Signal:</strong> The study will leverage the existing InfraGuard repository, which already contains foundational backend, agent, dashboard, scanner, and observability code.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: SCOPE & DELIMITATION -->
+        <div class="slide" id="slide-10">
+            <div class="slide-content">
+                <h2>Scope & Delimitation</h2>
+                <div class="inner-content grid-2">
+                    <div class="reveal">
+                        <h3>Within Scope</h3>
+                        <ul style="font-size: 1.05rem;">
+                            <li>SARIF v2.1.0 ingestion from 6 targeted scanners (Semgrep, Bandit, Trivy, Checkov, Gitleaks, OSV-Scanner).</li>
+                            <li>RAG-based retrieval from advisories, runbooks, and historical outcomes.</li>
+                            <li>LLM provider abstraction for managed and self-hosted endpoints.</li>
+                            <li>Policy routing modes (recommend, human-approval, autonomous).</li>
+                            <li>Pull-request creation via Git APIs + closed-loop validation.</li>
+                        </ul>
+                    </div>
+                    <div class="reveal delay-2">
+                        <h3>Intentionally Excluded</h3>
+                        <ul style="font-size: 1.05rem; color: var(--text-muted);">
+                            <li>Fine-tuning or training a new LLM from scratch.</li>
+                            <li>Formal commercial certification (SOC 2, ISO 27001).</li>
+                            <li>Full mobile or native desktop client.</li>
+                            <li>Network intrusion prevention beyond available integrations.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: TIMELINE & DELIVERABLES -->
+        <div class="slide" id="slide-11">
+            <div class="slide-content">
+                <h2>Project Timeline & Expected Deliverables</h2>
+                <div class="inner-content grid-2">
+                    <div class="reveal">
+                        <h3>14-Week Plan</h3>
+                        <div class="gantt-container">
+                            <div class="gantt-row">
+                                <div class="gantt-label">Week 1</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 7%; left: 0;">Proposal</div>
+                                </div>
+                            </div>
+                            <div class="gantt-row">
+                                <div class="gantt-label">Weeks 2-3</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 14%; left: 7%;">Requirements & Stories</div>
+                                </div>
+                            </div>
+                            <div class="gantt-row">
+                                <div class="gantt-label">Weeks 4-5</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 14%; left: 21%;">System Design</div>
+                                </div>
+                            </div>
+                            <div class="gantt-row">
+                                <div class="gantt-label">Weeks 6-9</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 28%; left: 35%;">Core Implementation (RAG, LLM, Policy)</div>
+                                </div>
+                            </div>
+                            <div class="gantt-row">
+                                <div class="gantt-label">Weeks 10-11</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 14%; left: 63%;">Integration & Audit</div>
+                                </div>
+                            </div>
+                            <div class="gantt-row">
+                                <div class="gantt-label">Weeks 12-13</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 14%; left: 77%;">Testing & Benchmarks</div>
+                                </div>
+                            </div>
+                            <div class="gantt-row">
+                                <div class="gantt-label">Week 14</div>
+                                <div class="gantt-track">
+                                    <div class="gantt-bar" style="width: 9%; left: 91%;">Defence</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reveal delay-2">
+                        <h3>Expected Deliverables</h3>
+                        <ul>
+                            <li>Approved proposal (PDF) + defence slides.</li>
+                            <li>Working InfraGuard Pro prototype + source code + deployment config.</li>
+                            <li>System design diagrams + technical documentation.</li>
+                            <li>Testing and evaluation report.</li>
+                            <li>Final project report (Chapters 1–6).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: CLOSING -->
+        <div class="slide title-slide" id="slide-12">
+            <div class="slide-content">
+                <svg class="shield-icon reveal" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9 12l2 2 4-4" stroke="var(--accent-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1 class="reveal delay-1" style="font-size: 3.5rem;">InfraGuard Pro</h1>
+                <div class="subtitle reveal delay-2" style="font-size: 1.8rem; color: var(--accent-primary);">Closing the Gap Between Detection and Remediation</div>
+                
+                <div class="reveal delay-3" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--text-muted); margin: 2rem 0; letter-spacing: 2px;">
+                    VENDOR-NEUTRAL | POLICY-CONTROLLED | MULTI-SCANNER | CLOSED-LOOP VALIDATED
+                </div>
+
+                <h2 class="reveal delay-4" style="border: none; justify-content: center; margin-top: 2rem; font-size: 2.5rem; background: linear-gradient(90deg, var(--text-main), var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Thank You</h2>
+                <p class="reveal delay-5" style="color: var(--accent-secondary); font-size: 1.3rem;">Open to Questions</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls" id="controls">
+            <!-- Dots generated by JS -->
+        </div>
+        
+        <div class="slide-number" id="slide-number">1 / 12</div>
+        <div class="keyboard-hint">Use arrow keys &larr; &rarr; to navigate</div>
+
+    </div>
+
+    <script>
+        // --- Presentation Logic ---
+        const slides = document.querySelectorAll('.slide');
+        const controlsContainer = document.getElementById('controls');
+        const slideNumberDisplay = document.getElementById('slide-number');
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        // Generate Dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('button');
+            dot.classList.add('dot');
+            if(index === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(index));
+            controlsContainer.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.dot');
+
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            
+            // Remove active classes
+            slides[currentSlide].classList.remove('active');
+            dots[currentSlide].classList.remove('active');
+            
+            // Update current index
+            currentSlide = index;
+            
+            // Add active classes
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+            
+            // Update counter
+            slideNumberDisplay.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            
+            // Trigger particle effects on title slides
+            if(currentSlide === 0 || currentSlide === totalSlides - 1) {
+                burstParticles();
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'Enter') {
+                goToSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowLeft') {
+                goToSlide(currentSlide - 1);
+            }
+        });
+
+        // Mouse Wheel Navigation (with debounce to prevent rapid scrolling)
+        let isScrolling = false;
+        document.addEventListener('wheel', (e) => {
+            if (isScrolling) return;
+            isScrolling = true;
+            
+            if (e.deltaY > 0) {
+                goToSlide(currentSlide + 1);
+            } else {
+                goToSlide(currentSlide - 1);
+            }
+            
+            setTimeout(() => { isScrolling = false; }, 800); // 800ms debounce
+        });
+
+        // --- Canvas Particle System ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let particles = [];
+        let canvasWidth, canvasHeight;
+
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, speed, size, color) {
+                this.x = x || Math.random() * canvasWidth;
+                this.y = y || Math.random() * canvasHeight;
+                this.speedX = (Math.random() - 0.5) * (speed || 0.5);
+                this.speedY = (Math.random() - 0.5) * (speed || 0.5);
+                this.size = Math.random() * (size || 2) + 0.5;
+                this.color = color || (Math.random() > 0.5 ? 'rgba(0, 255, 204, 0.5)' : 'rgba(0, 191, 255, 0.4)');
+                this.life = 100;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > canvasWidth) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvasHeight) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        // Initialize background particles
+        function initParticles() {
+            particles = [];
+            const particleCount = Math.floor((canvasWidth * canvasHeight) / 15000); // Responsive amount
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function burstParticles() {
+            // Add a burst of faster particles from the center
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle(canvasWidth / 2, canvasHeight / 2, 4, 3, 'rgba(0, 255, 204, 0.8)'));
+            }
+            // Keep particle count manageable
+            if(particles.length > 300) {
+                particles.splice(0, particles.length - 200);
+            }
+        }
+
+        // Draw connecting lines between close particles
+        function drawLines() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 255, 204, ${0.15 - distance/600})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            drawLines();
+            requestAnimationFrame(animate);
+        }
+
+        initParticles();
+        animate();
+        burstParticles(); // Initial burst
+
+    </script>
+</body>
+</html>

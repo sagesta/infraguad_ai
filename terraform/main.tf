@@ -23,16 +23,68 @@ resource "google_compute_address" "infraguard_ip" {
 
 # --- Firewall Rules ---
 
-resource "google_compute_firewall" "infraguard_allow" {
-  name    = "${var.app_name}-allow-ingress"
-  network = "default"
+# No ingress rule is created by default. Operators must deliberately provide
+# HTTPS source ranges after a TLS terminator/reverse proxy is configured.
+resource "google_compute_firewall" "infraguard_https" {
+  count = length(var.https_source_ranges) > 0 ? 1 : 0
+
+  name        = "${var.app_name}-allow-https"
+  description = "Allow HTTPS to InfraGuard from explicitly configured source ranges"
+  network     = "default"
+  direction   = "INGRESS"
 
   allow {
     protocol = "tcp"
-    ports    = ["80", "443", "3100", "9090", "8080"]
+    ports    = ["443"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = var.https_source_ranges
+  target_tags   = [var.app_name]
+}
+
+# HTTP is opt-in and intended only for a controlled redirect to HTTPS. The
+# application itself remains bound to loopback by docker-compose.yml.
+resource "google_compute_firewall" "infraguard_http_redirect" {
+  count = var.enable_http_ingress ? 1 : 0
+
+  name        = "${var.app_name}-allow-http-redirect"
+  description = "Optional HTTP ingress for redirecting clients to HTTPS"
+  network     = "default"
+  direction   = "INGRESS"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  source_ranges = var.http_source_ranges
+  target_tags   = [var.app_name]
+
+  lifecycle {
+    precondition {
+      condition     = length(var.http_source_ranges) > 0
+      error_message = "http_source_ranges must contain at least one trusted CIDR when enable_http_ingress is true."
+    }
+  }
+}
+
+# Dashboard/API and observability ports are never opened globally. This rule is
+# omitted unless trusted private, VPN, IAP, or tightly scoped operator CIDRs are
+# supplied. Docker Compose additionally binds the API to host loopback.
+resource "google_compute_firewall" "infraguard_management" {
+  count = length(var.management_source_ranges) > 0 ? 1 : 0
+
+  name        = "${var.app_name}-allow-management"
+  description = "Allow dashboard and telemetry ports from trusted management networks only"
+  network     = "default"
+  direction   = "INGRESS"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8080", "3100", "9090"]
+  }
+
+  source_ranges = var.management_source_ranges
   target_tags   = [var.app_name]
 }
 

@@ -10,7 +10,7 @@ from typing import Any
 import aiosqlite
 
 from agent.llm.providers import active_model
-from agent.memory import compute_fingerprint, derive_signature_fallback
+from agent.memory import PROMPT_VERSION, compute_fingerprint, derive_signature_fallback
 
 
 def _db_path() -> str:
@@ -114,7 +114,11 @@ async def insert_verdict(verdict: dict[str, Any], extras: dict[str, Any] | None 
         signature = derive_signature_fallback(severity, str(verdict.get("root_cause", "")), summary)
     # The active provider's model is part of the fingerprint, so switching
     # provider/model re-opens previously acknowledged conditions by design.
-    fingerprint = compute_fingerprint(signature, model=active_model())
+    fingerprint = compute_fingerprint(
+        signature,
+        model=active_model(),
+        prompt_version=PROMPT_VERSION,
+    )
 
     cutoff = (datetime.now(timezone.utc) - timedelta(days=_retention_days())).isoformat()
 
@@ -204,17 +208,26 @@ async def insert_ack(
     summary: str = "",
     note: str = "",
     acked_by: str = "operator",
+    ttl_days: int | None = None,
 ) -> dict[str, Any]:
     """Record (or refresh) an acknowledgement for a fingerprint.
 
-    Expires after ACK_TTL_DAYS (default 30; <= 0 disables expiry) as a backstop
-    so nothing is suppressed forever.
+    ``ttl_days=None`` uses ACK_TTL_DAYS (default 30; <= 0 disables expiry).
+    An explicit per-ack TTL must be a non-negative integer; zero disables
+    expiry for that acknowledgement.
     """
-    created = _now_iso()
-    ttl = _ack_ttl_days()
-    expires_at = (
-        (datetime.now(timezone.utc) + timedelta(days=ttl)).isoformat() if ttl > 0 else None
-    )
+    if ttl_days is not None and (isinstance(ttl_days, bool) or not isinstance(ttl_days, int)):
+        raise ValueError("ttl_days must be a non-negative integer or null")
+    if ttl_days is not None and ttl_days < 0:
+        raise ValueError("ttl_days must be a non-negative integer or null")
+
+    ttl = _ack_ttl_days() if ttl_days is None else ttl_days
+    now = datetime.now(timezone.utc)
+    created = now.isoformat()
+    try:
+        expires_at = (now + timedelta(days=ttl)).isoformat() if ttl > 0 else None
+    except OverflowError as exc:
+        raise ValueError("ttl_days is too large") from exc
     async with aiosqlite.connect(_db_path()) as db:
         await _ensure_schema(db)
         await db.execute(
@@ -235,7 +248,7 @@ async def delete_ack(fingerprint: str) -> None:
 
 
 async def fetch_active_acks() -> list[dict[str, Any]]:
-    """Non-expired acknowledgements, newest first (fed into the agent prompt)."""
+    """All non-expired acknowledgements, newest first (used by /api/acks)."""
     async with aiosqlite.connect(_db_path()) as db:
         await _ensure_schema(db)
         db.row_factory = aiosqlite.Row
@@ -246,3 +259,24 @@ async def fetch_active_acks() -> list[dict[str, Any]]:
             (_now_iso(),),
         )
         return [dict(row) for row in await cur.fetchall()]
+
+
+async def fetch_current_ruleset_acks() -> list[dict[str, Any]]:
+    """Non-expired acknowledgements valid for the active prompt and model.
+
+    The API deliberately continues to expose all active acknowledgements via
+    ``fetch_active_acks``. Only prompt memory uses this stricter path so a model
+    switch or PROMPT_VERSION bump immediately re-opens each known condition.
+    """
+    current_model = active_model()
+    current: list[dict[str, Any]] = []
+    for ack in await fetch_active_acks():
+        signature = str(ack.get("signature") or "").strip()
+        expected = compute_fingerprint(
+            signature,
+            model=current_model,
+            prompt_version=PROMPT_VERSION,
+        )
+        if signature and ack.get("fingerprint") == expected:
+            current.append(ack)
+    return current

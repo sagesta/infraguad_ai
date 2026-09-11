@@ -1,0 +1,28 @@
+flowchart LR
+  subgraph LOCAL[Operator host - application-controlled boundary]
+    T[Telemetry sources\nLoki / Prometheus / probes / optional Docker]
+    R[Local Markdown runbooks\nLocal ONNX embeddings + Chroma]
+    P[Prompt construction\nSelect, minimise and label evidence]
+    V[Structured response validation\nSeverity allowlist + schema checks]
+    S[Local SQLite and audit records\nDefault application retention]
+    U[Authenticated dashboard\nHuman review and approval]
+    O[Optional local Ollama model\nNo cloud-model egress]
+    T --> P
+    R --> P
+    P --> O --> V
+    V --> S --> U
+  end
+
+  subgraph CLOUD[Cloud-provider boundary - provider terms apply]
+    C[Configured cloud LLM\nGemini / Anthropic / OpenAI-compatible]
+  end
+
+  P -->|Selected telemetry and retrieved excerpts;\nquestion, prompt, provider/model metadata| C
+  C -->|Raw model response| V
+
+  N[Potential external exposure\nProvider processing, logs and retention depend on contract and configuration]
+  C -.-> N
+
+  L[Deployment obligations\nLawful basis, DPIA where required, processor terms, transfer safeguards, retention and access controls]
+  N -.-> L
+

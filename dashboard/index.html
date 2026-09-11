@@ -40,6 +40,7 @@
 
       /* Stale banner */
       .stale-banner{display:flex;align-items:center;gap:10px;background:var(--warn-bg);border:1px solid rgba(234,179,8,.35);color:var(--warn);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.9rem}
+      .stale-banner[hidden]{display:none}
 
       /* Severity badge */
       .badge{display:inline-flex;align-items:center;padding:4px 14px;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
@@ -168,7 +169,7 @@
         <div class="card">
           <div class="card-header">
             <span class="card-title">📖 Runbook Assistant</span>
-            <button class="btn-small" id="reindexBtn" onclick="reindexRunbooks()" title="Reload runbooks from the local runbooks/ folder into the AI's memory">⟳ Re-index</button>
+            <button class="btn-small" id="reindexBtn" onclick="reindexRunbooks()" title="Synchronise the runbook index with the local runbooks/ folder">⟳ Re-index</button>
           </div>
           <div class="chat-panel">
             <div class="chat-messages" id="chatMessages">
@@ -288,24 +289,46 @@
         }
       }
 
-      // Memory: a verdict can be marked "known" so the agent stops re-flagging it.
+      // Memory: a verdict can be marked "known" so matching low-risk recurrences
+      // are hidden from the default view. Analysis and storage still run on every cycle.
       // Only ok/warning are eligible; high/critical always surface.
       function ackControl(a){
         const sev = (a.severity||"").toLowerCase();
         if(!a.fingerprint || (sev!=="ok" && sev!=="warning")) return "";
         if(a.acknowledged) return `<button class="btn-small" onclick="unmarkKnown('${a.fingerprint}')" title="Stop treating as known">Unmark</button>`;
-        return `<button class="btn-small" onclick="markKnown('${a.fingerprint}')" title="Mark as a known non-issue so the agent stops re-flagging it">Mark known</button>`;
+        return `<button class="btn-small" onclick="markKnown('${a.fingerprint}')" title="Hide matching low-risk recurrences from the default view">Mark known</button>`;
       }
       function ackBar(status){
         const sev = (status.severity||"").toLowerCase();
         if(!status.fingerprint || (sev!=="ok" && sev!=="warning")) return "";
         if(status.acknowledged){
-          return `<div class="ack-bar">✓ Marked as known — the agent will stop re-flagging this unless it materially changes. <button class="btn-small" onclick="unmarkKnown('${status.fingerprint}')">Unmark</button></div>`;
+          return `<div class="ack-bar">✓ Marked as known — matching low-risk recurrences are hidden from the default view; analysis and storage continue. <button class="btn-small" onclick="unmarkKnown('${status.fingerprint}')">Unmark</button></div>`;
         }
-        return `<div class="ack-bar"><button class="btn-small" onclick="markKnown('${status.fingerprint}')">Mark as known</button><span class="card-muted" style="font-size:.78rem">Stop re-flagging this recurring condition.</span></div>`;
+        return `<div class="ack-bar"><button class="btn-small" onclick="markKnown('${status.fingerprint}')">Mark as known</button><span class="card-muted" style="font-size:.78rem">Hide matching low-risk recurrences from the default view; analysis and storage continue.</span></div>`;
       }
       async function markKnown(fp){
-        try{ await fetch("/api/verdicts/ack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fingerprint:fp})}); }catch(e){}
+        const rawDays = window.prompt("How many days should this acknowledgement remain active? Enter 1–365.", "30");
+        if(rawDays===null) return;
+        const ttlDays = Number(rawDays.trim());
+        if(!Number.isInteger(ttlDays) || ttlDays<1 || ttlDays>365){
+          window.alert("Enter a whole number from 1 to 365 days.");
+          return;
+        }
+        try{
+          const response = await fetch("/api/verdicts/ack",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({fingerprint:fp,ttl_days:ttlDays})
+          });
+          const result = await response.json();
+          if(!response.ok){
+            window.alert(result.message || result.error || "The acknowledgement could not be saved.");
+            return;
+          }
+        }catch(e){
+          window.alert("The acknowledgement could not be saved.");
+          return;
+        }
         refreshStatus();
       }
       async function unmarkKnown(fp){

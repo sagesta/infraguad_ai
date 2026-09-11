@@ -1,6 +1,18 @@
-// Master build script for the InfraGuard AI master's project docx.
-// Assembles preliminary pages + six chapters + references + appendices.
-// Outputs InfraGuard_AI_Masters_Project.docx in the same folder.
+// HISTORICAL BUILD SNAPSHOT — NOT THE DEFENCE MANUSCRIPT SOURCE.
+//
+// This 13 August 2026 source tree predates the controlled benchmark, human
+// studies, supervisor remediation, and 27 August security/test changes. It is
+// retained only as an implementation-history record and is excluded from the
+// defence package. The authoritative manuscript is:
+// InfraGuard_AI_Masters_Project_DEFENCE_READY_REVISED.docx
+
+if (process.env.INFRAGUARD_ALLOW_HISTORICAL_REBUILD !== '1') {
+  console.error(
+    'Historical build blocked: use InfraGuard_AI_Masters_Project_DEFENCE_READY_REVISED.docx. ' +
+    'Set INFRAGUARD_ALLOW_HISTORICAL_REBUILD=1 only to reproduce the archived 13 August snapshot.'
+  );
+  process.exit(2);
+}
 
 const fs = require('fs');
 const path = require('path');

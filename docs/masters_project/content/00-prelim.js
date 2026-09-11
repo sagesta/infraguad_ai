@@ -1,3 +1,5 @@
+// HISTORICAL 13 AUGUST 2026 SNAPSHOT. Not current defence-manuscript evidence.
+// See content/README.md and the guarded ../build.js entry point.
 const { p, pCenter, chapterLabel, pageBreak, blank } = require('../helpers');
 const { Paragraph, TableOfContents, StyleLevel } = require('docx');
 

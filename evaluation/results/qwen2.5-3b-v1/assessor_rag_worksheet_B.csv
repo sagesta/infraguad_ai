@@ -1,0 +1,620 @@
+﻿assessment_id,question,provided_sources,answer,correctness_score_0_2,grounding_score_0_2,assessor_notes
+99966488E017,Disk usage is above 90%. What should be checked first?,infrastructure/disk-space-high.md; infrastructure/load-average-high.md; infrastructure/memory-pressure.md; infrastructure/cpu-saturation.md,"First checks that should be performed include running `df -h` and identifying the affected mount. Then, run `df -i` to rule out inode exhaustion. Inspect the largest directory using `sudo du -xhd1 /var | sort -h`. Finally, measure images, build cache, and volumes using `docker system df`.",,,
+CA00C6AC66AF,Disk usage is above 90%. What should be checked first?,infrastructure/disk-space-high.md; infrastructure/load-average-high.md; infrastructure/memory-pressure.md; infrastructure/cpu-saturation.md,"First checks that should be performed include running `df -h` and identifying the affected mount. Then, run `df -i` to rule out inode exhaustion. Additionally, use `sudo du -xhd1 /var | sort -h` to inspect the largest directories. Finally, run `docker system df` to measure images, build cache, and volumes.",,,
+6CE5BD0129AE,Disk usage is above 90%. What should be checked first?,infrastructure/disk-space-high.md; infrastructure/load-average-high.md; infrastructure/memory-pressure.md; infrastructure/cpu-saturation.md,"First checks that should be performed include running `df -h` and identifying the affected mount. Then, run `df -i` to rule out inode exhaustion. Additionally, use `sudo du -xhd1 /var | sort -h` to inspect the largest directories. Finally, run `docker system df` to measure images, build cache, and volumes.",,,
+A0D1015352B7,Disk usage is above 90%. What should be checked first?,,"Firstly, check the disk usage logs or monitoring tools to confirm the current percentage. Then, review the most used directories or files that are consuming space. Consider running a disk cleanup or defragmentation tool if available for your system. Additionally, examine recent file operations and identify any large files or folders that might be taking up space.",,,
+AAAF68C50863,Disk usage is above 90%. What should be checked first?,,"First, check the disk usage logs or monitoring tools to identify which directories are consuming the most space. Then, review these directories for unnecessary files or large files that can be deleted or moved. Consider running a cleanup script if applicable and ensure regular backups are in place before making changes. If unsure about specific actions, consult your organization's IT policies or seek guidance from an experienced team member.",,,
+CF5ADB72FCC1,Disk usage is above 90%. What should be checked first?,,"First, check the disk usage logs or monitoring tools to identify which directories are consuming the most space. Then, review these directories for unnecessary files or large files that can be deleted or moved. Consider running a cleanup script if applicable and ensure regular backups are in place before making changes. If unsure about specific actions, consult your organization's IT policies or seek guidance from an experienced team member.",,,
+8C916B6A247A,The host is swapping and memory is nearly exhausted. What are the safe first steps?,infrastructure/memory-pressure.md; infrastructure/cpu-saturation.md; infrastructure/load-average-high.md; infrastructure/disk-space-high.md,"The safe first steps for a scenario where the host is swapping and memory is nearly exhausted would be:
+
+1. Run `free -h` to check available memory and swap usage.
+2. Use `ps -eo pid,comm,rss,%mem --sort=-rss | head` to identify processes consuming high amounts of memory.
+3. Run `docker stats --no-stream` to find out which containers are using significant resources.
+
+After identifying the problematic processes or containers, proceed with reducing workloads by stopping non-essential services or applications before restarting any leaking containers if necessary. Capture logs and memory figures before taking these actions.",,,
+39FEC05DE03D,The host is swapping and memory is nearly exhausted. What are the safe first steps?,infrastructure/memory-pressure.md; infrastructure/cpu-saturation.md; infrastructure/load-average-high.md; infrastructure/disk-space-high.md,"The safe first steps in this scenario would be:
+
+1. Run `free -h` to check available memory and swap usage.
+2. Identify containers whose memory is growing using `docker stats --no-stream`.
+3. Check recent kernel messages for OOM events with `journalctl -k --since ""30 minutes ago"" | grep -i -E ""oom|out of memory|killed process""`.
+
+These steps help in understanding the current state and pinpointing which containers might be contributing to the issue, allowing for targeted remediation.",,,
+5D050A5471CD,The host is swapping and memory is nearly exhausted. What are the safe first steps?,infrastructure/memory-pressure.md; infrastructure/cpu-saturation.md; infrastructure/load-average-high.md; infrastructure/disk-space-high.md,"The safe first steps in this scenario would be:
+
+1. Run `free -h` to check available memory and swap usage.
+2. Identify containers whose memory is growing using `docker stats --no-stream`.
+3. Check recent kernel messages for OOM events with `journalctl -k --since ""30 minutes ago"" | grep -i -E ""oom|out of memory|killed process""`.
+
+These steps help in understanding the current state and pinpointing which containers might be contributing to the issue, allowing for targeted remediation.",,,
+8FC9E2D2B242,The host is swapping and memory is nearly exhausted. What are the safe first steps?,,"The safe first step would be to identify which processes are consuming the most memory. You can use tools like `top`, `htop`, or `free -m` on Linux systems, or Task Manager in Windows to monitor process usage.
+
+Once identified, you should prioritize shutting down or terminating unnecessary services and applications that are not critical for immediate operations. 
+
+Next, consider restarting the host if possible, as this can sometimes free up memory by clearing out background processes.
+
+If the issue persists, allocate more physical RAM if feasible, or look into upgrading to a machine with higher memory capacity.
+
+Always ensure you have backups of important data and logs before making significant changes that could affect ongoing operations.",,,
+5B6019604278,The host is swapping and memory is nearly exhausted. What are the safe first steps?,,"The safe first step would be to identify which processes are consuming the most memory. You can use tools like `top`, `htop`, or `free -m` on Linux systems, or Task Manager in Windows to monitor process usage.
+
+Once identified, you should prioritize shutting down or terminating unnecessary services and applications that are not critical for immediate operations. 
+
+Next, consider restarting the host if possible, as this can sometimes free up memory by clearing out background processes.
+
+If the issue persists, allocate more physical RAM if feasible, or look into upgrading to a machine with higher memory capacity.
+
+Always ensure you have backups of important data and logs before making significant changes that could affect ongoing operations.",,,
+D2DC190DE08A,The host is swapping and memory is nearly exhausted. What are the safe first steps?,,"The safe first step would be to identify which processes are consuming the most memory. You can use tools like `top`, `htop`, or `free -m` on Linux systems, or Task Manager in Windows to monitor process usage.
+
+Once identified, you should prioritize shutting down or terminating unnecessary services and applications that are not critical for immediate operations. 
+
+Next, consider restarting the host if possible, as this can sometimes free up memory by clearing out background processes.
+
+If the issue persists, allocate more physical RAM if feasible, or look into upgrading to a machine with higher memory capacity.
+
+Always ensure you have backups of important data and logs before making significant changes that could affect ongoing operations.",,,
+E2DB458E7084,Loki has stopped receiving logs. How should ingestion be isolated?,observability/loki-ingestion-gap.md; infrastructure/memory-pressure.md; containers/container-restart-loop.md; infrastructure/disk-space-high.md,"To isolate ingestion, follow these steps based on the provided runbook:
+
+1. **Query Loki for a broad recent window**: Use this to check if there are any recent log queries that return empty results.
+2. **Query Loki for a known container label**: This can help identify which specific logs might be missing or not being ingested correctly.
+3. **Check the latest timestamp returned**: Verify if it matches with other systems (like applications producing logs) and distinguish between an ingestion gap and a quiet application.
+4. **Inspect Loki and log collector (Alloy or Promtail) container logs**: Look for any errors or issues that might be preventing logs from being ingested.
+5. **Confirm the collector can read Docker logs and reach Loki on the shared network**: Ensure there are no connectivity issues between the log collector and Loki.
+
+By following these steps, you should be able to identify where ingestion is failing and take appropriate remediation actions.",,,
+35EC1850C9F6,Loki has stopped receiving logs. How should ingestion be isolated?,observability/loki-ingestion-gap.md; infrastructure/memory-pressure.md; containers/container-restart-loop.md; infrastructure/disk-space-high.md,"To isolate ingestion, follow these steps based on the provided runbook:
+
+1. **Query Loki for a broad recent window**: Use `curl` or any other method to query Loki for logs within a specific time range (e.g., last 24 hours) using its API.
+   ```sh
+   curl -X POST http://loki:3100/api/v1/query_range \
+       -H ""Content-Type: application/json"" \
+       --data '{""query"":""count(*)"",""start"":now()-86400,""end"":now(),""step"":1}'
+   ```
+
+2. **Query Loki for a known container label**: Use the same query method to check logs from a specific container by specifying its label.
+   ```sh
+   curl -X POST http://loki:3100/api/v1/query_range \
+       -H ""Content-Type: application/json"" \
+       --data '{""query"":""count(*)"",""start"":now()-86400,""end"":now(),""step"":1}' \
+       --data 'labels={""container_label"":""specific_container""}'
+   ```
+
+3. **Check the latest timestamp returned**: Ensure that logs are being ingested by checking if there is a significant difference in timestamps between queries.
+
+4. **Inspect Loki and log collector (Alloy or Promtail) container logs**:
+   - Check the logs of the Loki service to see if it's receiving data.
+   - Inspect the logs of Alloy or Promtail containers to ensure they are correctly reading Docker logs and sending them to Loki.
+
+5. **Confirm the collector can read Docker logs and reach Loki on the shared network**: Verify that both the log collector (Alloy/Promtail) and Loki services have access to the correct network paths for communication.
+
+By following these steps, you can identify whether the issue lies with the ingestion process itself or if there is a misconfiguration in how data is being sent from Docker containers to Loki.",,,
+0D53B196F234,Loki has stopped receiving logs. How should ingestion be isolated?,observability/loki-ingestion-gap.md; infrastructure/memory-pressure.md; containers/container-restart-loop.md; infrastructure/disk-space-high.md,"To isolate ingestion, follow these steps based on the provided runbook:
+
+1. **Query Loki for a broad recent window**: Use `curl` or any other method to query Loki for logs within a specific time range (e.g., last 24 hours) using its API.
+   ```sh
+   curl -X POST http://loki:3100/api/v1/query_range \
+       -H ""Content-Type: application/json"" \
+       --data '{""query"":""count(*)"",""start"":now()-86400,""end"":now(),""step"":1}'
+   ```
+
+2. **Query Loki for a known container label**: Use the same query method to check logs from a specific container by specifying its label.
+   ```sh
+   curl -X POST http://loki:3100/api/v1/query_range \
+       -H ""Content-Type: application/json"" \
+       --data '{""query"":""count(*)"",""start"":now()-86400,""end"":now(),""step"":1}' \
+       --data 'labels={""container_label"":""specific_container""}'
+   ```
+
+3. **Check the latest timestamp returned**: Ensure that logs are being ingested by checking if there is a significant difference in timestamps between queries.
+
+4. **Inspect Loki and log collector (Alloy or Promtail) container logs**:
+   - Check the logs of the Loki service to see if it's receiving data.
+   - Inspect the logs of Alloy or Promtail containers to ensure they are correctly reading Docker logs and sending them to Loki.
+
+5. **Confirm the collector can read Docker logs and reach Loki on the shared network**: Verify that both the log collector (Alloy/Promtail) and Loki services have access to the correct network paths for communication.
+
+By following these steps, you can identify whether the issue lies with the ingestion process itself or if there is a misconfiguration in how data is being sent from Docker containers to Loki.",,,
+D082165943A7,Loki has stopped receiving logs. How should ingestion be isolated?,,"To isolate the issue of Loki stopping receiving logs, you can start by checking the following steps:
+
+1. Verify that all log sources are correctly configured to send data to Loki.
+2. Check if there are any errors in the Loki service logs (usually available via Prometheus UI or directly from the service).
+3. Ensure that the Loki pod is running and healthy by examining its status through Kubernetes dashboard or command line tools like `kubectl`.
+4. Confirm network connectivity between log sources and Loki, as well as within the cluster.
+5. Review any recent changes in configurations or updates to ensure they did not inadvertently affect logging.
+
+If issues persist, consider isolating the ingestion process temporarily to identify which specific part of the pipeline might be failing.",,,
+203158417188,Loki has stopped receiving logs. How should ingestion be isolated?,,"To isolate the issue of Loki stopping receiving logs, you can start by checking the following steps:
+
+1. Verify that all log sources are correctly configured to send data to Loki.
+2. Check if there are any errors in the Loki service logs (usually available via Prometheus UI or directly from the service).
+3. Ensure that the Loki pod is running and healthy by examining its status through Kubernetes dashboard or command line tools like `kubectl`.
+4. Confirm network connectivity between log sources and Loki, as well as within the cluster.
+5. Review any recent changes in configurations or updates to ensure they did not inadvertently affect logging.
+
+If issues persist, consider isolating the ingestion process temporarily to identify which specific part of the pipeline might be failing.",,,
+60044E911E15,Loki has stopped receiving logs. How should ingestion be isolated?,,"To isolate the issue of Loki stopping receiving logs, you can start by checking the following steps:
+
+1. Verify that all log sources are correctly configured to send data to Loki.
+2. Check if there are any errors in the Loki service logs (usually available via Prometheus UI or directly from the service).
+3. Ensure that the Loki pod is running and healthy by examining its status through Kubernetes dashboard or command line tools like `kubectl`.
+4. Confirm network connectivity between log sources and Loki, as well as within the cluster.
+5. Review any recent changes in configurations or updates to ensure they did not inadvertently affect logging.
+
+If issues persist, consider isolating the ingestion process temporarily to identify which specific part of the pipeline might be failing.",,,
+DF8282F41722,HTTP 5xx responses spiked after normal operation. What evidence should be correlated?,application/http-5xx-spike.md; security/http-brute-force.md; application/api-latency-high.md; infrastructure/network-latency.md,"For an HTTP 5xx response spike, evidence from recent deployments and configuration changes should be correlated with the timing of the spike to identify potential causes. Specifically:
+
+- Review logs for any new or changed application code deployed around the time of the spike.
+- Check if there were any recent updates to database configurations, Redis settings, or external API dependencies that could have introduced issues.
+- Examine system metrics and logs from the affected environment (e.g., CPU usage, memory consumption) during and before the spike occurred.
+
+By correlating these elements, it can help pinpoint whether a change in configuration or deployment was responsible for the increase in 5xx responses.",,,
+F976BE77EF53,HTTP 5xx responses spiked after normal operation. What evidence should be correlated?,application/http-5xx-spike.md; security/http-brute-force.md; application/api-latency-high.md; infrastructure/network-latency.md,"For an HTTP 5xx response spike, evidence should be correlated by grouping recent errors by status code (HTTP 5xx), route, and exception rather than reading isolated lines. This approach helps identify patterns and specific issues contributing to the spike in server-error responses.",,,
+30E01C442E6C,HTTP 5xx responses spiked after normal operation. What evidence should be correlated?,application/http-5xx-spike.md; security/http-brute-force.md; application/api-latency-high.md; infrastructure/network-latency.md,"For an HTTP 5xx response spike, evidence should be correlated by grouping recent errors by status code (HTTP 5xx), route, and exception rather than reading isolated lines. This approach helps identify patterns and specific issues contributing to the spike in server-error responses.",,,
+8A6E74D93EE1,HTTP 5xx responses spiked after normal operation. What evidence should be correlated?,,"To investigate the spike in HTTP 5xx responses, correlate the following pieces of evidence:
+
+1. **Server Logs**: Look for increased error messages specifically related to HTTP 500 (Internal Server Error) and any other relevant server-side errors.
+2. **Application Logs**: Check application logs for unusual activity or exceptions that might indicate a backend issue causing these errors.
+3. **Database Activity**: Monitor database queries for spikes in failed operations, which could be indicative of issues like timeouts or resource exhaustion.
+4. **Network Traffic**: Analyze network traffic to see if there are any anomalies such as high packet loss or increased latency during the period of spike.
+5. **System Metrics**: Review system metrics (CPU usage, memory consumption, disk I/O) for unusual patterns that might suggest a bottleneck affecting server performance.
+
+Uncertainty: The correlation between these pieces of evidence is not definitive proof but rather a hypothesis to be tested and verified through further investigation.",,,
+770F9F8D9060,HTTP 5xx responses spiked after normal operation. What evidence should be correlated?,,"To investigate the spike in HTTP 5xx responses, correlate the following pieces of evidence:
+
+1. **Server Logs**: Look for increased error messages specifically related to HTTP 500 (Internal Server Error) and any other relevant server-side errors.
+2. **Application Logs**: Check application logs for unusual activity or exceptions that might indicate a backend issue causing these errors.
+3. **Database Activity**: Monitor database queries for spikes in failed operations, which could be indicative of issues like timeouts or resource exhaustion.
+4. **Network Traffic**: Analyze network traffic to see if there are any anomalies such as high packet loss or increased latency during the period of spike.
+5. **System Metrics**: Review system metrics (CPU usage, memory consumption, disk I/O) for unusual patterns that might suggest a bottleneck affecting server performance.
+
+Uncertainty: The correlation between these pieces of evidence is not definitive proof but rather a hypothesis to be tested and verified through further investigation.",,,
+7DE7BB791DEB,HTTP 5xx responses spiked after normal operation. What evidence should be correlated?,,"To investigate the spike in HTTP 5xx responses, correlate the following pieces of evidence:
+
+1. **Server Logs**: Look for increased error messages specifically related to HTTP 500 (Internal Server Error) and any other relevant server-side errors.
+2. **Application Logs**: Check application logs for unusual activity or exceptions that might indicate a backend issue causing these errors.
+3. **Database Activity**: Monitor database queries for spikes in failed operations, which could be indicative of issues like timeouts or resource exhaustion.
+4. **Network Traffic**: Analyze network traffic to see if there are any anomalies such as high packet loss or increased latency during the period of spike.
+5. **System Metrics**: Review system metrics (CPU usage, memory consumption, disk I/O) for unusual patterns that might suggest a bottleneck affecting server performance.
+
+Uncertainty: The correlation between these pieces of evidence is not definitive proof but rather a hypothesis to be tested and verified through further investigation.",,,
+910EA1E83878,A container repeatedly exits and restarts. What should the operator inspect?,containers/container-restart-loop.md; infrastructure/memory-pressure.md; containers/container-unhealthy.md; observability/loki-ingestion-gap.md,"The operator should inspect:
+
+1. The container's status, exit code, and restart count using `docker ps -a`.
+2. Previous attempts by reviewing logs with `docker logs --tail 200 <container>`.
+3. The configured restart policy.
+4. Any recent changes in the image, environment variables, volumes, or command used to start the container.
+
+Additionally, they should check for missing configurations or dependencies that could cause the process to exit unexpectedly.",,,
+793FFF57FC0C,A container repeatedly exits and restarts. What should the operator inspect?,containers/container-restart-loop.md; infrastructure/memory-pressure.md; containers/container-unhealthy.md; observability/loki-ingestion-gap.md,"The operator should inspect:
+
+1. The container's status, exit code, and restart count using `docker ps -a`.
+2. Previous attempts by reviewing logs with `docker logs --tail 200 <container>`.
+3. The configured restart policy.
+4. Any recent changes in image, environment variables, volumes, or command configurations.
+
+Additionally, the operator should check for missing configuration files or secrets, unavailable dependencies during startup, incorrect health checks, and resource constraints like OOM conditions.",,,
+55DFC0F7FE6C,A container repeatedly exits and restarts. What should the operator inspect?,containers/container-restart-loop.md; infrastructure/memory-pressure.md; containers/container-unhealthy.md; observability/loki-ingestion-gap.md,"The operator should inspect:
+
+1. The container's status, exit code, and restart count using `docker ps -a`.
+2. Previous attempts by reviewing logs with `docker logs --tail 200 <container>`.
+3. The configured restart policy.
+4. Any recent changes in image, environment variables, volumes, or command configurations.
+
+Additionally, the operator should check for missing configuration files or secrets, unavailable dependencies during startup, incorrect health checks, and resource constraints like OOM conditions.",,,
+34BA6DD3E688,A container repeatedly exits and restarts. What should the operator inspect?,,"The operator should inspect logs from the container to identify patterns or errors that might cause it to exit. Additionally, check for any recent changes in configuration files related to the container's environment or settings. Review system resource usage metrics if available, as overloading could trigger restarts. Lastly, review Kubernetes events and pod status to see if there are any associated issues with the deployment.",,,
+C72851FA00D8,A container repeatedly exits and restarts. What should the operator inspect?,,"The operator should inspect logs from the container to identify patterns or errors that might cause it to exit. Additionally, check for any recent changes in application code or configuration files that could affect its stability. Review system resource usage metrics like CPU and memory allocation settings. Ensure network configurations are correct and not causing issues. Lastly, review Kubernetes events related to this pod if using Kubernetes orchestration.",,,
+A89538CB70C1,A container repeatedly exits and restarts. What should the operator inspect?,,"The operator should inspect logs from the container to identify patterns or errors that might cause it to exit. Additionally, check for any recent changes in application code or configuration files that could affect its stability. Review system resource usage metrics like CPU and memory allocation settings. Ensure network configurations are correct and not causing issues. Lastly, review Kubernetes events related to this pod if using Kubernetes orchestration.",,,
+C5501081460B,A Prometheus scrape target is down. What checks distinguish target failure from network failure?,observability/prometheus-target-down.md; observability/metrics-stale.md; security/http-brute-force.md; security/port-scan.md,"To distinguish between a target failure and a network failure for a Prometheus scrape target that's down:
+
+1. **Check the target container**: Ensure it is running and listening on the expected port.
+2. **Request the target's metrics endpoint directly**: If possible, manually request the target's metrics endpoint to see if it responds correctly outside of Prometheus.
+
+If these checks show the target container is up but not responding with metrics, it indicates a failure within the target itself (e.g., exporter or application stopped). However, if the manual request also fails, it suggests there might be an issue with network connectivity between the target and Prometheus.",,,
+1A61C260C31F,A Prometheus scrape target is down. What checks distinguish target failure from network failure?,observability/prometheus-target-down.md; observability/metrics-stale.md; security/http-brute-force.md; security/port-scan.md,"To distinguish between a target failure and a network failure for a Prometheus scrape target that's down:
+
+1. **Check the target container**: Ensure it is running and listening on the expected port.
+2. **Request the target's metrics endpoint directly**: If possible, manually request the target's metrics endpoint to see if it responds correctly outside of Prometheus.
+
+These checks help differentiate between whether the issue lies with the exporter/app service itself (indicating a target failure) or with network connectivity issues preventing Prometheus from reaching the target (indicating a network failure).",,,
+267BA387662A,A Prometheus scrape target is down. What checks distinguish target failure from network failure?,observability/prometheus-target-down.md; observability/metrics-stale.md; security/http-brute-force.md; security/port-scan.md,"To distinguish between a target failure and a network failure for a Prometheus scrape target that's down:
+
+1. **Check the target container**: Ensure it is running and listening on the expected port.
+2. **Request the target's metrics endpoint directly**: If possible, manually request the target's metrics endpoint to see if it responds correctly outside of Prometheus.
+
+These checks help differentiate between whether the issue lies with the exporter/app service itself (indicating a target failure) or with network connectivity issues preventing Prometheus from reaching the target (indicating a network failure).",,,
+90B749F66B07,A Prometheus scrape target is down. What checks distinguish target failure from network failure?,,"Prometheus scrape targets can fail due to either the service itself being unreachable or issues with the network connecting to it. To differentiate between these:
+
+1. **Service Unreachable**: This occurs when the service at the IP address and port Prometheus is trying to scrape is not running, down, or misconfigured. Check logs of the target service for errors.
+
+2. **Network Issues**: These are problems related to connectivity such as network latency, packet loss, DNS resolution issues, or firewall rules blocking traffic. Network failures can be harder to diagnose without direct network monitoring tools like `ping` and `traceroute`.
+
+To distinguish between these:
+- **Logs Analysis**: Check logs of the target service for error messages indicating it is not running.
+- **Network Connectivity Tests**: Use commands like `ping`, `traceroute`, or `telnet` to test connectivity. If a service cannot be reached, this might indicate network issues.
+
+Uncertainty remains as some network failures can mimic service unavailability if DNS resolution fails or firewall rules are blocking traffic. Always consider the context and perform additional checks for comprehensive troubleshooting.",,,
+7ADC15011508,A Prometheus scrape target is down. What checks distinguish target failure from network failure?,,"Prometheus scrape targets can fail due to either the service being unreachable (network failure) or the service not responding correctly (target failure). To differentiate between these, you would typically look at:
+
+1. **Target Failure**: This occurs when the Prometheus exporter running on the target host is not functioning properly. Symptoms include:
+   - Exporter process might be down.
+   - Exporter logs show errors related to data collection or processing issues.
+
+2. **Network Failure**: This happens when there's an issue with the network connection between Prometheus and the target service, preventing it from successfully scraping metrics. Symptoms include:
+   - No response in the scrape interval (configured by `scrape_interval`).
+   - Logs might show timeouts or errors related to network connectivity issues.
+
+To diagnose further, you can check:
+- Exporter logs for specific error messages.
+- Prometheus configuration files and alerting rules.
+- Network diagnostics like ping tests between Prometheus and target service.
+- Check if the exporter is running (e.g., using `systemctl status prometheus-exporter` on Linux).
+
+Uncertainty: The exact cause might require additional investigation, such as checking firewall settings or network configurations. Always consider the specific environment where these services operate.",,,
+E90C8A2525C4,A Prometheus scrape target is down. What checks distinguish target failure from network failure?,,"Prometheus scrape targets can fail due to either the service being unreachable (network failure) or the service not responding correctly (target failure). To differentiate between these, you would typically look at:
+
+1. **Target Failure**: This occurs when the Prometheus exporter running on the target host is not functioning properly. Symptoms include:
+   - Exporter process might be down.
+   - Exporter logs show errors related to data collection or processing issues.
+
+2. **Network Failure**: This happens when there's an issue with the network connection between Prometheus and the target service, preventing it from successfully scraping metrics. Symptoms include:
+   - No response in the scrape interval (configured by `scrape_interval`).
+   - Logs might show timeouts or errors related to network connectivity issues.
+
+To diagnose further, you can check:
+- Exporter logs for specific error messages.
+- Prometheus configuration files and alerting rules.
+- Network diagnostics like ping tests between Prometheus and target service.
+- Check if the exporter is running (e.g., using `systemctl status prometheus-exporter` on Linux).
+
+Uncertainty: The exact cause might require additional investigation, such as checking firewall settings or network configurations. Always consider the specific environment where these services operate.",,,
+FD042E805197,API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?,application/api-latency-high.md; application/http-5xx-spike.md; infrastructure/load-average-high.md; infrastructure/network-latency.md,"For diagnosing high API latency without a corresponding HTTP 5xx spike, follow these steps:
+
+1. Measure connection time and total response time for the affected routes.
+2. Compare one slow route with a lightweight health endpoint to identify if it's specific to certain endpoints or consistent across all.
+3. Check CPU usage, memory consumption, database connections, query performance, and upstream API latency.
+4. Review whether the slowdown began after a recent release or traffic increase.
+
+If high latency persists without an HTTP 5xx spike, consider:
+- Slow database queries or exhausted database connections.
+- External providers delaying request paths.
+- Resource pressure on shared VPS causing timeouts or failed requests.
+- Worker queues being backed up.",,,
+EC4E268FAF81,API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?,application/api-latency-high.md; application/http-5xx-spike.md; infrastructure/load-average-high.md; infrastructure/network-latency.md,"For diagnosing high API latency without a corresponding HTTP 5xx spike, follow these steps:
+
+1. Measure connection, time-to-first-byte, and total time for the affected route.
+2. Compare one slow route with a lightweight health endpoint to check if it's consistent.
+3. Check CPU, memory usage, database connections, slow queries, and upstream API latency.
+4. Review whether the slowdown began after a release or traffic increase.
+
+If high latency persists after these checks, consider:
+- Slow database queries or exhausted connections.
+- An external provider delaying the request path.
+- CPU or memory pressure on the shared VPS.
+- A worker queue being backed up.",,,
+1AB1EFEBD550,API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?,application/api-latency-high.md; application/http-5xx-spike.md; infrastructure/load-average-high.md; infrastructure/network-latency.md,"For diagnosing high API latency without a corresponding HTTP 5xx spike, follow these steps:
+
+1. Measure connection, time-to-first-byte, and total time for the affected route.
+2. Compare one slow route with a lightweight health endpoint to check if it's consistent.
+3. Check CPU, memory usage, database connections, slow queries, and upstream API latency.
+4. Review whether the slowdown began after a release or traffic increase.
+
+If high latency persists after these checks, consider:
+- Slow database queries or exhausted connections.
+- An external provider delaying the request path.
+- CPU or memory pressure on the shared VPS.
+- A worker queue being backed up.",,,
+5F4A6A51BCC2,API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?,,"To diagnose high API latency without a corresponding 5xx error spike, follow these steps:
+
+1. **Monitor Network Latency**: Use tools like `ping` or network monitoring software to check if there are issues with the network between your API and its clients.
+
+2. **API Request Profiling**: Utilize profiling tools specific to your environment (e.g., Postman for HTTP requests) to identify which parts of the API take longer than expected. Focus on identifying inefficient queries, large data transfers, or slow database calls.
+
+3. **Database Performance Check**: If latency is high and not related to network issues, investigate database performance. Slow SQL queries can significantly impact API response times. Consider using tools like `EXPLAIN` in MySQL or PostgreSQL for query analysis.
+
+4. **Server Resource Utilization**: Use monitoring tools (like Prometheus, Grafana) to check CPU usage, memory consumption, and disk I/O of the servers hosting your API. High resource utilization could indicate a bottleneck.
+
+5. **Code Review**: Examine recent changes in code that might have introduced inefficiencies or dependencies causing delays. Look for potential issues like excessive loops, recursive calls, or inefficient data structures.
+
+6. **Load Testing**: Perform load testing to simulate high traffic and observe how the API handles increased loads. This can help identify scalability issues before they become critical.
+
+7. **Consult Logs**: Review logs from your application servers and database systems for any error messages that might indicate what is causing delays, even if not directly related to 5xx errors.
+
+8. **Isolate Issues**: Once you have identified potential causes, isolate the issue by testing individual components or sections of code to determine where the bottleneck lies.
+
+Each step should be taken with caution and in sequence based on preliminary findings. Always ensure that changes are tested thoroughly before deployment to avoid introducing new issues.",,,
+0010A820B28D,API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?,,"To diagnose high API latency without a corresponding 5xx error spike, follow these steps:
+
+1. **Monitor Network Latency**: Use tools like `ping` or network monitoring software to check if there are issues with the network between your API and its clients.
+
+2. **API Request Profiling**: Utilize profiling tools specific to your environment (e.g., Postman for HTTP requests) to identify which parts of the API take longer than expected. Focus on identifying inefficient queries, large data transfers, or slow database calls.
+
+3. **Database Performance Check**: If latency is high and not related to network issues, investigate database performance. Slow SQL queries can significantly impact API response times. Consider using tools like `EXPLAIN` in MySQL or PostgreSQL for query analysis.
+
+4. **Server Resource Utilization**: Use monitoring tools (like Prometheus, Grafana) to check CPU usage, memory consumption, and disk I/O of the servers hosting your API. High resource utilization could indicate a bottleneck.
+
+5. **Code Review**: Examine recent changes in code that might have introduced inefficiencies or dependencies causing delays. Look for potential issues like excessive loops, recursive calls, or inefficient data structures.
+
+6. **Load Testing**: Perform load testing to simulate high traffic and observe how the API handles increased loads. This can help identify scalability issues before they become critical.
+
+7. **Consult Logs**: Review logs from your application servers and database systems for any error messages that might indicate what is causing delays, even if not directly related to 5xx errors.
+
+8. **Isolate Issues**: Once you have identified potential causes, isolate the issue by testing individual components or sections of code to determine where the bottleneck lies.
+
+Each step should be taken with caution and in sequence based on preliminary findings. Always ensure that changes are tested thoroughly before deployment to avoid introducing new issues.",,,
+84D88A9A03E7,API latency is high without a matching 5xx spike. What diagnostic sequence is appropriate?,,"To diagnose high API latency without a corresponding 5xx error spike, follow these steps:
+
+1. **Monitor Network Latency**: Use tools like `ping` or network monitoring software to check if there are issues with the network between your API and its clients.
+
+2. **API Request Profiling**: Utilize profiling tools specific to your environment (e.g., Postman for HTTP requests) to identify which parts of the API take longer than expected. Focus on identifying inefficient queries, large data transfers, or slow database calls.
+
+3. **Database Performance Check**: If latency is high and not related to network issues, investigate database performance. Slow SQL queries can significantly impact API response times. Consider using tools like `EXPLAIN` in MySQL or PostgreSQL for query analysis.
+
+4. **Server Resource Utilization**: Use monitoring tools (like Prometheus, Grafana) to check CPU usage, memory consumption, and disk I/O of the servers hosting your API. High resource utilization could indicate a bottleneck.
+
+5. **Code Review**: Examine recent changes in code that might have introduced inefficiencies or dependencies causing delays. Look for potential issues like excessive loops, recursive calls, or inefficient data structures.
+
+6. **Load Testing**: Perform load testing to simulate high traffic and observe how the API handles increased loads. This can help identify scalability issues before they become critical.
+
+7. **Consult Logs**: Review logs from your application servers and database systems for any error messages that might indicate what is causing delays, even if not directly related to 5xx errors.
+
+8. **Isolate Issues**: Once you have identified potential causes, isolate the issue by testing individual components or sections of code to determine where the bottleneck lies.
+
+Each step should be taken with caution and in sequence based on preliminary findings. Always ensure that changes are tested thoroughly before deployment to avoid introducing new issues.",,,
+B6483714AA97,Redis is unavailable to the application. What containment and recovery checks are required?,application/redis-unavailable.md; application/http-5xx-spike.md; containers/deployment-regression.md; containers/container-unhealthy.md,"Containment and Recovery Checks Required for Redis Unavailability:
+
+- Confirm the Redis container is running and inspect its health and logs.
+- From the application container, resolve the configured Redis hostname and test the port.
+- Check memory use, disk space, and restart count of the Redis container.
+- Verify that `REDIS_URL` uses a valid address within the current Docker network.",,,
+11B5894AB796,Redis is unavailable to the application. What containment and recovery checks are required?,application/redis-unavailable.md; application/http-5xx-spike.md; containers/deployment-regression.md; containers/container-unhealthy.md,"Containment and Recovery Checks Required for Redis Unavailability:
+
+1. Confirm the Redis container is running and inspect its health and logs.
+2. From the application container, resolve the configured Redis hostname and test the port.
+3. Check memory use, disk space, and restart count of the Redis container.
+4. Verify that `REDIS_URL` uses a valid address for the current Docker network.
+
+Recovery Actions:
+
+- If Redis is restarted or crashed, attempt to restore it by restarting only after understanding why it stopped.
+- Correct any misconfiguration in `REDIS_URL`.
+- Recreate affected application containers if the Redis hostname is incorrect.
+- Ensure data loss impact is understood before deleting the Redis volume.",,,
+793A195C9CAB,Redis is unavailable to the application. What containment and recovery checks are required?,application/redis-unavailable.md; application/http-5xx-spike.md; containers/deployment-regression.md; containers/container-unhealthy.md,"Containment and Recovery Checks Required for Redis Unavailability:
+
+1. Confirm the Redis container is running and inspect its health and logs.
+2. From the application container, resolve the configured Redis hostname and test the port.
+3. Check memory use, disk space, and restart count of the Redis container.
+4. Verify that `REDIS_URL` uses a valid address for the current Docker network.
+
+Recovery Actions:
+
+- If Redis is restarted or crashed, attempt to restore it by restarting only after understanding why it stopped.
+- Correct any misconfiguration in `REDIS_URL`.
+- Recreate affected application containers if the Redis hostname is incorrect.
+- Ensure data loss impact is understood before deleting the Redis volume.",,,
+8D15E9D80D06,Redis is unavailable to the application. What containment and recovery checks are required?,,"Containment and Recovery Checks for Redis Unavailability:
+
+1. **Check Redis Service Status**: Verify if Redis service is running on the host where it's supposed to be deployed.
+2. **Review Logs**: Examine Redis logs for any error messages or warnings that might indicate why it’s unavailable.
+3. **Network Connectivity**: Ensure there are no network issues preventing Redis from communicating with the application.
+4. **Resource Utilization**: Check if Redis is running out of memory, CPU, or disk space.
+5. **Configuration Review**: Confirm that Redis configuration settings (like port numbers) match those expected by the application.
+
+Uncertainty Note: The exact steps can vary based on specific deployment environments and configurations. Always refer to official documentation for precise guidance.",,,
+D7201439CD55,Redis is unavailable to the application. What containment and recovery checks are required?,,"Containment and Recovery Checks for Redis Unavailability:
+
+1. **Check Redis Service Status**: Verify if Redis service is running on the host where it's supposed to be deployed.
+2. **Review Logs**: Examine Redis logs for any error messages or warnings that might indicate why it’s unavailable.
+3. **Network Connectivity**: Ensure there are no network issues preventing Redis from communicating with the application.
+4. **Resource Utilization**: Check if Redis is running out of memory, CPU, or disk space.
+5. **Configuration Review**: Confirm that Redis configuration settings (like port numbers) match those expected by the application.
+
+Uncertainty Note: The exact steps can vary based on specific deployment environments and configurations. Always refer to official documentation for precise guidance.",,,
+C3E0E84CB21B,Redis is unavailable to the application. What containment and recovery checks are required?,,"Containment and Recovery Checks for Redis Unavailability:
+
+1. **Check Redis Service Status**: Verify if Redis service is running on the host where it's supposed to be deployed.
+2. **Review Logs**: Examine Redis logs for any error messages or warnings that might indicate why it’s unavailable.
+3. **Network Connectivity**: Ensure there are no network issues preventing Redis from communicating with the application.
+4. **Resource Utilization**: Check if Redis is running out of memory, CPU, or disk space.
+5. **Configuration Review**: Confirm that Redis configuration settings (like port numbers) match those expected by the application.
+
+Uncertainty Note: The exact steps can vary based on specific deployment environments and configurations. Always refer to official documentation for precise guidance.",,,
+7430D539AED9,The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?,application/database-connection-exhaustion.md; application/http-5xx-spike.md; application/api-latency-high.md; infrastructure/load-average-high.md,"Before increasing PostgreSQL's global limit to address an exhausted connection pool issue, it is important to examine and fix any leaking connections or slow request paths within the application. Specifically, this involves stopping specific runaway workloads, identifying and fixing issues such as long-running transactions or idle-in-transaction sessions, and ensuring that connections are not being left open unnecessarily. Tuning the application's pool size should be done before increasing PostgreSQL's global limit to avoid moving the failure elsewhere (e.g., from connection exhaustion to memory exhaustion).",,,
+220496E67C1E,The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?,application/database-connection-exhaustion.md; application/http-5xx-spike.md; application/api-latency-high.md; infrastructure/load-average-high.md,"Before increasing PostgreSQL's global limit to address an exhausted connection pool issue, it is important to examine and fix connections that are being leaked or transactions left open within the application. This involves stopping specific runaway workloads and addressing any leaking or slow request paths in the application code. Additionally, ensuring that the application’s pool size does not exceed PostgreSQL's connection limits should be a priority.",,,
+C900C60AFB7B,The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?,application/database-connection-exhaustion.md; application/http-5xx-spike.md; application/api-latency-high.md; infrastructure/load-average-high.md,"Before increasing PostgreSQL's global limit to address an exhausted connection pool issue, it is important to examine and fix connections that are being leaked or transactions left open within the application. This involves stopping specific runaway workloads and addressing any leaking or slow request paths in the application code. Additionally, ensuring that the application’s pool size does not exceed PostgreSQL's connection limits should be a priority.",,,
+DB8D637D324F,The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?,,"Before increasing the PostgreSQL connection pool limits, examine the following:
+
+1. Check for long-running queries that could benefit from optimization or execution tuning.
+2. Review application patterns to ensure they are not causing excessive concurrent connections.
+3. Investigate if there is a spike in database usage during specific times of day.
+4. Look into any recent changes in the environment that might have increased load on the database.
+
+Uncertainty: The effectiveness of these checks can vary depending on the actual cause, so it's important to address each finding individually.",,,
+7AADF3E2C473,The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?,,"Before increasing the PostgreSQL connection pool limits, examine the following:
+
+1. Check for long-running queries that could benefit from optimization or execution tuning.
+2. Review application patterns to ensure they are not causing excessive concurrent connections.
+3. Investigate if there is a spike in database usage during specific times of day.
+4. Look into any recent changes in the environment that might have increased load on the database.
+
+Uncertainty: The effectiveness of these checks can vary depending on the actual cause, so it's important to address each finding individually.",,,
+540BCF0402DE,The PostgreSQL connection pool is exhausted. What should be examined before increasing limits?,,"Before increasing the PostgreSQL connection pool limits, examine the following:
+
+1. Check for long-running queries that could benefit from optimization or execution tuning.
+2. Review application patterns to ensure they are not causing excessive concurrent connections.
+3. Investigate if there is a spike in database usage during specific times of day.
+4. Look into any recent changes in the environment that might have increased load on the database.
+
+Uncertainty: The effectiveness of these checks can vary depending on the actual cause, so it's important to address each finding individually.",,,
+1F1552ED5A60,Internal DNS resolution is failing. How should the operator isolate the fault?,infrastructure/dns-resolution-failure.md; infrastructure/network-latency.md; application/http-5xx-spike.md; observability/loki-ingestion-gap.md,"To isolate the internal DNS resolution failure, the operator should:
+
+1. Use `getent hosts <hostname>` to resolve a known hostname from both the VPS and inside affected containers.
+2. Inspect `/etc/resolv.conf` for any discrepancies between host and container configurations.
+3. Test another known hostname to determine if the issue is specific to one record or affecting multiple services.
+4. Check Cloudflare Tunnel logs and container logs for any indications of DNS resolution issues, as this service might be involved in internal DNS requests.
+
+If these steps do not pinpoint the exact cause, further investigation into upstream DNS records and application configurations may be necessary.",,,
+157AF23EDB7D,Internal DNS resolution is failing. How should the operator isolate the fault?,infrastructure/dns-resolution-failure.md; infrastructure/network-latency.md; application/http-5xx-spike.md; observability/loki-ingestion-gap.md,"To isolate the fault in internal DNS resolution failure:
+
+1. From a VPS, use `getent hosts <hostname>` to resolve the hostname and verify it resolves correctly.
+2. Repeat this lookup inside an affected container to check for discrepancies between host and container environments.
+3. Inspect `/etc/resolv.conf` on both the host and in the container to identify any differences or misconfigurations.
+4. Test a known working hostname to distinguish if one specific DNS record is faulty or if there's a broader issue affecting all DNS lookups.
+
+If these steps confirm that only certain services are affected, further investigation into those services' configurations might be needed. If all containers show the same failure, it could indicate an issue with Docker DNS or upstream DNS records.",,,
+234531C6D78E,Internal DNS resolution is failing. How should the operator isolate the fault?,infrastructure/dns-resolution-failure.md; infrastructure/network-latency.md; application/http-5xx-spike.md; observability/loki-ingestion-gap.md,"To isolate the fault in internal DNS resolution failure:
+
+1. From a VPS, use `getent hosts <hostname>` to resolve the hostname and verify it resolves correctly.
+2. Repeat this lookup inside an affected container to check for discrepancies between host and container environments.
+3. Inspect `/etc/resolv.conf` on both the host and in the container to identify any differences or misconfigurations.
+4. Test a known working hostname to distinguish if one specific DNS record is faulty or if there's a broader issue affecting all DNS lookups.
+
+If these steps confirm that only certain services are affected, further investigation into those services' configurations might be needed. If all containers show the same failure, it could indicate an issue with Docker DNS or upstream DNS records.",,,
+A31886A48E28,Internal DNS resolution is failing. How should the operator isolate the fault?,,"To isolate the fault in internal DNS resolution issues, follow these steps:
+
+1. **Check Logs**: Review logs from DNS servers (e.g., BIND, PowerDNS) for any error messages or warnings that might indicate what's going wrong.
+2. **Test Connectivity**: Ensure there are no network connectivity issues between your DNS server and other critical systems by pinging the DNS server from another machine within the same subnet.
+3. **Verify Configuration**: Check if DNS records have been updated correctly in the DNS configuration files (e.g., zone files, hosts file). Look for any syntax errors or misconfigurations.
+4. **DNS Server Status**: Verify that your DNS servers are up and running without issues by pinging them from another machine within the network.
+5. **Client Resolution Testing**: Test if clients can resolve internal domain names to IP addresses correctly. This helps determine if the issue is with the client configuration or server-side.
+6. **Isolate Specific Hosts**: If possible, test DNS resolution on specific hosts to identify whether the problem affects a particular segment of your network.
+
+Uncertainty remains regarding the exact cause without further diagnostic steps. Continue testing and logging until you pinpoint where the failure occurs.",,,
+91094499BA73,Internal DNS resolution is failing. How should the operator isolate the fault?,,"To isolate the fault in internal DNS resolution issues, follow these steps:
+
+1. **Check Logs**: Review logs from DNS servers (e.g., BIND, PowerDNS) for any error messages or warnings that might indicate what's going wrong.
+2. **Test Connectivity**: Ensure there are no network connectivity issues between your DNS server and other critical systems by pinging the DNS server from another machine within the same subnet.
+3. **Verify Configuration**: Check if DNS records have been updated correctly in the DNS configuration files (e.g., zone files, hosts file). Look for any syntax errors or misconfigurations.
+4. **DNS Server Status**: Verify that your DNS servers are up and running without issues by pinging them from another machine within the network.
+5. **Client Resolution Testing**: Test if clients can resolve internal domain names to IP addresses correctly. This helps determine if the issue is with the client configuration or server-side.
+6. **Isolate Specific Hosts**: If possible, test DNS resolution on specific hosts to identify whether the problem affects a particular segment of your network.
+
+Uncertainty remains regarding the exact cause without further diagnostic steps. Continue testing and logging until you pinpoint where the failure occurs.",,,
+AE3B5865E210,Internal DNS resolution is failing. How should the operator isolate the fault?,,"To isolate the fault in internal DNS resolution issues, follow these steps:
+
+1. **Check Logs**: Review logs from DNS servers (e.g., BIND, PowerDNS) for any error messages or warnings that might indicate what's going wrong.
+2. **Test Connectivity**: Ensure there are no network connectivity issues between your DNS server and other critical systems by pinging the DNS server from another machine within the same subnet.
+3. **Verify Configuration**: Check if DNS records have been updated correctly in the DNS configuration files (e.g., zone files, hosts file). Look for any syntax errors or misconfigurations.
+4. **DNS Server Status**: Verify that your DNS servers are up and running without issues by pinging them from another machine within the network.
+5. **Client Resolution Testing**: Test if clients can resolve internal domain names to IP addresses correctly. This helps determine if the issue is with the client configuration or server-side.
+6. **Isolate Specific Hosts**: If possible, test DNS resolution on specific hosts to identify whether the problem affects a particular segment of your network.
+
+Uncertainty remains regarding the exact cause without further diagnostic steps. Continue testing and logging until you pinpoint where the failure occurs.",,,
+5AA7FB97DC3B,One IP is producing repeated SSH authentication failures. What review and response steps apply?,security/ssh-brute-force.md; security/http-brute-force.md; security/port-scan.md; infrastructure/network-latency.md,"For a confirmed hostile IP in the case of repeated SSH authentication failures:
+
+1. **Review InfraGuard CrowdSec Decision**: Check if there's an active ban for the source IP related to SSH.
+2. **Apply Ban**: If the decision is active, follow the suggested duration (48 hours) and apply it as per the runbook.
+3. **Revoke Credentials**: Revocation of affected credentials should be reviewed and executed where necessary.
+4. **Restrict SSH**: Prefer key-only authentication and restrict SSH at the network layer if needed.
+5. **Monitor Further**: Ensure that only authorised administrators can still connect through approved paths.
+
+If a successful login occurred, additional steps like revoking credentials or changing them might also be required to secure the account.",,,
+769B853D2567,One IP is producing repeated SSH authentication failures. What review and response steps apply?,security/ssh-brute-force.md; security/http-brute-force.md; security/port-scan.md; infrastructure/network-latency.md,"For a confirmed hostile IP in the case of repeated SSH authentication failures:
+
+1. Review and apply the InfraGuard CrowdSec decision; the suggested SSH ban lasts 48 hours.
+2. Revoke affected credentials if they were used successfully.
+3. Restrict SSH at the network layer and prefer key-only authentication.
+4. Do not lock out the only verified administration path during an active incident.",,,
+DFADE2B7724B,One IP is producing repeated SSH authentication failures. What review and response steps apply?,security/ssh-brute-force.md; security/http-brute-force.md; security/port-scan.md; infrastructure/network-latency.md,"For a confirmed hostile IP in the case of repeated SSH authentication failures:
+
+1. Review and apply the InfraGuard CrowdSec decision; the suggested SSH ban lasts 48 hours.
+2. Revoke affected credentials if they were used successfully.
+3. Restrict SSH at the network layer and prefer key-only authentication.
+4. Do not lock out the only verified administration path during an active incident.",,,
+1E67D52BE09A,One IP is producing repeated SSH authentication failures. What review and response steps apply?,,"Review the access logs to identify patterns or specific times when these failures occur. Check if there are any recent changes in network security policies that might affect SSH connections. Verify firewall rules for SSH traffic, ensuring they are correctly configured and not blocking legitimate connections.
+
+Next, check the server's SSH configuration file (sshd_config) for any potential misconfigurations such as incorrect port settings or overly strict authentication requirements. Ensure that the IP address causing failures is allowed in the sshd_config file.
+
+If the issue persists, consider temporarily disabling firewall rules to see if they are indeed blocking legitimate traffic. Alternatively, you might want to check for brute force attacks by monitoring SSH login attempts and possibly increasing the lockout time or threshold for failed login attempts.
+
+Finally, implement additional security measures such as using strong authentication methods (e.g., public key authentication) and enabling two-factor authentication where possible.",,,
+EA2157C651DF,One IP is producing repeated SSH authentication failures. What review and response steps apply?,,"Review the access logs to identify patterns or specific times when these failures occur. Check if there are any recent changes in network security policies that might affect SSH connections. Verify firewall rules for SSH traffic, ensuring they are correctly configured and not blocking legitimate connections.
+
+Next, check the server's SSH configuration file (sshd_config) for any potential misconfigurations such as incorrect port settings or overly strict authentication requirements. Ensure that the IP address causing failures is allowed in the sshd_config file.
+
+If the issue persists, consider temporarily disabling firewall rules to see if they are indeed blocking legitimate traffic. Alternatively, you might want to check for brute force attacks by monitoring SSH login attempts and possibly increasing the lockout time or threshold for failed login attempts.
+
+Finally, implement additional security measures such as using strong authentication methods (e.g., public key authentication) and enabling two-factor authentication where possible.",,,
+022CD7DA8BF8,One IP is producing repeated SSH authentication failures. What review and response steps apply?,,"Review the access logs to identify patterns or specific times when these failures occur. Check if there are any recent changes in network security policies that might affect SSH connections. Verify firewall rules for SSH traffic, ensuring they are correctly configured and not blocking legitimate connections.
+
+Next, check the server's SSH configuration file (sshd_config) for any potential misconfigurations such as incorrect port settings or overly strict authentication requirements. Ensure that the IP address causing failures is allowed in the sshd_config file.
+
+If the issue persists, consider temporarily disabling firewall rules to see if they are indeed blocking legitimate traffic. Alternatively, you might want to check for brute force attacks by monitoring SSH login attempts and possibly increasing the lockout time or threshold for failed login attempts.
+
+Finally, implement additional security measures such as using strong authentication methods (e.g., public key authentication) and enabling two-factor authentication where possible.",,,
+CC40A8C97E1F,A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?,containers/deployment-regression.md; application/http-5xx-spike.md; containers/container-restart-loop.md; observability/loki-ingestion-gap.md,"To support either a rollback or continued diagnosis of a service regression that occurred immediately after deployment:
+
+- **Evidence from Before and After Deployment**: Record the exact time of the deployment, image tag/digest used, and any changed configuration. Compare health, logs, and key requests before and after this period to identify differences.
+- **Service Impact Assessment**: Determine if the failure affects one service or the whole stack. This helps in understanding the scope of the issue.
+- **Compatibility Review**: Verify that the previous image is still available and understand its database compatibility.
+
+Based on these checks, if a simple configuration mistake can be identified as the cause (e.g., an incorrect value for an environment variable), it might support proceeding with a rollback. If more investigation is needed to confirm or correct the issue, continued diagnosis may be warranted.",,,
+07B43F84DD54,A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?,containers/deployment-regression.md; application/http-5xx-spike.md; containers/container-restart-loop.md; observability/loki-ingestion-gap.md,"To support either a rollback or continued diagnosis of a service regression that occurred shortly after deployment:
+
+- **Evidence to Support Rollback**: 
+  - Record the exact deployment time, image tag/digest, and changed configuration.
+  - Compare health, logs, and key requests before and after the deployment time.
+  - Confirm whether the failure affects one specific service or the whole stack.
+  - Verify that the previous image is still available and its database compatibility is understood.
+
+- **Evidence to Support Continued Diagnosis**:
+  - Document all changes made during the deployment (image/tag/digest, configuration updates).
+  - Review logs for any anomalies before and after the deployment time.
+  - Check if there are any known issues or dependencies that could have caused the regression.",,,
+DAE399257E65,A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?,containers/deployment-regression.md; application/http-5xx-spike.md; containers/container-restart-loop.md; observability/loki-ingestion-gap.md,"To support either a rollback or continued diagnosis of a service regression that occurred shortly after deployment:
+
+- **Evidence to Support Rollback**: 
+  - Record the exact deployment time, image tag/digest, and changed configuration.
+  - Compare health, logs, and key requests before and after the deployment time.
+  - Confirm whether the failure affects one specific service or the whole stack.
+  - Verify that the previous image is still available and its database compatibility is understood.
+
+- **Evidence to Support Continued Diagnosis**:
+  - Document all changes made during the deployment (image/tag/digest, configuration updates).
+  - Review logs for any anomalies before and after the deployment time.
+  - Check if there are any known issues or dependencies that could have caused the regression.",,,
+AE3A135D5631,A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?,,"To determine whether to rollback or continue diagnosing a regressed service post-deployment, consider the following points as evidence:
+
+1. **Performance Metrics**: Check if key performance indicators (KPIs) have significantly degraded since deployment. If so, this suggests an issue that may require immediate attention.
+
+2. **Error Logs and Alerts**: Review logs for error messages or alerts related to the service's functionality post-deployment. These can indicate specific issues causing regression.
+
+3. **User Feedback**: Monitor user feedback for complaints about the service’s performance or behavior. User dissatisfaction often correlates with a need for quick resolution.
+
+4. **Test Results**: Assess if automated tests that were green before deployment are now failing. This indicates potential regressions in functionality post-deployment.
+
+5. **System Health Indicators**: Examine system health metrics such as CPU usage, memory consumption, and network traffic to identify any anomalies related to the service.
+
+6. **Historical Data**: Compare current performance with historical data for this service to gauge if recent changes are causing a regression.
+
+Uncertainty remains in deciding between rollback or continued diagnosis; choose based on severity of impact and available evidence. If immediate action is required, consider rolling back first to mitigate further damage before diagnosing the root cause.",,,
+DCA1CC83082B,A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?,,"To determine whether to rollback or continue diagnosing a regressed service post-deployment, consider the following points as evidence:
+
+1. **Performance Metrics**: Check if key performance indicators (KPIs) have significantly degraded since deployment. If so, this suggests an issue that may require immediate attention.
+
+2. **Error Logs and Alerts**: Review logs for error messages or alerts related to the service's functionality post-deployment. These can indicate specific issues causing regression.
+
+3. **User Feedback**: Monitor user feedback for complaints about the service’s performance or behavior. User dissatisfaction often correlates with a need for quick resolution.
+
+4. **Test Results**: Assess if automated tests that were green before deployment are now failing. This indicates potential regressions in functionality post-deployment.
+
+5. **System Health Indicators**: Examine system health metrics such as CPU usage, memory consumption, and network traffic to identify any anomalies related to the service.
+
+6. **Historical Data**: Compare current performance with historical data for this service to gauge if recent changes are causing a regression.
+
+Uncertainty remains in deciding between rollback or continued diagnosis; choose based on severity of impact and available evidence. If immediate action is required, consider rolling back first to mitigate further damage before diagnosing the root cause.",,,
+79E808FC229D,A service regressed immediately after deployment. What evidence supports rollback or continued diagnosis?,,"To determine whether to rollback or continue diagnosing a regressed service post-deployment, consider the following points as evidence:
+
+1. **Performance Metrics**: Check if key performance indicators (KPIs) have significantly degraded since deployment. If so, this suggests an issue that may require immediate attention.
+
+2. **Error Logs and Alerts**: Review logs for error messages or alerts related to the service's functionality post-deployment. These can indicate specific issues causing regression.
+
+3. **User Feedback**: Monitor user feedback for complaints about the service’s performance or behavior. User dissatisfaction often correlates with a need for quick resolution.
+
+4. **Test Results**: Assess if automated tests that were green before deployment are now failing. This indicates potential regressions in functionality post-deployment.
+
+5. **System Health Indicators**: Examine system health metrics such as CPU usage, memory consumption, and network traffic to identify any anomalies related to the service.
+
+6. **Historical Data**: Compare current performance with historical data for this service to gauge if recent changes are causing a regression.
+
+Uncertainty remains in deciding between rollback or continued diagnosis; choose based on severity of impact and available evidence. If immediate action is required, consider rolling back first to mitigate further damage before diagnosing the root cause.",,,

@@ -7,7 +7,13 @@ from typing import Any
 
 import pytest
 
-from agent.orchestrator import run_cycle
+from agent.orchestrator import _fallback_verdict, run_cycle
+
+
+def test_analysis_failure_is_a_non_acknowledgeable_high_verdict() -> None:
+    verdict = _fallback_verdict("Model output failed strict validation")
+    assert verdict["severity"] == "high"
+    assert verdict["signature"] == "pipeline:analysis-failed:agent"
 
 
 def test_critical_severity_triggers_docker_diagnostics_and_notify(

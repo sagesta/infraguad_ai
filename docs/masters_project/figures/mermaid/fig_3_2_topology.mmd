@@ -1,26 +1,68 @@
-%% Figure 3.2 — Single-Host Deployment Topology
-%% Appears in: Chapter 3, Section 3.3.5 (Deployment Topology)
+%% Figure 3.2 — Deployed Single-VPS Topology
+%% Appears in: Chapter 3, Deployment Topology
 %% Render to: ../fig_3_2_topology.png
 flowchart TB
-  subgraph VM["Google Compute Engine VM (Terraform)"]
-    subgraph COMPOSE["Docker Compose"]
-      AGENTC["agent container"]
-      APIC["api container"]
+  USER(["Operator browser"])
+  CF["Cloudflare edge"]
+
+  subgraph VPS["Shared VPS"]
+    TUNNEL["cloudflared<br/>outbound tunnel"]
+
+    subgraph INFRA["InfraGuard Compose project"]
+      IAPI["InfraGuard API<br/>127.0.0.1:8080"]
+      IAGENT["InfraGuard agent"]
+      SQLITE[("SQLite volume")]
+      CHROMA[("ChromaDB volume")]
+      RUNBOOKS[("20 local runbooks<br/>read-only")]
+      OLLAMA["Ollama<br/>optional"]
     end
-    V1[("sqlite_data volume")]
-    V2[("chroma_data volume")]
-    PROMTAIL["Promtail"]
-    LOKI["Loki"]
-    PROM["Prometheus"]
-    AGENTC --- V1
-    APIC --- V1
-    APIC --- V2
-    PROMTAIL -->|ship logs| LOKI
-    AGENTC --> LOKI
-    AGENTC --> PROM
+
+    subgraph DEV["DevPlanner Compose project"]
+      WEB["Web application"]
+      DAPI["API service"]
+      WORKER["Worker"]
+      POSTGRES[("PostgreSQL")]
+      REDIS[("Redis")]
+    end
+
+    subgraph OBS["Host observability and security"]
+      ALLOY["Grafana Alloy<br/>Docker log collection"]
+      LOKI["Loki<br/>127.0.0.1:3100"]
+      PROM["Prometheus<br/>127.0.0.1:9090"]
+      NODE["Node Exporter"]
+      CROWDSEC["CrowdSec LAPI<br/>127.0.0.1:8081"]
+    end
   end
-  MODEL["Direct model API"]
-  NTFY["ntfy.sh"]
-  APIC -.->|HTTPS| MODEL
-  AGENTC -.->|HTTPS| MODEL
-  AGENTC -.->|HTTPS| NTFY
+
+  MODEL["Selected cloud model API<br/>Gemini, Anthropic or OpenAI"]
+  NTFY["ntfy"]
+
+  USER -->|"HTTPS"| CF
+  CF -->|"named tunnel"| TUNNEL
+  TUNNEL -->|"local origin"| IAPI
+  TUNNEL -->|"separate hostnames"| WEB
+  TUNNEL --> DAPI
+
+  IAPI --- SQLITE
+  IAGENT --- SQLITE
+  IAPI --- CHROMA
+  RUNBOOKS --> IAPI
+  OLLAMA -.-> IAGENT
+  OLLAMA -.-> IAPI
+  WEB --> DAPI
+  DAPI --> POSTGRES
+  DAPI --> REDIS
+  WORKER --> POSTGRES
+  WORKER --> REDIS
+
+  ALLOY -->|"ship container logs"| LOKI
+  NODE -->|"host metrics"| PROM
+  PROM -->|"scrape services"| DEV
+  IAGENT --> LOKI
+  IAGENT --> PROM
+  IAGENT -->|"HTTP probes"| WEB
+  IAGENT -->|"HTTP probes"| DAPI
+  IAGENT -.->|"configured provider"| MODEL
+  IAPI -.->|"runbook answer"| MODEL
+  IAGENT -.->|"high or critical"| NTFY
+  IAPI -->|"operator-approved ban"| CROWDSEC

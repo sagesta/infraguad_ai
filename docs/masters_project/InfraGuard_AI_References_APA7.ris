@@ -1,0 +1,267 @@
+TY  - CPAPER
+ID  - infraguard-ref-01
+AU  - Ahmed, T., Ghosh, S., Bansal, C., Zimmermann, T., Zhang, X., & Rajmohan, S.
+PY  - 2023
+TI  - Recommending root-cause and mitigation steps for cloud incidents using large language models
+UR  - https://doi.org/10.1109/ICSE48619.2023.00149
+N1  - Ahmed, T., Ghosh, S., Bansal, C., Zimmermann, T., Zhang, X., & Rajmohan, S. (2023). Recommending root-cause and mitigation steps for cloud incidents using large language models. In 2023 IEEE/ACM 45th International Conference on Software Engineering (ICSE) (pp. 1737-1749). IEEE. https://doi.org/10.1109/ICSE48619.2023.00149
+ER  - 
+
+TY  - BOOK
+ID  - infraguard-ref-02
+AU  - Beyer, B., Jones, C., Petoff, J., & Murphy, N. R. (Eds.).
+PY  - 2016
+TI  - Site reliability engineering: How Google runs production systems. O'Reilly Media
+N1  - Beyer, B., Jones, C., Petoff, J., & Murphy, N. R. (Eds.). (2016). Site reliability engineering: How Google runs production systems. O'Reilly Media.
+ER  - 
+
+TY  - CHAP
+ID  - infraguard-ref-03
+AU  - Brooke, J.
+PY  - 1996
+TI  - SUS: A quick and dirty usability scale
+N1  - Brooke, J. (1996). SUS: A quick and dirty usability scale. In P. W. Jordan, B. Thomas, B. A. Weerdmeester, & I. L. McClelland (Eds.), Usability evaluation in industry (pp. 189-194). Taylor & Francis.
+ER  - 
+
+TY  - RPRT
+ID  - infraguard-ref-04
+AU  - Central Bank of Nigeria.
+PY  - 2024
+TI  - Risk-based cybersecurity framework and guidelines for deposit money banks and payment service banks
+UR  - https://www.cbn.gov.ng/Out/2024/BSD/CBN%20Risk-Based%20Cybersecurity%20Framework%20for%20DMBs%20and%20PSBs_2024.pdf
+N1  - Central Bank of Nigeria. (2024). Risk-based cybersecurity framework and guidelines for deposit money banks and payment service banks. https://www.cbn.gov.ng/Out/2024/BSD/CBN%20Risk-Based%20Cybersecurity%20Framework%20for%20DMBs%20and%20PSBs_2024.pdf
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-05
+AU  - Chen, Y., Xie, H., Ma, M., Kang, Y., Gao, X., Shi, L., Cao, Y., Gao, X., Fan, H., Wen, M., Zeng, J., Ghosh, S., Zhang, X., Zhang, C., Lin, Q., Rajmohan, S., Zhang, D., & Xu, T.
+PY  - 2024
+TI  - Automatic root cause analysis via large language models for cloud incidents
+UR  - https://doi.org/10.1145/3627703.3629553
+N1  - Chen, Y., Xie, H., Ma, M., Kang, Y., Gao, X., Shi, L., Cao, Y., Gao, X., Fan, H., Wen, M., Zeng, J., Ghosh, S., Zhang, X., Zhang, C., Lin, Q., Rajmohan, S., Zhang, D., & Xu, T. (2024). Automatic root cause analysis via large language models for cloud incidents. In Proceedings of the Nineteenth European Conference on Computer Systems (pp. 674-688). Association for Computing Machinery. https://doi.org/10.1145/3627703.3629553
+ER  - 
+
+TY  - JOUR
+ID  - infraguard-ref-06
+AU  - Chen, Y., Shetty, M., Somashekar, G., Ma, M., Simmhan, Y., Mace, J., Bansal, C., Wang, R., & Rajmohan, S.
+PY  - 2025
+TI  - AIOpsLab: A holistic framework to evaluate AI agents for enabling autonomous clouds
+UR  - https://proceedings.mlsys.org/paper_files/paper/2025/hash/d1f9e4a9f109b6e8b75ed362736f22ec-Abstract-Conference.html
+N1  - Chen, Y., Shetty, M., Somashekar, G., Ma, M., Simmhan, Y., Mace, J., Bansal, C., Wang, R., & Rajmohan, S. (2025). AIOpsLab: A holistic framework to evaluate AI agents for enabling autonomous clouds. Proceedings of Machine Learning and Systems, 7. https://proceedings.mlsys.org/paper_files/paper/2025/hash/d1f9e4a9f109b6e8b75ed362736f22ec-Abstract-Conference.html
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-07
+AU  - Datadog.
+PY  - 
+TI  - Knowledge sources for Bits Investigation
+UR  - https://docs.datadoghq.com/bits_ai/bits_investigation/knowledge_sources/
+N1  - Datadog. (n.d.). Knowledge sources for Bits Investigation. Retrieved July 30, 2026, from https://docs.datadoghq.com/bits_ai/bits_investigation/knowledge_sources/
+ER  - 
+
+TY  - STAT
+ID  - infraguard-ref-08
+AU  - Federal Republic of Nigeria.
+PY  - 2023
+TI  - Nigeria Data Protection Act, 2023. Nigeria Data Protection Commission
+UR  - https://ndpc.gov.ng/download/nigeria-data-protection-act-2023
+N1  - Federal Republic of Nigeria. (2023). Nigeria Data Protection Act, 2023. Nigeria Data Protection Commission. https://ndpc.gov.ng/download/nigeria-data-protection-act-2023
+ER  - 
+
+TY  - GEN
+ID  - infraguard-ref-09
+AU  - Gemini 2.5 Team.
+PY  - 2025
+TI  - Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. [Preprint]. arXiv
+UR  - https://doi.org/10.48550/arXiv.2507.06261
+N1  - Gemini 2.5 Team. (2025). Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. [Preprint]. arXiv. https://doi.org/10.48550/arXiv.2507.06261
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-10
+AU  - Grafana Labs.
+PY  - 
+TI  - Grafana Loki documentation
+UR  - https://grafana.com/docs/loki/latest/
+N1  - Grafana Labs. (n.d.). Grafana Loki documentation. Retrieved July 30, 2026, from https://grafana.com/docs/loki/latest/
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-11
+AU  - Guo, H., Yang, J., Liu, J., Yang, L., Chai, L., Bai, J., Peng, J., Hu, X., Chen, C., Zhang, D., Shi, X., Zheng, T., Zheng, L., Zhang, B., Xu, K., & Li, Z.
+PY  - 2024
+TI  - OWL: A large language model for IT operations
+UR  - https://openreview.net/forum?id=SZOQ9RKYJu
+N1  - Guo, H., Yang, J., Liu, J., Yang, L., Chai, L., Bai, J., Peng, J., Hu, X., Chen, C., Zhang, D., Shi, X., Zheng, T., Zheng, L., Zhang, B., Xu, K., & Li, Z. (2024). OWL: A large language model for IT operations. In The Twelfth International Conference on Learning Representations. https://openreview.net/forum?id=SZOQ9RKYJu
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-12
+AU  - He, P., Zhu, J., Zheng, Z., & Lyu, M. R.
+PY  - 2017
+TI  - Drain: An online log parsing approach with fixed depth tree
+UR  - https://doi.org/10.1109/ICWS.2017.13
+N1  - He, P., Zhu, J., Zheng, Z., & Lyu, M. R. (2017). Drain: An online log parsing approach with fixed depth tree. In 2017 IEEE International Conference on Web Services (ICWS) (pp. 33-40). IEEE. https://doi.org/10.1109/ICWS.2017.13
+ER  - 
+
+TY  - JOUR
+ID  - infraguard-ref-13
+AU  - Hevner, A. R., March, S. T., Park, J., & Ram, S.
+PY  - 2004
+TI  - Design science in information systems research
+UR  - https://doi.org/10.2307/25148625
+N1  - Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. MIS Quarterly, 28(1), 75-105. https://doi.org/10.2307/25148625
+ER  - 
+
+TY  - JOUR
+ID  - infraguard-ref-14
+AU  - Hou, X., Zhao, Y., Liu, Y., Yang, Z., Wang, K., Li, L., Luo, X., Lo, D., Grundy, J., & Wang, H.
+PY  - 2024
+TI  - Large language models for software engineering: A systematic literature review
+UR  - https://doi.org/10.1145/3695988
+N1  - Hou, X., Zhao, Y., Liu, Y., Yang, Z., Wang, K., Li, L., Luo, X., Lo, D., Grundy, J., & Wang, H. (2024). Large language models for software engineering: A systematic literature review. ACM Transactions on Software Engineering and Methodology, 33(8), Article 220. https://doi.org/10.1145/3695988
+ER  - 
+
+TY  - STAND
+ID  - infraguard-ref-15
+AU  - International Organization for Standardization.
+PY  - 2022
+TI  - ISO/IEC 27001:2022 information security, cybersecurity and privacy protection: Information security management systems: Requirements
+UR  - https://www.iso.org/standard/27001
+N1  - International Organization for Standardization. (2022). ISO/IEC 27001:2022 information security, cybersecurity and privacy protection: Information security management systems: Requirements. https://www.iso.org/standard/27001
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-16
+AU  - Jin, P., Zhang, S., Ma, M., Li, H., Kang, Y., Li, L., Liu, Y., Qiao, B., Zhang, C., Zhao, P., He, S., Sarro, F., Dang, Y., Rajmohan, S., Lin, Q., & Zhang, D.
+PY  - 2023
+TI  - Assess and summarize: Improve outage understanding with large language models
+UR  - https://doi.org/10.1145/3611643.3613891
+N1  - Jin, P., Zhang, S., Ma, M., Li, H., Kang, Y., Li, L., Liu, Y., Qiao, B., Zhang, C., Zhao, P., He, S., Sarro, F., Dang, Y., Rajmohan, S., Lin, Q., & Zhang, D. (2023). Assess and summarize: Improve outage understanding with large language models. In Proceedings of the 31st ACM Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering (pp. 1657-1668). Association for Computing Machinery. https://doi.org/10.1145/3611643.3613891
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-17
+AU  - k8sgpt.
+PY  - 
+TI  - Getting started guide
+UR  - https://docs.k8sgpt.ai/getting-started/getting-started/
+N1  - k8sgpt. (n.d.). Getting started guide. Retrieved July 30, 2026, from https://docs.k8sgpt.ai/getting-started/getting-started/
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-18
+AU  - LangChain.
+PY  - 
+TI  - LangGraph overview
+UR  - https://docs.langchain.com/oss/python/langgraph/overview
+N1  - LangChain. (n.d.). LangGraph overview. Retrieved July 30, 2026, from https://docs.langchain.com/oss/python/langgraph/overview
+ER  - 
+
+TY  - JOUR
+ID  - infraguard-ref-19
+AU  - Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Kuttler, H., Lewis, M., Yih, W., Rocktaschel, T., Riedel, S., & Kiela, D.
+PY  - 2020
+TI  - Retrieval-augmented generation for knowledge-intensive NLP tasks
+UR  - https://arxiv.org/abs/2005.11401
+N1  - Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Kuttler, H., Lewis, M., Yih, W., Rocktaschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems, 33, 9459-9474. https://arxiv.org/abs/2005.11401
+ER  - 
+
+TY  - RPRT
+ID  - infraguard-ref-20
+AU  - National Institute of Standards and Technology.
+PY  - 2024
+TI  - Artificial intelligence risk management framework: Generative artificial intelligence profile (NIST AI 600-1). U.S. Department of Commerce
+UR  - https://doi.org/10.6028/NIST.AI.600-1
+N1  - National Institute of Standards and Technology. (2024). Artificial intelligence risk management framework: Generative artificial intelligence profile (NIST AI 600-1). U.S. Department of Commerce. https://doi.org/10.6028/NIST.AI.600-1
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-21
+AU  - New Relic.
+PY  - 
+TI  - Meet New Relic AI, your observability assistant
+UR  - https://docs.newrelic.com/docs/agentic-ai/new-relic-ai/
+N1  - New Relic. (n.d.). Meet New Relic AI, your observability assistant. Retrieved July 30, 2026, from https://docs.newrelic.com/docs/agentic-ai/new-relic-ai/
+ER  - 
+
+TY  - STAND
+ID  - infraguard-ref-22
+AU  - OpenAPI Initiative.
+PY  - 2025
+TI  - OpenAPI specification, version 3.1.2
+UR  - https://spec.openapis.org/oas/v3.1.2.html
+N1  - OpenAPI Initiative. (2025). OpenAPI specification, version 3.1.2. https://spec.openapis.org/oas/v3.1.2.html
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-23
+AU  - OWASP Foundation.
+PY  - 2025
+TI  - OWASP Top 10:2025
+UR  - https://owasp.org/Top10/
+N1  - OWASP Foundation. (2025). OWASP Top 10:2025. https://owasp.org/Top10/
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-24
+AU  - PagerDuty.
+PY  - 
+TI  - PagerDuty AIOps
+UR  - https://support.pagerduty.com/main/docs/aiops
+N1  - PagerDuty. (n.d.). PagerDuty AIOps. Retrieved July 30, 2026, from https://support.pagerduty.com/main/docs/aiops
+ER  - 
+
+TY  - ELEC
+ID  - infraguard-ref-25
+AU  - Prometheus Authors.
+PY  - 
+TI  - Exposition formats
+UR  - https://prometheus.io/docs/instrumenting/exposition_formats/
+N1  - Prometheus Authors. (n.d.). Exposition formats. Retrieved July 30, 2026, from https://prometheus.io/docs/instrumenting/exposition_formats/
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-26
+AU  - Roy, D., Zhang, X., Bhave, R., Bansal, C., Las-Casas, P. H. B., Fonseca, R., & Rajmohan, S.
+PY  - 2024
+TI  - Exploring LLM-based agents for root cause analysis
+UR  - https://doi.org/10.1145/3663529.3663841
+N1  - Roy, D., Zhang, X., Bhave, R., Bansal, C., Las-Casas, P. H. B., Fonseca, R., & Rajmohan, S. (2024). Exploring LLM-based agents for root cause analysis. In Companion Proceedings of the 32nd ACM International Conference on the Foundations of Software Engineering (pp. 208-219). Association for Computing Machinery. https://doi.org/10.1145/3663529.3663841
+ER  - 
+
+TY  - JOUR
+ID  - infraguard-ref-27
+AU  - Shinn, N., Cassano, F., Gopinath, A., Narasimhan, K., & Yao, S.
+PY  - 2023
+TI  - Reflexion: Language agents with verbal reinforcement learning
+UR  - https://doi.org/10.52202/075280-0377
+N1  - Shinn, N., Cassano, F., Gopinath, A., Narasimhan, K., & Yao, S. (2023). Reflexion: Language agents with verbal reinforcement learning. Advances in Neural Information Processing Systems, 36, 8634-8652. https://doi.org/10.52202/075280-0377
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-28
+AU  - Xu, J., Zhang, Q., Zhong, Z., He, S., Zhang, C., Lin, Q., Pei, D., He, P., Zhang, D., & Zhang, Q.
+PY  - 2025
+TI  - OpenRCA: Can large language models locate the root cause of software failures?
+UR  - https://proceedings.iclr.cc/paper_files/paper/2025/hash/d29b8d53678015079e1d245c023e49d2-Abstract-Conference.html
+N1  - Xu, J., Zhang, Q., Zhong, Z., He, S., Zhang, C., Lin, Q., Pei, D., He, P., Zhang, D., & Zhang, Q. (2025). OpenRCA: Can large language models locate the root cause of software failures? In International Conference on Learning Representations. https://proceedings.iclr.cc/paper_files/paper/2025/hash/d29b8d53678015079e1d245c023e49d2-Abstract-Conference.html
+ER  - 
+
+TY  - CPAPER
+ID  - infraguard-ref-29
+AU  - Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y.
+PY  - 2023
+TI  - ReAct: Synergizing reasoning and acting in language models
+UR  - https://openreview.net/forum?id=WE_vluYUL-X
+N1  - Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. In The Eleventh International Conference on Learning Representations. https://openreview.net/forum?id=WE_vluYUL-X
+ER  - 
+
+TY  - JOUR
+ID  - infraguard-ref-30
+AU  - Yuan, P., Tang, L., Liu, Y., Kobayashi, Y., Sato, M., & Chen, H.
+PY  - 2025
+TI  - Incident diagnosing and reporting system based on retrieval augmented large language model
+UR  - https://doi.org/10.1609/aaai.v39i28.35379
+N1  - Yuan, P., Tang, L., Liu, Y., Kobayashi, Y., Sato, M., & Chen, H. (2025). Incident diagnosing and reporting system based on retrieval augmented large language model. Proceedings of the AAAI Conference on Artificial Intelligence, 39(28), 29721-29723. https://doi.org/10.1609/aaai.v39i28.35379
+ER  - 

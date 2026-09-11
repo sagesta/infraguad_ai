@@ -1,0 +1,230 @@
+# HISTORICAL PROMPT — SUPERSEDED AND EXCLUDED FROM DEFENCE
+
+This 17 August 2026 prompt predates the completed benchmark, human studies,
+supervisor remediation, strengthened tests, and final presentation. Its counts,
+coverage, study-status, and source-document statements are not current evidence.
+Use `InfraGuard_AI_Masters_Project_DEFENCE_PRESENTATION.pptx`; do not use this
+prompt to recreate or assess the defence deck.
+
+# Beautiful.ai generation prompt (historical record)
+
+Generated: 17 August 2026, 01:20 W. Central Africa Standard Time
+Source report: C:\Users\adebo\PROJECTS\infraguad_ai\docs\masters_project\InfraGuard_AI_Masters_Project_REFINED_APA7_SUBMISSION_FINAL.docx
+
+CREATE A 16:9 ACADEMIC FINAL-PROJECT DEFENCE PRESENTATION
+
+Project title
+INFRAGUARD AI: AN LLM-DRIVEN OBSERVABILITY AND INCIDENT-TRIAGE AGENT FOR SELF-HOSTED CLOUD-NATIVE INFRASTRUCTURE
+
+Source-of-truth rule
+Use only the factual content below, which was extracted from the most recent report:
+InfraGuard_AI_Masters_Project_REFINED_APA7_SUBMISSION_FINAL.docx (last modified 17 August 2026, 00:48 W. Central Africa Standard Time). Do not revive older "InfraGuard Pro" claims.
+The implemented artefact is an LLM-assisted observability and incident-triage reference system.
+Autonomous code remediation, SARIF-to-pull-request automation, and multi-host operation are future
+work, not delivered features. Do not invent evaluation results, users, cost savings, accuracy,
+production-readiness claims, or citations.
+
+Audience and purpose
+The audience is a Master of Information Technology project-defence panel. The presentation must
+demonstrate a clearly bounded problem, an implemented software artefact, evidence of verification,
+intellectual honesty about limits, and a defensible contribution to professional IT practice.
+By the end, the panel should understand that InfraGuard AI is a tested, inspectable single-host
+reference implementation that connects telemetry, LLM reasoning, runbook retrieval, operator
+controls, persistence, and a dashboard; the available evidence supports implementation feasibility,
+not proven diagnostic accuracy or production effectiveness.
+
+Visual direction
+The supplied Sample_MIT.pptx contains 12 slides and uses a formal MIT proposal-defence rhythm with alternating deep-navy and white slides, red section titles, restrained gold accents, a thin top rule, and the MIT mark in the upper-right.
+- Treat Sample_MIT.pptx as a visual reference, not a content source.
+- Preserve the formal academic character while improving hierarchy, spacing, and visual storytelling.
+- Palette: deep navy #0B3553, warm white #F7F5F0, coral red #E43D30, muted gold #C8A36A,
+  charcoal #17212B, and a limited green #159447 for passed/completed evidence.
+- Alternate light and dark slides deliberately. Keep the MIT logo/header treatment only if the
+  authentic asset is available from the sample; never fabricate a university logo.
+- Use one strong composition per slide, not a dashboard of cards. Keep body copy concise.
+- Use large takeaway titles, restrained transitions, consistent page numbers, and APA-style short
+  citations in a small footer where a scholarly claim is used.
+- Prefer the project's authentic diagrams and screenshots over stock imagery. Do not generate fake
+  product screens, fake telemetry, or fake charts.
+
+Slide-by-slide content
+
+1. Title slide - "InfraGuard AI"
+   Subtitle: "An LLM-Driven Observability and Incident-Triage Agent for Self-Hosted Cloud-Native Infrastructure"
+   Add: Final Project Defence; Master of Information Technology; student name, matriculation number,
+   supervisor, and date as editable placeholders. Keep this slide minimal and premium.
+
+2. The operational problem - "Telemetry exists, but first-pass interpretation remains manual"
+   Frame the project around small operations teams comparing distributed signals before deciding
+   whether a service is healthy, degraded, or failing.
+   - Triage time. When several telemetry sources report a problem, a responder must compare the evidence before stating the likely cause and next action. This work tests whether a bounded first-pass summary can support that review.
+   - Repeated low-risk findings. A known condition may appear on successive heartbeat cycles and occupy the same dashboard space as an unreviewed finding.
+   - Ungrounded model output. An LLM can infer a cause that is not supported by the supplied telemetry or treat an optional integration as a fault. Its response therefore needs scope constraints, structured parsing, and operator review.
+   - Deployment and data handling. Managed platforms and cloud model APIs differ in cost, hosting model, and the telemetry they receive. A small team needs a design whose data boundary can be inspected and configured.
+   - Limited operator memory. A recurring condition may appear on every heartbeat even after an operator has reviewed it. Without an acknowledgement mechanism, the dashboard provides no durable way to distinguish a known low-risk condition from an unreviewed one.
+   Closing line: Five practical issues remain even when monitoring tools are already in place: The project therefore asks how a bounded, self-hosted triage system can turn available telemetry into a reviewable verdict, retrieve relevant runbooks, support operator-approved threat response, and remember recurring conditions without concealing high-risk findings.
+
+3. Aim and objectives - "Five objectives connect telemetry collection to verified behaviour"
+   Aim: The aim of this research is to design, develop, and evaluate InfraGuard AI, an LLM-assisted observability and incident-triage system that produces structured verdicts from available telemetry, supports operator-approved threat response and runbook retrieval, and records acknowledgements for recurring low-risk conditions.
+   - To design and implement a multi-source telemetry-collection layer that uniformly gathers application and system logs (via Grafana Loki), infrastructure metrics (via Prometheus), endpoint health (via HTTP probes), and optional container state (via the Docker Engine API), and normalises them into a bounded context suitable for downstream LLM reasoning.
+   - To develop a LangGraph reasoning workflow following a collect, analyse, decide, and notify cycle that requests a structured JSON verdict from a configured LLM provider and sends notifications for high and critical verdicts.
+   - To design and implement a retrieval-augmented runbook assistant that indexes local Markdown procedures with local ONNX embeddings and ChromaDB, then supplies relevant excerpts to the selected language model.
+   - To implement an acknowledgement memory keyed by a fingerprint of the condition signature, prompt version, and model, so matching low-risk verdicts can be marked and hidden by default while high and critical verdicts remain visible.
+   - To package the system for single-host deployment through Docker Compose and evaluate the implemented behaviour through automated tests and measured code coverage. A practitioner usability protocol is also defined for later administration.
+   Show the objectives as a clean numbered progression, not five dense text boxes.
+
+4. Literature and gap - "The opportunity lies between monitoring, AIOps, and operator control"
+   Establish the conceptual foundation: observability, SRE/toil reduction, AIOps, LLM agents, RAG,
+   incident memory, and human oversight. Then show the seven design gaps:
+   - 2.4.1 Grounding and response validation: An LLM can infer an unsupported cause or return malformed output.
+   - 2.4.2 Deployment control: The commercial platforms reviewed are vendor-managed services.
+   - 2.4.3 Inspectable entry point: A small reference implementation allows the collection and reasoning paths to be inspected without adopting a full observability platform.
+   - 2.4.4 Recurring-condition acknowledgement: A scheduled triage loop needs a durable distinction between a reviewed low-risk condition and a new finding.
+   - 2.4.5 Operator approval for enforcement: IP bans can interrupt legitimate traffic.
+   - 2.4.6 Organisation-specific runbooks: Operational procedures are maintained as local Markdown files under the runbooks directory.
+   - 2.4.7 Reproducibility: Private datasets and managed infrastructure limit direct reproduction of several reviewed systems.
+   Keep claims cautious: constraints and validation reduce risk but do not prove model correctness.
+
+5. Scope and boundaries - "The project assists triage; it does not autonomously remediate"
+   Within scope:
+     - Collection of application/system logs (Loki), infrastructure metrics (Prometheus), endpoint health (HTTP probes), and optional Docker container telemetry, on a configurable heartbeat interval.
+     - Model analysis through the Gemini Developer API, Anthropic, OpenAI-compatible services, or Ollama, selected through environment configuration.
+     - Push notification of high- and critical-severity verdicts via the ntfy.sh service.
+     - Deterministic detection of HTTP/SSH brute-force and port-scan patterns in logs, with operator-approved CrowdSec IP banning (operating in dry-run mode when CrowdSec is not configured).
+     - A local runbook retrieval path based on Markdown files, ONNX all-MiniLM-L6-v2 embeddings and a ChromaDB vector index.
+     - A stateful acknowledgement memory with condition-and-ruleset fingerprinting and a configurable time-to-live. A changed signature, prompt version, or model produces a different fingerprint.
+     - A single-page operations dashboard with session authentication, rate limiting, security headers, request auditing, and output escaping. Production deployment requires HTTPS termination and restricted network access.
+   Explicitly outside scope/future work:
+     - Autonomous code remediation, including ingesting security-scanner output such as SARIF, generating code or configuration patches, and opening pull requests. The agent diagnoses and recommends; it does not modify application code.
+     - A comparative production evaluation of local and hosted models, including capacity planning for self-hosted inference, remains outside the implemented evaluation scope.
+     - Multi-server fleet operation. The present work targets a single host monitoring its co-located workloads; a distributed control-plane-and-satellite topology is future work.
+     - Custom training, fine-tuning, or distillation of the underlying LLMs. Models are treated as black-box providers selected through the common interface: hosted models are accessed through their APIs, while Ollama uses the local service.
+     - Identity and access-management federation with external single-sign-on providers; the system uses cookie-based session authentication only.
+     - Native mobile or desktop client applications; the dashboard is delivered exclusively as a responsive web application.
+     - Formal security certification (e.g. SOC 2 or an ISO 27001 audit). The deliverable is a reference implementation and architectural blueprint, not a certified product.
+   Make the distinction between diagnosis/recommendation and enforcement unmistakable.
+
+6. Methodology - "Iterative design science kept the problem, artefact, and evidence aligned"
+   - Problem identification. Reviewed observability, SRE, AIOps, incident-analysis, RAG, and agent research, then defined the narrow problem of first-pass telemetry interpretation for a small team.
+   - Objective definition. Converted the problem into five implementation and evaluation objectives.
+   - Design and development. Implemented telemetry adapters, the reasoning workflow, provider abstraction, runbook retrieval, threat handling, persistence, API, dashboard, and acknowledgement memory.
+   - Demonstration. Exercised the main workflow paths with mocked upstream services and controlled test fixtures.
+   - Evaluation. Ran the automated test and coverage suite, compared the displayed duplicate count before and after an acknowledgement, and completed a limited deployed runbook-retrieval pilot. The practitioner usability instrument was prepared but not administered.
+   - Communication. Updated the report, diagrams, references, and appendices so that they describe the implemented system and measured evidence.
+   Use a six-stage horizontal process with feedback loops. State that tests and review sometimes
+   caused earlier decisions to be revisited.
+
+7. Architecture - "A two-process, single-host design keeps collection and review inspectable"
+   Core architecture: InfraGuard AI runs as two processes. The agent process executes the reasoning heartbeat, while the API process serves the dashboard and REST surface. Both share the same SQLite database.
+   Key components:
+   - Agent (Heartbeat). A long-running asyncio process that, on each interval, fetches operator acknowledgements, collects telemetry, invokes the LangGraph reasoning loop, persists the verdict, and dispatches notifications. Implemented in agent/main.py and agent/orchestrator.py.
+   - FastAPI Service. Hosts the dashboard and the REST API (status, alerts, configuration, threats, runbooks, and acknowledgement endpoints) behind authentication, rate-limiting, security-header, and audit middleware. Implemented in api/main.py.
+   - Reasoning Substrate. A LangGraph state machine implements the collect-analyse-decide-notify loop with two interchangeable analysis modes: a single structured provider call and a LangChain multi-tool agent.
+   - LLM Client. A provider layer supporting the Gemini Developer API, Anthropic, OpenAI, and optional Ollama models through a common verdict schema.
+   - Verdict-Memory. The fingerprinting and acknowledgement subsystem (agent/memory.py and the acknowledgements table) that suppresses already-triaged conditions and feeds them back into the prompt as known conditions.
+   - RAG Service. A retrieval pipeline over local Markdown runbooks, local ONNX all-MiniLM-L6-v2 embeddings, and a ChromaDB vector store.
+   - Threat Subsystem. A deterministic detector that scans recent logs for attack patterns and an operator-approved CrowdSec adapter.
+   - SQLite Store. The persistence layer for verdicts and acknowledgements, with automatic retention pruning.
+   Use the authentic high-level architecture image. Emphasise that the agent and FastAPI service
+   share SQLite, while adapters isolate Loki, Prometheus, HTTP probes, Docker, and LLM providers.
+
+8. Reasoning workflow - "Each heartbeat follows a bounded collect-analyse-decide-notify cycle"
+   Workflow: The reasoning workflow lives in agent/orchestrator.py and is started on a schedule by the asyncio heartbeat in agent/main.py. At each interval, the heartbeat loads active acknowledgements and, when Docker monitoring is enabled, may tail error logs from a monitored container. The compiled LangGraph workflow runs on a worker thread so a blocking model call cannot stall the event loop. Its collect_data node gathers telemetry, analyze requests a verdict, and decide_action may add container diagnostics for a high or critical result.
+   Provider modes: Two settings control LLM analysis: USE_LANGCHAIN_AGENT selects the analysis mode, and LLM_PROVIDER selects Gemini, Anthropic, OpenAI, or Ollama. The active model name is included in the acknowledgement fingerprint. Direct mode sends the assembled prompt in one request and parses the returned JSON through the shared schema module. In multi-tool mode, the provider chat model may call the Loki, Prometheus, and HTTP-probe tools before returning a verdict, subject to an iteration limit.
+   Show the authentic state-machine or heartbeat-flow diagram. Label Gemini Developer API,
+   Anthropic, OpenAI-compatible endpoints, and Ollama as configurable provider options.
+
+9. Grounding and operator control - "Runbooks add local context; enforcement stays human-approved"
+   Runbook RAG: The runbook service in agent/rag/ recursively loads Markdown files from RUNBOOKS_DIR while retaining title, source, and category metadata. It splits the text into chunks, creates embeddings locally with ONNX all-MiniLM-L6-v2, and stores the vectors in ChromaDB. At query time, the service retrieves the four closest chunks and supplies only that material to the configured LLM. The answer includes source titles.
+   Explain deterministic HTTP/SSH brute-force and port-scan detection, optional CrowdSec integration,
+   and operator approval before an IP ban. Use the runbook-retrieval figure and, if space permits,
+   a small authentic dashboard crop.
+
+10. Safety and memory design - "Structured outputs and fingerprinted acknowledgements constrain recurring risk"
+   Output validation: Prompt construction in agent/llm/prompts.py serialises only the telemetry sections that are available. It also instructs the model not to treat a missing optional integration as an incident. The shared parser in agent/llm/schema.py expects a JSON object and a recognised severity, then normalises the summary, root-cause, action, and signature fields. Missing text fields are replaced with empty strings and unexpected fields are ignored.
+   Verdict memory: Acknowledgement behaviour spans agent/memory.py, api/store.py, the prompt assembler, and the acknowledgement endpoints; Figure 4.2 traces the flow. The condition signature is combined with the prompt version and model name to produce a SHA-256 fingerprint. An operator may acknowledge an ok or warning verdict, add a note, and choose an expiry time. Active acknowledgements are passed back in later prompts as context, although every heartbeat still calls the model. When a later ok or warning verdict has the same fingerprint, the API marks it as suppressed and the dashboard hides it by default.
+   Explain the fingerprint as condition signature + prompt version + model. State clearly that high
+   and critical verdicts cannot be hidden and that acknowledgement reduces dashboard repetition,
+   not model calls, storage, or inference cost.
+
+11. Implemented interface - "The dashboard turns verdicts into reviewable operational records"
+   The dashboard (dashboard/index.html) is a single page served by FastAPI. It displays the current verdict, integration status, agent staleness, detected threats, runbook queries, and recent checks. Root-cause and recommended-action text can be expanded when needed. For ok and warning verdicts, the page provides controls to mark or unmark a condition as known, a known tag, and a toggle for acknowledged rows.
+   Use the authentic dashboard screenshot full-width or in a strong two-column composition.
+   Call out session authentication, rate limiting, security headers, request auditing, output escaping,
+   staleness status, recent checks, threat review, runbook queries, and acknowledgement controls.
+
+12. Automated verification - "82 tests passed; coverage is strong in core control paths but uneven overall"
+   Exact evidence: The complete automated suite passed 82 tests with 17 warnings in 27.01 seconds. Coverage.py reported 1,476 executable statements, 508 missed statements and 66% overall line coverage. Coverage was strongest in acknowledgement memory (100%), orchestration (95%), provider dispatch (93%) and persistence (94%). Lower results remained in the LangChain agent path (15%), vector store (31%), Docker API path (12%), Docker events (14%) and the agent entry point (0%).
+   Highlight only verified figures: 82 passing tests, 17 warnings, 27.01 seconds, 1,476 executable
+   statements, 508 missed statements, and 66% overall line coverage. Show the authentic module-
+   coverage chart. Visually distinguish high-coverage modules from low-coverage paths that need work.
+
+13. Acknowledgement evaluation - "Reviewed low-risk warnings fall out of the default view without stopping analysis"
+   Acknowledgement changes how repeated low-risk verdicts are presented. In the 30-cycle scenario, the same warning fingerprint is stored on every cycle. Without an acknowledgement, all 30 rows remain visible. If the operator acknowledges the condition after cycle 3, the next 27 model calls and verdict records still occur, but their matching warnings are hidden from the default view. The visible cumulative count therefore remains at 3. Figure 5.2 plots both cases, while TC-08 and TC-09 test the rules behind the scenario.
+   Use the authentic 30-cycle comparison chart. Make the narrow conclusion explicit: after the
+   operator acknowledges the repeated warning after cycle 3, the next 27 matching warnings remain
+   recorded but are hidden from the default view; high/critical findings remain visible.
+
+14. Limited live verification - "The deployed RAG path worked end to end, but the pilot was not an accuracy study"
+   Pilot evidence: On 16 August 2026, the deployed dashboard re-indexed twenty local Markdown runbooks and used DeepSeek V4 Flash through the OpenAI-compatible LangChain path for three illustrative operator questions concerning disk capacity (RB-01), memory pressure (RB-03) and Loki ingestion (RB-08). In each observed interaction, the assistant returned actionable guidance aligned with the expected runbook subject. This confirms that local loading, ONNX embedding, ChromaDB retrieval, provider invocation and dashboard rendering worked together in the deployed configuration. This was a convenience pilot rather than a controlled accuracy study. The three questions were not independently scored; response latency, token use and cost were not recorded; and no no-RAG baseline was executed. The heartbeat agent was intentionally stopped during the question-answering session, so the stale-status banner remained visible. The pilot therefore does not establish live telemetry diagnostic accuracy.
+   Usability status: No structured practitioner study was completed. The System Usability Scale instrument in Appendix D remains a proposed protocol and no usability score is reported.
+   Present a balanced evidence panel: completed automated tests, coverage, memory demonstration,
+   and a three-question live runbook pilot using 20 indexed Markdown runbooks and DeepSeek V4 Flash;
+   mark live-model quality benchmarking and the practitioner study as not completed.
+
+15. Contributions, limitations, and next work - "The contribution is a reproducible reference implementation with explicit limits"
+   Contributions:
+   - 6.3.1 Reproducible Reference Implementation: The repository shows how telemetry adapters, a provider-independent LLM interface, LangGraph orchestration, persistence, an authenticated API, a dashboard, and automated tests can be assembled for a single-host operations use case.
+   - 6.3.2 Acknowledgement Pattern: The content-and-ruleset fingerprint links an acknowledgement to the observed condition and the active reasoning configuration. A similar design may suit other systems that must separate reviewed low-risk results from new findings, provided they also enforce an independent severity safeguard.
+   - 6.3.3 Documented Limits: The project does not claim autonomous remediation or proven production reliability. Full heartbeat-based diagnostic evaluation, a labelled incident benchmark, comparative provider testing, a larger runbook-retrieval study, cost and latency profiling, practitioner usability assessment and production security hardening remain...
+   Main limitations: The principal limitation is the absence of a controlled live telemetry diagnostic benchmark. Overall line coverage is 66%, but important execution paths remain lightly exercised: agent/main.py recorded 0%, the LangChain agent 15%, the vector store 31%, Docker API 12% and Docker events 14%. External cloud services and operational failure conditions are still mocked in much of the automated suite. The live retrieval pilot contained only three convenience questions, without independent scoring, a no-RAG baseline, repeated trials, latency, token or cost measurements. No practitioner usability study was conducted.
+   Priority next work:
+   - 6.4.1 Evaluation: Create a labelled set of healthy, degraded, and failing telemetry scenarios. Measure severity accuracy, root-cause accuracy, evidence support, false positives, false negatives, schema-valid output rate, latency, and cost for each provider and model version. Administer the Appendix D tasks and System Usability Scale to an approved...
+   - 6.4.2 Test and Security Coverage: Future tests should exercise the local runbook loader, embedding and ChromaDB retrieval path with a labelled question set, independently scored relevance criteria and a no-RAG baseline. The same work should measure end-to-end latency, token use and cost for hosted models, together with capacity and response-time measurements...
+   - 6.4.3 Architecture: Evaluate deterministic condition signatures derived before the LLM call. If reliable, they could allow some acknowledged conditions to bypass model analysis, after appropriate severity and freshness checks. Evaluate and harden the existing self-hosted Ollama path where data-control requirements prohibit cloud inference. The evaluation...
+   Avoid marketing language. Make "tested reference implementation" the strongest defensible claim.
+
+16. Conclusion and questions - "InfraGuard AI makes first-pass triage more structured, inspectable, and reviewable"
+   Synthesis: The completed system connects a single-host, LLM-assisted triage workflow to Loki, Prometheus, HTTP probes, and optional Docker telemetry. It records structured verdicts while keeping acknowledgement and threat-response actions under the operator's control. The acknowledgement design provides a practical way to label repeated low-risk conditions without hiding high-risk results. Its safety depends on the quality and stability of the condition signature. The severity safeguard and expiry rules reduce risk, but they do not remove the need for operator review. The evidence supports describing InfraGuard AI as a tested reference implementation.
+   Close with three short takeaways: bounded multi-source collection; provider-flexible structured
+   reasoning with local runbook grounding; and operator-controlled memory/threat response.
+   End with "Questions" rather than a generic thank-you slide. Add a small selected-references footer
+   or a backup references slide if the platform permits an appendix.
+
+Approved references for in-slide short citations and an optional appendix
+- Ahmed, T., Ghosh, S., Bansal, C., Zimmermann, T., Zhang, X., & Rajmohan, S. (2023). Recommending root-cause and mitigation steps for cloud incidents using large language models. In 2023 IEEE/ACM 45th International Conference on Software Engineering (ICSE) (pp. 1737-1749). IEEE. https://doi.org/10.1109/ICSE48619.2023.00149
+- Beyer, B., Jones, C., Petoff, J., & Murphy, N. R. (Eds.). (2016). Site reliability engineering: How Google runs production systems. O'Reilly Media.
+- Central Bank of Nigeria. (2024). Risk-based cybersecurity framework and guidelines for deposit money banks and payment service banks. https://www.cbn.gov.ng/Out/2024/BSD/CBN%20Risk-Based%20Cybersecurity%20Framework%20for%20DMBs%20and%20PSBs_2024.pdf
+- Federal Republic of Nigeria. (2023). Nigeria Data Protection Act, 2023. Nigeria Data Protection Commission. https://ndpc.gov.ng/download/nigeria-data-protection-act-2023
+- Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. MIS Quarterly, 28(1), 75-105. https://doi.org/10.2307/25148625
+- Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Kuttler, H., Lewis, M., Yih, W., Rocktaschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems, 33, 9459-9474. https://arxiv.org/abs/2005.11401
+- National Institute of Standards and Technology. (2024). Artificial intelligence risk management framework: Generative artificial intelligence profile (NIST AI 600-1). U.S. Department of Commerce. https://doi.org/10.6028/NIST.AI.600-1
+- Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. In The Eleventh International Conference on Learning Representations. https://openreview.net/forum?id=WE_vluYUL-X
+Use only references from this list unless another source is copied exactly from the report. Do not
+invent bibliographic details. Suggested short citations include Ahmed et al. (2023), Beyer et al.
+(2016), Hevner et al. (2004), Lewis et al. (2020), NIST (2024), and Yao et al. (2023).
+
+Asset-use plan
+Upload the following authentic project assets before generation and map them to the indicated slides:
+- fig_3_1_architecture.png
+- fig_3_3_remediation_flow.png
+- fig_3_7_state_machine.png
+- fig_4_3_dashboard.png
+- fig_4_4_runbook_retrieval.png
+- fig_5_1_acceptance.png
+- fig_5_2_mttr.png
+- fig_5_4_calibration.png
+
+Copy and evidence rules
+- Use no more than 3-5 short bullets on most slides; convert detail into presenter notes.
+- Keep each slide focused on one claim and use a takeaway title rather than a topic label.
+- Do not change "InfraGuard AI" to "InfraGuard Pro".
+- Do not call the system autonomous remediation software.
+- Do not imply that acknowledgements reduce inference calls or cost.
+- Do not imply that three live questions establish RAG accuracy.
+- Do not report a System Usability Scale score; the practitioner study was not completed.
+- Do not describe the demonstration deployment as production-secure. Production hardening still
+  requires HTTPS-only exposure, restricted telemetry/admin ports, secure cookies, managed secrets,
+  a stricter CSP, and protected external audit storage.
+- Preserve numerical precision exactly where metrics are shown.
+- Include a final appendix/reference slide only if it does not dilute the 16-slide narrative.

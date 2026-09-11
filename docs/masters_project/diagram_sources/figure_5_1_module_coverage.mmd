@@ -1,10 +1,12 @@
 %% Thesis figure: Figure 5.1
 %% Stable ID: FIG-5.1
-%% Caption: Selected Module Coverage from the Verification Run
+%% Caption: Selected-Module Coverage after Post-Review Verification on 29 August 2026
 %% Output PNG: ../figures/fig_5_1_acceptance.png
-%% Values reproduce the verification data reported in Chapter Five.
+%% Measured 29 August 2026: 180 tests passed; 45 warnings; 89% overall line coverage
+%% across 1,655 statements with 190 missed. Six selected modules reached 100%;
+%% store reached 94% and orchestrator reached 95%. Controlled local test evidence only.
 xychart-beta
-  title "Selected Module Coverage from the Verification Run"
-  x-axis ["memory", "orchestrator", "store", "middleware", "api", "loki", "prometheus", "threat", "prompts", "gemini", "overall"]
+  title "Post-Review Verification — 180 Passing Tests"
+  x-axis ["memory", "orchestrator", "store", "LangChain", "scheduled", "Docker API", "Docker events", "vector store", "overall"]
   y-axis "Line coverage (%)" 0 --> 100
-  bar [100, 94, 94, 99, 76, 85, 80, 67, 62, 23, 55]
+  bar [100, 95, 94, 100, 100, 100, 100, 100, 89]

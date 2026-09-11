@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from agent.orchestrator import docker_monitoring_enabled, run_cycle
 from agent.tools.docker_logs import fetch_container_errors
-from api.store import fetch_active_acks, init_db, insert_verdict
+from api.store import fetch_current_ruleset_acks, init_db, insert_verdict
 
 
 logger = logging.getLogger("infraguard.agent")
@@ -28,10 +28,11 @@ async def _persist_cycle_result(final_state: dict[str, object]) -> None:
     verdict = final_state.get("verdict")
     if not isinstance(verdict, dict):
         verdict = {
-            "severity": "warning",
+            "severity": "high",
             "summary": "Missing verdict in orchestrator output",
             "root_cause": "Orchestrator returned no verdict dict",
             "recommended_action": "Inspect agent logs and LangGraph state",
+            "signature": "pipeline:analysis-failed:agent",
         }
     extras: dict[str, object] = {
         "notify_result": final_state.get("notify_result"),
@@ -58,7 +59,7 @@ async def heartbeat_loop(interval_seconds: int = 120) -> None:
                 if container_name:
                     docker_log_errors = await fetch_container_errors(container_name)
             # The agent's memory: conditions the operator has already triaged.
-            known_conditions = await fetch_active_acks()
+            known_conditions = await fetch_current_ruleset_acks()
             final = await asyncio.to_thread(
                 run_cycle,
                 {"docker_log_errors": docker_log_errors, "known_conditions": known_conditions},

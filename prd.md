@@ -5,7 +5,7 @@
 | Product | InfraGuard AI |
 | Document version | 1.0 |
 | Status | Implementation-backed draft |
-| Last updated | 20 July 2026 |
+| Last updated | 29 August 2026 |
 | Product type | Self-hosted infrastructure observability and incident-triage agent |
 | Primary deployment | One team, one host or small application environment |
 | Current maturity | Functional prototype; suitable for a controlled pilot after the P0 readiness work in Section 15 |
@@ -14,13 +14,13 @@
 
 InfraGuard AI is a self-hosted operational assistant for small engineering teams that already have, or can provide, infrastructure telemetry but do not have enough time or specialist staff to interpret it continuously.
 
-Every 120 seconds by default, an independent agent collects recent logs from Loki, metrics from Prometheus, HTTP endpoint results, and optional Docker events and error logs. A configured frontier model—Gemini by default, with Anthropic and OpenAI available—evaluates only the supplied telemetry and returns a structured verdict containing severity, a summary, a likely root cause, a recommended action, and a stable condition signature. The verdict is stored in SQLite and presented through an authenticated dashboard. High and critical conditions can trigger an ntfy notification.
+Every 120 seconds by default, an independent agent collects recent logs from Loki, metrics from Prometheus, HTTP endpoint results, and optional Docker events and error logs. A configured model evaluates a bounded telemetry snapshot and returns a structured verdict containing severity, a summary, a likely root cause, a recommended action, and a canonical condition signature. The verdict is stored in SQLite and presented through an authenticated dashboard. High and critical conditions can trigger an ntfy notification. The frozen benchmark found repeat-stable signatures in only 10 of 24 scenarios, so canonical form must not be described as dependable semantic stability.
 
 The product also provides:
 
 - deterministic detection of selected brute-force and port-scan patterns in Loki logs;
 - operator-approved IP banning through CrowdSec, with a safe dry-run mode;
-- a runbook assistant grounded in local Markdown documents indexed in ChromaDB;
+- a runbook assistant that conditions an advisory answer on retrieved local Markdown documents indexed in ChromaDB and returns source titles;
 - integration-status and stale-agent visibility;
 - stateful verdict memory, allowing an operator to acknowledge a recurring low-risk condition without permanently hiding changed or severe conditions.
 
@@ -36,7 +36,7 @@ Enable a small operations team to move from raw monitoring signals to an underst
 
 ### 2.2 Product principles
 
-1. **Grounded reasoning:** The LLM may reason only over supplied telemetry and indexed runbooks.
+1. **Bounded evidence:** Telemetry, runbook text, and operator questions are labelled as untrusted data and bounded separately from model instructions; answer support must still be checked rather than assumed.
 2. **Human control:** Enforcement actions require explicit operator approval.
 3. **Severe alerts always surface:** High and critical verdicts cannot be suppressed.
 4. **Memory must self-invalidate:** Acknowledgements are tied to condition, prompt version, and model rather than being permanent global exclusions.
@@ -82,7 +82,7 @@ InfraGuard AI addresses these problems by aggregating a bounded telemetry snapsh
 
 An API begins returning HTTP 500 responses after a deployment. Loki contains database timeout messages, Prometheus shows an increased 5xx ratio, and the HTTP probe fails. InfraGuard AI correlates the supplied signals, produces a high or critical verdict, recommends checking database connectivity or rolling back, stores the evidence, and sends a push notification.
 
-**Practical value:** Reduces the time needed to reach a first diagnosis. The operator still validates and performs the rollback.
+**Intended value:** Help the operator reach a first diagnosis. Any reduction in diagnosis time remains unmeasured, and the operator still validates and performs the rollback.
 
 #### Scenario B: Resource pressure on a self-hosted application
 
@@ -100,7 +100,7 @@ One of the configured public or internal endpoints times out or returns a failin
 
 Loki receives enough authentication failures from one source IP to cross a deterministic threshold. The threat panel presents the pattern and evidence count. The operator reviews it and selects **Block IP**. InfraGuard creates the CrowdSec decision server-side and applies it only when CrowdSec is configured; otherwise it records a dry-run result.
 
-**Practical value:** Shortens a routine defensive workflow while preserving human approval.
+**Intended value:** Support a routine defensive workflow while preserving human approval. A time-saving effect has not been measured.
 
 #### Scenario E: Incident procedure lookup
 
@@ -129,7 +129,7 @@ An on-call developer asks how to recover the database or restart a failed servic
 - G-04: Notify the operator when severity reaches high or critical.
 - G-05: Reduce repeated low-risk verdict noise with self-invalidating memory.
 - G-06: Detect selected threat patterns deterministically and keep blocking human-approved.
-- G-07: Provide grounded access to organisation-specific runbooks.
+- G-07: Provide advisory access to organisation-specific runbooks with retrieved source titles and a human-review boundary.
 - G-08: Remain straightforward to deploy and operate on a single host with Docker Compose.
 - G-09: Expose failures in InfraGuard itself through staleness and integration state.
 
@@ -145,7 +145,7 @@ An on-call developer asks how to recover the database or restart a failed servic
 
 ## 7. Current Product Baseline
 
-The following capabilities exist in the repository as of 20 July 2026.
+The following capabilities exist in the repository as of 29 August 2026.
 
 | Capability | Current implementation |
 |---|---|
@@ -160,13 +160,13 @@ The following capabilities exist in the repository as of 20 July 2026.
 | Stateful memory | Content-plus-ruleset fingerprint, acknowledgement TTL, automatic invalidation |
 | Notification | ntfy for high and critical verdicts |
 | Threat response | Deterministic log-pattern detection and operator-approved CrowdSec ban |
-| Runbooks | Local Markdown ingestion, local embeddings, ChromaDB retrieval, grounded chat |
+| Runbooks | Local Markdown ingestion, local embeddings, whole-document ChromaDB retrieval, and advisory answers conditioned on retrieved text with source titles |
 | User interface | Authenticated single-page dashboard with status, history, threats, runbooks, and integration state |
 | Security controls | Signed sessions, rate limiting, security headers, audit log, escaped dynamic dashboard content |
 | Delivery | Docker Compose, Terraform for GCP, and GitHub Actions build/test/deploy workflows |
-| Test evidence | 53 passing tests; 56% overall line coverage measured on 20 July 2026 |
+| Test evidence | 180 passing source-scoped tests; 89% overall line coverage across 1,655 statements with 190 missed, measured on 29 August 2026; six selected modules at 100%, orchestrator at 95%, and store at 94% |
 
-The automated test result is evidence of implemented behavior, not evidence of production availability or diagnostic accuracy. Live integration, fault-injection, security, usability, and recovery testing remain separate release activities.
+The automated test result is evidence of selected implemented behaviour, not by itself evidence of production availability, attack resistance, or diagnostic accuracy. A separate frozen qwen2.5:3b benchmark measured 40.3% agreement with researcher-defined severity labels for one configuration; the labels were not independently adjudicated, so the result does not establish diagnostic truth or field efficacy. Live integration, fault-injection, security, population-level usability, and recovery testing remain separate release activities.
 
 ## 8. Core User Journeys
 
@@ -183,7 +183,7 @@ The automated test result is evidence of implemented behavior, not evidence of p
 ### 8.2 Acknowledge a known condition
 
 1. Operator reviews an `ok` or `warning` verdict.
-2. Operator selects **Mark known** and may add a note.
+2. Operator selects **Mark known**, chooses an acknowledgement lifetime from 1 to 365 days, and may add a note through the API.
 3. The system stores the acknowledgement against the verdict fingerprint.
 4. Future matching low-risk verdicts are marked acknowledged and suppressed from the default view.
 5. Changing the signature, prompt version, or model creates a different fingerprint and reopens evaluation.
@@ -255,15 +255,15 @@ Priority uses MoSCoW: **Must**, **Should**, **Could**, and **Won't (current rele
 | FR-031 | Show evidence before an enforcement action | Must | Threat card identifies pattern, IP, occurrence count, and description | Implemented |
 | FR-032 | Require operator approval for IP blocking | Must | No CrowdSec decision is submitted merely because a threat was detected | Implemented |
 | FR-033 | Provide safe dry-run behavior | Must | With no CrowdSec URL, the API returns a successful dry-run result and performs no ban | Implemented |
-| FR-034 | Validate source IPs and prevent repeated duplicate bans | Must | Only valid public/private IP values accepted by policy can be submitted; an active equivalent decision is not duplicated | Not implemented; production blocker |
+| FR-034 | Validate a selected threat and prevent repeated duplicate bans | Must | Type/IP is policy-valid and present in a fresh server-side detection; an active equivalent CrowdSec decision is not duplicated | Partially implemented: type/IP policy validation and fresh server-derived matching are tested; active-decision deduplication remains a production blocker |
 
 ### 9.5 Runbook assistant
 
 | ID | Requirement | Priority | Acceptance criteria | Status |
 |---|---|---|---|---|
-| FR-040 | Index local Markdown runbooks | Must | Authenticated re-index returns a document count and preserves usable index data | Implemented |
-| FR-041 | Answer questions only from retrieved runbooks | Must | Prompt forbids unsupported answers and reports when no relevant runbook exists | Implemented |
-| FR-042 | Display answer sources | Should | Each response includes retrieved runbook titles and page identifiers | Implemented |
+| FR-040 | Index local Markdown runbooks | Must | Authenticated re-index synchronises changed and deleted runbooks without duplicates, returns the active document count, and reports refresh failures | Implemented |
+| FR-041 | Condition advisory answers on retrieved runbooks | Must | Up to four whole retrieved documents and the question are bounded as untrusted data; no claim of factual support is inferred from retrieval alone | Implemented; answer-support validation remains an evaluation gap |
+| FR-042 | Display answer sources | Should | Each response includes retrieved runbook source titles | Implemented |
 | FR-043 | Show index freshness and last successful index result | Should | Dashboard shows indexed-document count, timestamp, and last error | Not implemented |
 
 ### 9.6 Dashboard and operations
@@ -285,13 +285,13 @@ Priority uses MoSCoW: **Must**, **Should**, **Could**, and **Won't (current rele
 | NFR-003 | Performance | Non-LLM dashboard API requests should achieve p95 under 500 ms on the target VM; runbook queries should return within 20 s | Targets not load-tested |
 | NFR-004 | Reliability | One telemetry or LLM failure must not terminate the scheduler; failed analysis must create an explicit degraded warning | Implemented and unit-tested |
 | NFR-005 | Security | Production traffic must use TLS; cookies must be `Secure`, `HttpOnly`, and `SameSite`; state-changing routes must have CSRF/origin protection | Partial; TLS and explicit CSRF/origin control are deployment blockers |
-| NFR-006 | Secrets | Production credentials must come from a secret manager or workload identity, not a long-lived JSON key on disk | Not met; current deployment mounts a key file |
+| NFR-006 | Secrets | Production credentials must come from a secret manager or workload identity, not a long-lived JSON key on disk | Not met for production; the demo workflow uses a deploy-time service-account secret and writes runtime values to a VM-local `.env` file; no key file is mounted in the application containers |
 | NFR-007 | Privacy | Configurable redaction and allowlisting must remove secrets, tokens, personal data, and unnecessary log content before any external LLM call | Not implemented; production blocker for sensitive workloads |
 | NFR-008 | Data protection | Verdict database and vector index require documented backup, restore, file permissions, and encryption-at-rest policy | Not documented/tested |
 | NFR-009 | Auditability | Enforcement and acknowledgement actions must be attributable and retained; production audit logs should resist silent alteration | Attribution exists; tamper resistance does not |
 | NFR-010 | Scalability | Current release supports one agent and one SQLite store; the UI should remain responsive while LLM work executes | Single-site scope documented; blocking API work moved to threads |
 | NFR-011 | Deployability | Local startup must use one documented Compose command; cloud deployment must support rollback without avoidable downtime | Local path works; current cloud workflow runs `compose down` and lacks automatic rollback |
-| NFR-012 | Maintainability | CI must run tests on pull requests; core business rules should reach at least 80% coverage and overall coverage should increase from the 56% baseline | CI exists; adapter and live-integration coverage remains low |
+| NFR-012 | Maintainability | CI must run tests on pull requests; supervisor-targeted paths should reach 100% coverage and overall coverage should increase from the dated 66% baseline | Met for the 29 August source-scoped suite: 180 tests pass, six selected modules are at 100%, the orchestrator is at 95%, the store is at 94%, and overall coverage is 89%; live-integration coverage remains a separate gap |
 | NFR-013 | Accessibility | Keyboard navigation, focus visibility, labels, contrast, and screen-reader semantics should meet WCAG 2.1 AA for core workflows | Not formally audited |
 | NFR-014 | Cost control | Heartbeat, telemetry limits, prompt size, and model usage must be configurable; daily model spend must be measurable | Limits configurable; cost telemetry not implemented |
 
@@ -328,10 +328,10 @@ Logs and raw LLM payloads can contain identifiers, internal hostnames, customer 
 ### 11.4 AI limitations
 
 - A structured answer can still be factually wrong or incomplete.
-- The stable signature is model-generated when available; poor signature consistency can reduce memory accuracy.
+- The canonical signature is model-generated when available; the measured 41.7% repeat-stability means dependable semantic identity is unresolved.
 - Empty or misleading telemetry produces correspondingly weak conclusions.
 - The current model is a single external provider dependency.
-- No formal diagnostic-accuracy benchmark has yet been completed.
+- The frozen benchmark measured 40.3% agreement with researcher-defined severity labels for one evaluated local-model configuration. The labels were not independently adjudicated; the result is inadequate for unattended triage and does not establish real-world diagnostic efficacy.
 
 ## 12. Security Model
 
@@ -350,10 +350,10 @@ Logs and raw LLM payloads can contain identifiers, internal hostnames, customer 
 ### 12.2 Known security gaps
 
 - One environment-configured administrator; no RBAC, account lifecycle, or MFA.
-- Production workflow mounts a long-lived Google service-account key.
+- The deployment workflow authenticates with a long-lived Google service-account secret and writes runtime values to a VM-local `.env` file; the application containers do not mount the key.
 - No explicit CSRF token/origin validation on state-changing routes.
 - CSP permits inline scripts and styles.
-- CrowdSec source-IP validation and decision deduplication require hardening.
+- CrowdSec type/IP validation and fresh server-side threat matching are implemented; active-decision deduplication still requires hardening.
 - Docker socket access grants powerful host visibility even when mounted read-only.
 - Local audit logs are not tamper-evident.
 - No application-level encryption for stored verdict payloads or runbook vectors.
@@ -367,7 +367,7 @@ Logs and raw LLM payloads can contain identifiers, internal hostnames, customer 
 - One independent agent container.
 - Shared SQLite volume.
 - ChromaDB persistent volume mounted by the API.
-- Read-only credential directory mounted into both containers.
+- Runtime configuration supplied to both containers from the local `.env` file; no credential directory is mounted.
 - Optional Docker socket mounted into the agent.
 - External Loki, Prometheus, the selected model API, ntfy, CrowdSec, and probe targets.
 
@@ -408,7 +408,7 @@ The production owner must document how to:
 | Memory invalidation correctness | Changed condition/ruleset reopens after acknowledgement | 100% in test scenarios |
 | Threat detection precision | Confirmed supported threats / displayed supported threats | >= 90% in controlled replay |
 | Enforcement safety | CrowdSec actions made without operator confirmation | 0 |
-| Runbook groundedness | Answers fully supported by displayed sources | >= 90% on a labelled question set |
+| Runbook answer support | Answers fully supported by displayed sources under a retained independent item-level rubric | >= 90% on a labelled question set |
 | Notification delivery | Successful high/critical ntfy requests | >= 99% when provider is available |
 | Usability | System Usability Scale score from 3-5 representative users | >= 70 |
 | Model cost | Daily and per-verdict inference cost | Measured and accepted before production |
@@ -434,20 +434,20 @@ The production owner must document how to:
 |---|---|---|
 | Core monitoring workflow | Functional | Implemented collectors, orchestrator, persistence, dashboard |
 | Stateful memory | Functional | Fingerprint/TTL logic and severe-alert protection are tested |
-| Automated tests | Moderate | 53 tests pass; 56% total coverage; live adapters remain weakly covered |
-| User experience | Functional but not formally validated | Core workflows exist; usability and accessibility testing pending |
+| Automated tests | Strong source-scoped coverage; live integration still limited | 180 tests pass; 89% total coverage across 1,655 statements with 190 missed; six selected modules are at 100%, orchestrator is at 95%, and store is at 94%; external dependencies remain mocked in the controlled suite |
+| User experience | Descriptive SUS evidence only | Ten complete convenience-sample SUS responses support favourable perceived usability in that group only. Practitioner role reports are qualitative material; their aggregate scores and kappas are excluded because assessor-by-item ratings are unavailable. Accessibility testing remains pending. |
 | Security | Suitable for local/staging pilot | Important production controls remain incomplete |
 | Operational resilience | Prototype level | Single host, liveness-only health, no tested backup/restore or automatic rollback |
-| AI quality | Unproven for production | Guardrails exist; no labelled accuracy benchmark or long-running pilot |
+| AI quality | Frozen single-configuration benchmark completed; operational validity unresolved | 40.3% researcher-label agreement and macro-F1 0.383 reject unattended triage for the evaluated qwen2.5:3b configuration; no independent gold-label adjudication or long-running field pilot has been completed |
 | Compliance readiness | Not established | Data classification, redaction, audit retention, and governance pending |
 
 ### 15.2 P0 gates before a production pilot
 
 - P0-01: Put the dashboard behind TLS and set `SESSION_COOKIE_SECURE=1`.
 - P0-02: Add CSRF tokens or strict origin validation to all state-changing routes.
-- P0-03: Replace the mounted long-lived GCP key with workload identity or managed secrets.
+- P0-03: Replace the deploy-time long-lived service-account secret and VM-local `.env` materialisation with workload identity and managed secrets; no application-container key mount exists in the current demo.
 - P0-04: Add telemetry redaction/allowlisting before LLM and persistence boundaries.
-- P0-05: Validate IP addresses and deduplicate CrowdSec decisions.
+- P0-05: Add active CrowdSec-decision lookup/deduplication; type/IP validation and fresh server-side threat matching are already implemented.
 - P0-06: Add a dependency-aware readiness endpoint and monitor agent heartbeat externally.
 - P0-07: Implement and test SQLite/Chroma backup and restore.
 - P0-08: Replace `compose down` deployment with health-checked replacement and documented rollback.
@@ -497,10 +497,10 @@ The production owner must document how to:
 
 | Risk | Impact | Current mitigation | Required next action |
 |---|---|---|---|
-| LLM gives a plausible but wrong diagnosis | Incorrect operator action | Bounded prompt, fixed schema, evidence-focused output, human review | Labelled accuracy benchmark and evidence links in UI |
+| LLM gives a plausible but wrong diagnosis | Incorrect operator action | Bounded prompt, strict five-field schema, evidence-focused output, human review, and a frozen benchmark showing only 40.3% agreement with researcher-defined labels for one configuration | Add independent label adjudication, extend evaluation across models and live fault scenarios, and add evidence links in the UI |
 | Sensitive logs leave the environment | Privacy or compliance breach | Self-hosted control plane; limited telemetry window | Redaction/allowlist and formal data policy |
 | Operator acknowledgement hides a changed fault | Missed incident | Fingerprint includes condition and ruleset; severe verdicts cannot be suppressed; TTL | Measure signature stability and add deterministic signatures for key signals |
-| Threat detector blocks a legitimate IP | Availability/security harm | Human confirmation and dry-run mode | IP validation, allowlist, decision deduplication, auditable confirmation |
+| Threat detector blocks a legitimate IP | Availability/security harm | Human confirmation, dry-run mode, IP policy validation, and fresh server-side evidence matching | Add an explicit allowlist, active-decision deduplication, and stronger auditable confirmation |
 | Monitoring agent silently stops | False sense of safety | Dashboard stale banner | External heartbeat alert and dependency readiness |
 | Docker socket is abused | Host compromise | Feature is opt-in; mount marked read-only | Remove mount when disabled; use a constrained proxy where enabled |
 | Model API or telemetry service is unavailable | Degraded analysis | Tool errors represented; loop continues | Dependency SLOs, retry/backoff, readiness, and clear UI errors |
@@ -553,13 +553,13 @@ The production owner must document how to:
 | GET | `/api/threats` | Scan recent Loki logs for supported threat patterns |
 | POST | `/api/threats/apply` | Apply or dry-run an operator-approved CrowdSec decision |
 | POST | `/api/runbooks/index` | Re-index local Markdown runbooks |
-| POST | `/api/runbooks/query` | Ask the grounded runbook assistant |
+| POST | `/api/runbooks/query` | Ask the runbook assistant for an advisory answer conditioned on retrieved text with source titles |
 
 ## 20. Definition of Done
 
 The current product is considered ready for a **controlled pilot** when:
 
-1. all 53 automated tests still pass in CI;
+1. the current source-scoped suite (180 tests at the 29 August snapshot) still passes in CI, with any later count reconciled before release;
 2. all P0 release gates in Section 15.2 are complete;
 3. the live integration and fault-injection exercises pass with recorded evidence;
 4. no high or critical scenario can be hidden through acknowledgement;
