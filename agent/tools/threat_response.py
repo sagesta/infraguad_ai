@@ -87,8 +87,10 @@ def analyze_threats(loki_logs: list[dict[str, Any]]) -> dict[str, Any]:
             for ip in _extract_ips(line):
                 ip_ssh_fail[ip] = ip_ssh_fail.get(ip, 0) + 1
 
-        # Detect port scanning (rapid connection attempts)
-        if "connection refused" in line_lower or "syn" in line_lower:
+        # Detect port scanning (rapid connection attempts).
+        # Use word-boundary match for "syn" to avoid false positives on
+        # common words like "sync", "async", "syntax", "synthesize".
+        if "connection refused" in line_lower or re.search(r"\bsyn\b", line_lower):
             for ip in _extract_ips(line):
                 ip_connection[ip] = ip_connection.get(ip, 0) + 1
 
