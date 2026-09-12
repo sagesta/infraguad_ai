@@ -227,6 +227,7 @@ def test_login_brute_force_is_rate_limited() -> None:
 
 def test_ack_acknowledges_and_suppresses_warning(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "ack.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     asyncio.run(store.init_db())
     asyncio.run(store.insert_verdict({"severity": "warning", "summary": "Disk low", "signature": "prometheus:disk-low:/"}))
     fp = compute_fingerprint("prometheus:disk-low:/")
@@ -271,6 +272,7 @@ def test_ack_unknown_fingerprint_404(tmp_path, monkeypatch) -> None:
 
 def test_cannot_acknowledge_critical(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "ack3.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     asyncio.run(store.init_db())
     asyncio.run(store.insert_verdict({"severity": "critical", "summary": "Outage", "signature": "loki:down:api"}))
     fp = compute_fingerprint("loki:down:api")
@@ -282,6 +284,7 @@ def test_cannot_acknowledge_critical(tmp_path, monkeypatch) -> None:
 
 def test_unack_reopens_condition(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "unack.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     asyncio.run(store.init_db())
     asyncio.run(store.insert_verdict({"severity": "warning", "summary": "Disk low", "signature": "prometheus:disk-low:/"}))
     fp = compute_fingerprint("prometheus:disk-low:/")

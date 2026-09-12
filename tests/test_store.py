@@ -127,6 +127,7 @@ async def test_acknowledge_suppresses_warning_only(
 ) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "verdicts.db"))
     monkeypatch.setenv("ACK_TTL_DAYS", "12")
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     await store.init_db()
     await store.insert_verdict({"severity": "warning", "summary": "Disk low", "signature": "prometheus:disk-low:/"})
     fp = compute_fingerprint("prometheus:disk-low:/")
@@ -180,6 +181,7 @@ async def test_delete_ack_reopens_condition(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "verdicts.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     await store.init_db()
     await store.insert_verdict({"severity": "warning", "summary": "S", "signature": "a:b:c"})
     fp = compute_fingerprint("a:b:c")
@@ -201,6 +203,7 @@ async def test_fetch_verdict_by_fingerprint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "verdicts.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     await store.init_db()
     await store.insert_verdict({"severity": "warning", "summary": "S", "signature": "a:b:c"})
     fp = compute_fingerprint("a:b:c")

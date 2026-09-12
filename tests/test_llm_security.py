@@ -299,6 +299,7 @@ def test_analysis_pipeline_alert_cannot_be_acknowledged(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "pipeline-alert.db"))
+    monkeypatch.setattr(store, "active_model", lambda: "gemini-3.6-flash")
     asyncio.run(store.init_db())
     asyncio.run(
         store.insert_verdict(

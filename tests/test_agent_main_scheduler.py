@@ -173,6 +173,7 @@ async def test_heartbeat_logs_cycle_failure_and_keeps_scheduling(
     monkeypatch.setattr(agent_main, "_load_env", MagicMock())
     monkeypatch.setattr(agent_main, "init_db", AsyncMock())
     monkeypatch.setattr(agent_main, "docker_monitoring_enabled", lambda: False)
+    monkeypatch.delenv("HEARTBEAT_INTERVAL_SECONDS", raising=False)
     monkeypatch.setattr(
         agent_main,
         "fetch_current_ruleset_acks",
