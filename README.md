@@ -1,12 +1,12 @@
 # InfraGuard AI
 
-**InfraGuard AI** is an intelligent, self-hosted DevSecOps observability agent. It continuously monitors your infrastructure (web apps, containers, and VMs) and acts as an automated Site Reliability Engineer (SRE). Instead of just showing you dashboards, InfraGuard uses AI to read logs, analyze metrics, and automatically determine if your system is healthy, under attack, or failing.
+InfraGuard AI is a self-hosted observability assistant. It continuously collects logs, metrics and probe results from your infrastructure and uses an LLM to produce a structured health verdict for an engineer to act on.
 
 ---
 
 ## Basic Explanation & App Flow
 
-<img width="425" height="306" alt="image" src="https://github.com/user-attachments/assets/354f2357-90d9-472b-b63f-b8decd700ee3" />
+![InfraGuard AI app flow diagram](https://github.com/user-attachments/assets/354f2357-90d9-472b-b63f-b8decd700ee3)
 
 
 How does InfraGuard AI work?
@@ -22,6 +22,21 @@ How does InfraGuard AI work?
 5. **Dashboard**: The secure **InfraGuard Dashboard** (served by the API on port **8080**) shows the current verdict, integration status chips, a check history, threat detection, and a runbook chat assistant. If the agent stops reporting, a stale-data banner appears.
 6. **Threat Detection & Response**: The API scans recent Loki logs (up to 500 lines) for HTTP brute force, SSH brute force, and port-scan patterns. Each detected threat gets a **Block IP** button — one click builds a CrowdSec ban decision server-side and applies it via the CrowdSec Local API. Without CrowdSec configured, the action runs in **dry-run** mode (logged, not applied).
 7. **Runbook Context (RAG)**: Markdown runbooks under `./runbooks` are embedded locally, indexed in **ChromaDB**, and queried from the dashboard chat. Use the **⟳ Re-index** button after adding or changing a runbook.
+
+---
+
+## Scope and limits
+
+- Verdict generation, SQLite storage and retention pruning run automatically. Notifications for `high` and `critical` verdicts are automatic when `NTFY_TOPIC` is configured.
+- Remediation and containment are not automatic. An operator must click **Block IP** and confirm, or explicitly call the authenticated `/api/threats/apply` endpoint, to request a CrowdSec ban. The action runs in dry-run mode when `CROWDSEC_API_URL` is unset. Live decisions require machine credentials, and traffic blocking requires a bouncer or firewall integration.
+- This is an exploratory research project from a Master's programme and has no measured production impact.
+- LLM output is HTML-escaped in the dashboard before rendering.
+
+## Documentation
+
+- [Running guide](docs/RUNNING_GUIDE.md)
+- [System architecture](docs/system_architecture.md)
+- [Project notes](docs/project-notes/)
 
 ---
 
@@ -97,12 +112,15 @@ Tunnel can publish the DevPlanner web/API and InfraGuard dashboard without
 opening their ports publicly.
 
 ### Production Deployment (GitHub Actions → GCE)
-The `.github/workflows/deploy.yml` pipeline runs on every push to `main`:
+The `.github/workflows/deploy.yml` pipeline:
+
 1. Runs the test suite (`pytest`).
 2. Builds the `agent` and `api` images and pushes them to Google Artifact Registry.
 3. SSHs into your VM, regenerates `.env` from GitHub Secrets (including `NTFY_TOPIC` and `PROBE_URLS`), and restarts Docker Compose.
 
-Pull requests run tests via `.github/workflows/test.yml`.
+Tests run on every push to `main` and every pull request targeting `main` via `.github/workflows/test.yml`; GCE deployment is triggered manually.
+
+Required GitHub Actions deployment secrets: `GCP_SA_KEY`, `GCP_REGION`, `GCP_PROJECT_ID`, `ARTIFACT_REGISTRY_REPO`, `GCP_VM_IP`, `GCP_VM_USER` and `VM_SSH_KEY`, plus the application secrets used by the workflow.
 
 ### Indexing Local Runbooks
 Add Markdown files under `./runbooks`, then click **⟳ Re-index** on the dashboard's Runbook Assistant card or call the endpoint directly:

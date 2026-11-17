@@ -1,8 +1,8 @@
+# Manual deploy to a GCE VM. Requires the GCP_* and VM secrets listed in README.
 name: Deploy InfraGuard AI
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: infraguard-ai

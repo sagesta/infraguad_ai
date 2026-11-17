@@ -227,8 +227,8 @@ These features form the backbone of the master's project contribution. Without t
 
 ### 5.1 Documentation
 - [ ] Update `README.md` with InfraGuard Pro features and setup
-- [ ] Update `CONTEXT.md` with new modules and endpoints
-- [ ] Update `system_architecture.md` with remediation pipeline
+- [ ] Update `docs/project-notes/CONTEXT.md` with new modules and endpoints
+- [ ] Update `docs/system_architecture.md` with remediation pipeline
 - [ ] Write API documentation (Swagger/OpenAPI)
 
 ### 5.2 Master's Report Finalisation

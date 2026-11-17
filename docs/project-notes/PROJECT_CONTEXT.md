@@ -183,21 +183,21 @@ infraguad_ai/
   .env.example              # Environment variable template
   docker-compose.yml        # 2-service stack (api + agent)
   requirements.txt          # Python dependencies
-  CONTEXT.md                # Technical assistant context (existing)
+  docs/project-notes/CONTEXT.md  # Technical assistant context (existing)
   README.md                 # User-facing README
-  prd.md                    # Product requirements document
-  system_architecture.md    # Architecture with Mermaid diagram
+  docs/project-notes/prd.md      # Product requirements document
+  docs/system_architecture.md    # Architecture with Mermaid diagram
 ```
 
 ## Relationship Between Documents
 
 | Document | Purpose | Audience |
 |----------|---------|----------|
-| `PROJECT_CONTEXT.md` (this file) | Complete project state and decisions | Developer / supervisor |
-| `CONTEXT.md` | Technical assistant context for LLM tools | AI coding assistants |
+| `docs/project-notes/PROJECT_CONTEXT.md` (this file) | Complete project state and decisions | Developer / supervisor |
+| `docs/project-notes/CONTEXT.md` | Technical assistant context for LLM tools | AI coding assistants |
 | `README.md` | Setup and usage | Developers / evaluators |
-| `RUNNING_GUIDE.md` | Step-by-step demo and sampling guide | Supervisor / examiner |
-| `TODO.md` | Remaining implementation work | Developer |
-| `prd.md` | Product requirements | Stakeholders |
-| `system_architecture.md` | Architecture diagram and rationale | Technical reviewers |
+| `docs/RUNNING_GUIDE.md` | Step-by-step demo and sampling guide | Supervisor / examiner |
+| `docs/project-notes/TODO.md` | Remaining implementation work | Developer |
+| `docs/project-notes/prd.md` | Product requirements | Stakeholders |
+| `docs/system_architecture.md` | Architecture diagram and rationale | Technical reviewers |
 | `docs/masters_project/` | Full academic report (25k+ words) | University submission |

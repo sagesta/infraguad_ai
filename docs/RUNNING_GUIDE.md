@@ -218,7 +218,7 @@ Use this sequence to demonstrate the platform to a supervisor or examiner.
 
 ### Step 1: Show the Architecture
 
-Open `system_architecture.md` and walk through the Mermaid diagram. Key points:
+Open `docs/system_architecture.md` and walk through the Mermaid diagram. Key points:
 - Telemetry flows in from Prometheus, Loki, Docker, and HTTP probes.
 - LangGraph orchestrator coordinates the reasoning pipeline.
 - Gemini, Anthropic, OpenAI, or Ollama provides LLM inference.
